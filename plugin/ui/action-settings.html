@@ -228,6 +228,7 @@
       <div class="dot"></div>
       <div id="statusText" class="status-text">Configure an API key to begin.</div>
     </div>
+    <div id="capabilityHint" class="hint hidden"></div>
 
     <label for="apiKey">Private API key</label>
     <input id="apiKey" type="password" autocomplete="off" placeholder="Same key used in &api=KEY">
@@ -500,7 +501,7 @@
     <label for="mixerCommand">Control</label>
     <select id="mixerCommand">
       <option value="layout">Mixer layout</option>
-      <option value="setGuestSlot">Assign guest to slot</option>
+      <option value="setGuestSlot">Assign guest to mixer slot</option>
       <option value="muteAllGuests">Mute all guests</option>
       <option value="transferAllGuests">Transfer all guests</option>
     </select>
@@ -512,17 +513,18 @@
     </div>
 
     <div id="mixerTargetGroup" class="hidden">
-      <label for="mixerTargetMode">Source guest</label>
+      <label for="mixerTargetMode">Guest source</label>
       <select id="mixerTargetMode">
-        <option value="slot">Current guest slot</option>
+        <option value="slot">Guest position</option>
         <option value="streamId">Stream ID</option>
         <option value="selected">Selected guest</option>
         <option value="firstHeld">First held guest</option>
       </select>
 
       <div id="mixerGuestSlotGroup">
-        <label for="mixerGuestSlot">Source guest slot</label>
+        <label for="mixerGuestSlot">Guest position</label>
         <input id="mixerGuestSlot" type="number" min="1" step="1" placeholder="1">
+        <div class="hint">Uses the same current guest ordering as other Stream Deck guest actions.</div>
       </div>
 
       <div id="mixerStreamGroup" class="hidden">
@@ -535,7 +537,7 @@
         <input id="manualMixerStreamId" class="hidden" type="text" placeholder="stream ID or UUID">
       </div>
 
-      <label for="mixerDestinationSlot">Destination slot</label>
+      <label for="mixerDestinationSlot">Destination mixer slot</label>
       <input id="mixerDestinationSlot" type="number" min="0" step="1" placeholder="1">
       <div class="hint"><code>0</code> unsets the guest slot. Destination slots are VDO.Ninja slot numbers, not zero-based layout slot indexes.</div>
     </div>
@@ -560,7 +562,7 @@
 
     <label class="inline">
       <input id="mixerDangerousConfirm" type="checkbox" checked>
-      Double-press transfer all
+      Require second press for transfer all
     </label>
   </section>
 
@@ -837,6 +839,8 @@
     let bound = false;
     let qrVisible = false;
     let keyVisible = false;
+    let latestConnectionState = "";
+    let latestCapabilities = null;
 
     window.connectElgatoStreamDeckSocket = function(port, uuid, registerEvent, info, actionInfo) {
       pluginUuid = uuid;
@@ -1039,6 +1043,7 @@
         byId("customTitle").value = actionSettings.title || "";
         byId("awaitCallback").checked = actionSettings.awaitCallback !== false;
       }
+      renderCapabilityHint();
     }
 
     function bind() {
@@ -1458,6 +1463,7 @@
       } else {
         return;
       }
+      renderCapabilityHint();
       send({ event: "setSettings", context: actionContext, payload: actionSettings });
     }
 
@@ -1795,10 +1801,13 @@
       if (payload.type === "status" || payload.type === "connectionTestResult") {
         const state = payload.state || "";
         const ok = payload.ok === true;
+        latestConnectionState = state;
+        latestCapabilities = payload.capabilities && typeof payload.capabilities === "object" ? payload.capabilities : null;
         updateStatus(
           ok ? "ok" : state === "no-page" || state === "timeout" || state === "connecting" ? "warn" : "error",
           (payload.message || statusMessage(state)) + transportStatusSuffix(payload.transport)
         );
+        renderCapabilityHint();
       } else if (payload.type === "openUrlResult") {
         updateCopyState(payload.message || (payload.ok ? "Opened URL." : "Could not open URL."));
       } else if (payload.type === "targetChoices") {
@@ -1839,6 +1848,48 @@
       if (bufferedAmount) parts.push(Math.ceil(bufferedAmount / 1024) + " KB queued");
       if (skipped) parts.push(skipped + " skipped");
       return " WS " + parts.join(", ");
+    }
+
+    function renderCapabilityHint() {
+      const hint = capabilityHintText();
+      byId("capabilityHint").textContent = hint;
+      byId("capabilityHint").classList.toggle("hidden", !hint);
+    }
+
+    function capabilityHintText() {
+      if (!latestCapabilities || latestConnectionState !== "connected") return "";
+
+      const actionNeedsDirector =
+        actionUuid === "ninja.vdo.streamdeck.guest-command" ||
+        actionUuid === "ninja.vdo.streamdeck.guest-scene" ||
+        actionUuid === "ninja.vdo.streamdeck.mixer-control";
+      if (actionNeedsDirector && latestCapabilities.director !== true) {
+        return "This action needs a director or mixer page. Open VDO.Ninja with ?director=ROOM&api=KEY, or use /mixer?director=ROOM&api=KEY for mixer and slot workflows.";
+      }
+
+      if (actionUuid === "ninja.vdo.streamdeck.mixer-control" && byId("mixerCommand").value === "setGuestSlot" && latestCapabilities.slotmode !== true && latestCapabilities.slotmode !== 1) {
+        if (latestCapabilities.slotmodeKnown) {
+          return "Slot controls are not reported as enabled. Open the director with &slotmode=1, or use /mixer?director=ROOM&api=KEY.";
+        }
+        return "Slot assignment needs slot controls. Open the director with &slotmode=1, or use /mixer?director=ROOM&api=KEY.";
+      }
+
+      const isPtzAction = actionUuid === "ninja.vdo.streamdeck.ptz-key" || actionUuid === "ninja.vdo.streamdeck.ptz-dial";
+      if (isPtzAction) {
+        const scopeId = actionUuid === "ninja.vdo.streamdeck.ptz-key" ? "ptzScope" : "ptzDialScope";
+        const scope = byId(scopeId).value || "local";
+        if (scope === "local" && latestCapabilities.ptz !== true) {
+          if (latestCapabilities.ptzKnown) {
+            return "Local PTZ is not reported as enabled. Load the controlled camera page with &ptz and approve browser PTZ permission.";
+          }
+          return "Local camera PTZ needs the controlled camera page loaded with &ptz and browser PTZ permission granted.";
+        }
+        if (scope === "guest") {
+          return "Guest PTZ needs the guest publisher loaded with &ptz and the browser PTZ prompt approved. Director and mixer pages can send guest ptzZoom, ptzPan, and ptzTilt commands once the guest is connected.";
+        }
+      }
+
+      return "";
     }
 
     function updateStatus(kind, message) {

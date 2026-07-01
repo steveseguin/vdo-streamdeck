@@ -75,6 +75,10 @@ export interface StreamState extends JsonObject {
 	videoVolume?: number;
 	position?: number | null;
 	slot?: number | boolean;
+	slotmode?: number | boolean;
+	ptz?: boolean;
+	ptzSlider?: boolean;
+	remote?: boolean;
 }
 
 export interface GuestListEntry extends JsonObject {
@@ -87,6 +91,7 @@ export interface StreamChoice extends JsonObject {
 	UUID?: string;
 	label: string;
 	position?: number;
+	slot?: number | boolean;
 	localStream?: boolean;
 	held?: boolean;
 	handRaised?: boolean;

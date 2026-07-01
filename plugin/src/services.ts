@@ -145,6 +145,7 @@ async function sendInspectorStatus(type: string, ok?: boolean, message?: string)
 		state: vdoClient.connectionState,
 		streamCount: sessionStore.getStreamCount(),
 		transport: vdoClient.getTransportStats(),
+		capabilities: getInspectorCapabilities(),
 		message: message || statusMessage(vdoClient.connectionState)
 	});
 }
@@ -181,6 +182,19 @@ function statusMessage(state: ConnectionStateName): string {
 		return "The API connection reported an error.";
 	}
 	return "Disconnected from the API relay.";
+}
+
+function getInspectorCapabilities(): JsonObject {
+	const local = sessionStore.getLocalStream();
+	return {
+		director: local?.director === true,
+		slotmodeKnown: typeof local?.slotmode !== "undefined",
+		slotmode: typeof local?.slotmode === "number" ? local.slotmode : local?.slotmode === true,
+		ptzKnown: typeof local?.ptz !== "undefined",
+		ptz: local?.ptz === true,
+		ptzSlider: local?.ptzSlider === true,
+		remote: local?.remote === true
+	};
 }
 
 function isHttpUrl(value: string): boolean {

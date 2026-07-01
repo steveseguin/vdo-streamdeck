@@ -9,6 +9,9 @@ const assets = {
 	custom: { bg: [26, 30, 40], fg: [245, 158, 11], mark: "bolt" },
 	guest: { bg: [20, 24, 32], fg: [99, 102, 241], mark: "person" },
 	local: { bg: [20, 24, 32], fg: [53, 208, 127], mark: "screen" },
+	mixer: { bg: [18, 23, 33], fg: [53, 208, 127], mark: "mixer" },
+	"mixer-off": { bg: [18, 23, 33], fg: [71, 85, 105], mark: "mixer-off" },
+	"mixer-on": { bg: [16, 107, 63], fg: [255, 255, 255], mark: "mixer-on" },
 	plugin: { bg: [20, 23, 31], fg: [53, 208, 127], mark: "camera" },
 	ptz: { bg: [18, 23, 33], fg: [56, 189, 248], mark: "cross" },
 	scene: { bg: [18, 23, 33], fg: [168, 85, 247], mark: "layers" },
@@ -101,6 +104,40 @@ function drawMark(pixels, mark, color) {
 				drawRoundedRect(pixels, x, y, 24, 24, 5, color);
 			}
 		}
+		return;
+	}
+	if (mark === "mixer") {
+		const muted = [15, 23, 42];
+		drawRoundedRect(pixels, 24, 26, 42, 38, 7, color);
+		drawRoundedRect(pixels, 78, 26, 42, 38, 7, [96, 165, 250]);
+		drawRoundedRect(pixels, 24, 80, 42, 38, 7, [168, 85, 247]);
+		drawRoundedRect(pixels, 78, 80, 42, 38, 7, [250, 204, 21]);
+		drawRect(pixels, 35, 45, 20, 6, muted);
+		drawRect(pixels, 89, 45, 20, 6, muted);
+		drawRect(pixels, 35, 99, 20, 6, muted);
+		drawRect(pixels, 89, 99, 20, 6, muted);
+		drawRing(pixels, 72, 72, 13, 5, [255, 255, 255]);
+		return;
+	}
+	if (mark === "mixer-off") {
+		drawRoundedRect(pixels, 24, 26, 42, 38, 7, color);
+		drawRoundedRect(pixels, 78, 26, 42, 38, 7, [51, 65, 85]);
+		drawRoundedRect(pixels, 24, 80, 42, 38, 7, [51, 65, 85]);
+		drawRoundedRect(pixels, 78, 80, 42, 38, 7, color);
+		drawRing(pixels, 72, 72, 13, 5, [148, 163, 184]);
+		return;
+	}
+	if (mark === "mixer-on") {
+		const muted = [16, 107, 63];
+		drawRoundedRect(pixels, 24, 26, 42, 38, 7, color);
+		drawRoundedRect(pixels, 78, 26, 42, 38, 7, [191, 219, 254]);
+		drawRoundedRect(pixels, 24, 80, 42, 38, 7, [221, 214, 254]);
+		drawRoundedRect(pixels, 78, 80, 42, 38, 7, [254, 240, 138]);
+		drawRect(pixels, 35, 45, 20, 6, muted);
+		drawRect(pixels, 89, 45, 20, 6, muted);
+		drawRect(pixels, 35, 99, 20, 6, muted);
+		drawRect(pixels, 89, 99, 20, 6, muted);
+		drawRing(pixels, 72, 72, 13, 5, [255, 255, 255]);
 		return;
 	}
 	if (mark === "check") {

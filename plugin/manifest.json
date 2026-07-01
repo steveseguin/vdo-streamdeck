@@ -37,11 +37,13 @@
       "DisableAutomaticStates": true,
       "States": [
         {
+          "Name": "Waiting",
           "Image": "imgs/state-neutral",
           "Title": "VDO",
           "ShowTitle": true
         },
         {
+          "Name": "Connected",
           "Image": "imgs/state-on",
           "Title": "VDO",
           "ShowTitle": true
@@ -57,11 +59,13 @@
       "DisableAutomaticStates": true,
       "States": [
         {
+          "Name": "Inactive",
           "Image": "imgs/state-off",
           "Title": "Local",
           "ShowTitle": true
         },
         {
+          "Name": "Active",
           "Image": "imgs/state-on",
           "Title": "Local",
           "ShowTitle": true
@@ -77,11 +81,13 @@
       "DisableAutomaticStates": true,
       "States": [
         {
+          "Name": "No Target",
           "Image": "imgs/state-off",
           "Title": "Select",
           "ShowTitle": true
         },
         {
+          "Name": "Target Selected",
           "Image": "imgs/state-on",
           "Title": "Target",
           "ShowTitle": true
@@ -97,11 +103,13 @@
       "DisableAutomaticStates": true,
       "States": [
         {
+          "Name": "Inactive",
           "Image": "imgs/state-off",
           "Title": "Guest",
           "ShowTitle": true
         },
         {
+          "Name": "Active",
           "Image": "imgs/state-on",
           "Title": "Guest",
           "ShowTitle": true
@@ -117,11 +125,13 @@
       "DisableAutomaticStates": true,
       "States": [
         {
+          "Name": "Not In Scene",
           "Image": "imgs/state-off",
           "Title": "Scene",
           "ShowTitle": true
         },
         {
+          "Name": "In Scene",
           "Image": "imgs/state-on",
           "Title": "Scene",
           "ShowTitle": true
@@ -132,17 +142,19 @@
       "UUID": "ninja.vdo.streamdeck.mixer-control",
       "Name": "Mixer Control",
       "Tooltip": "Control VDO.Ninja mixer layouts, guest slots, all-guest mute, and all-guest transfer.",
-      "Icon": "imgs/category",
+      "Icon": "imgs/mixer",
       "Controllers": ["Keypad"],
       "DisableAutomaticStates": true,
       "States": [
         {
-          "Image": "imgs/state-off",
+          "Name": "Inactive",
+          "Image": "imgs/mixer-off",
           "Title": "Mixer",
           "ShowTitle": true
         },
         {
-          "Image": "imgs/state-on",
+          "Name": "Active",
+          "Image": "imgs/mixer-on",
           "Title": "Mixer",
           "ShowTitle": true
         }
@@ -157,11 +169,13 @@
       "DisableAutomaticStates": true,
       "States": [
         {
+          "Name": "Unavailable",
           "Image": "imgs/state-off",
           "Title": "PTZ",
           "ShowTitle": true
         },
         {
+          "Name": "Ready",
           "Image": "imgs/state-on",
           "Title": "PTZ",
           "ShowTitle": true
@@ -186,6 +200,7 @@
       },
       "States": [
         {
+          "Name": "Ready",
           "Image": "imgs/ptz",
           "Title": "PTZ",
           "ShowTitle": true
@@ -210,6 +225,7 @@
       },
       "States": [
         {
+          "Name": "Ready",
           "Image": "imgs/value",
           "Title": "Value",
           "ShowTitle": true
@@ -225,6 +241,7 @@
       "DisableAutomaticStates": true,
       "States": [
         {
+          "Name": "Ready",
           "Image": "imgs/state-neutral",
           "Title": "Command",
           "ShowTitle": true

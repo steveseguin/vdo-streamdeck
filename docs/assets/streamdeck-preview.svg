@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+	<title id="title">VDO.Ninja Stream Deck plugin preview</title>
+	<desc id="desc">A preview of Stream Deck keys for VDO.Ninja controls including connection, local controls, guest actions, mixer controls, PTZ, dials, and custom commands.</desc>
+	<defs>
+		<linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+			<stop offset="0" stop-color="#0f172a" />
+			<stop offset="1" stop-color="#111827" />
+		</linearGradient>
+		<linearGradient id="deck" x1="0" x2="0" y1="0" y2="1">
+			<stop offset="0" stop-color="#1f2937" />
+			<stop offset="1" stop-color="#0b1220" />
+		</linearGradient>
+		<filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+			<feDropShadow dx="0" dy="20" stdDeviation="20" flood-color="#000000" flood-opacity="0.35" />
+		</filter>
+		<style>
+			.text { font-family: "Segoe UI", Arial, sans-serif; fill: #e5e7eb; }
+			.muted { fill: #94a3b8; }
+			.key-title { font-size: 20px; font-weight: 700; text-anchor: middle; }
+			.key-sub { font-size: 13px; fill: #cbd5e1; text-anchor: middle; }
+			.badge { font-size: 15px; font-weight: 700; }
+			.caption { font-size: 18px; fill: #cbd5e1; }
+		</style>
+	</defs>
+	<rect width="1200" height="720" fill="url(#bg)" />
+	<circle cx="1020" cy="90" r="210" fill="#0ea5e9" opacity="0.08" />
+	<circle cx="1110" cy="620" r="260" fill="#22c55e" opacity="0.07" />
+
+	<g filter="url(#shadow)">
+		<rect x="72" y="74" width="520" height="572" rx="42" fill="url(#deck)" stroke="#334155" />
+		<rect x="110" y="116" width="444" height="474" rx="28" fill="#020617" stroke="#111827" />
+		<g transform="translate(132 140)">
+			<g>
+				<rect x="0" y="0" width="72" height="72" rx="14" fill="#166534" />
+				<text class="text key-title" x="36" y="33">VDO</text>
+				<text class="key-sub" x="36" y="55">Online</text>
+			</g>
+			<g transform="translate(90 0)">
+				<rect x="0" y="0" width="72" height="72" rx="14" fill="#064e3b" />
+				<text class="text key-title" x="36" y="33">Mic</text>
+				<text class="key-sub" x="36" y="55">Live</text>
+			</g>
+			<g transform="translate(180 0)">
+				<rect x="0" y="0" width="72" height="72" rx="14" fill="#312e81" />
+				<text class="text key-title" x="36" y="33">G1</text>
+				<text class="key-sub" x="36" y="55">Camera</text>
+			</g>
+			<g transform="translate(270 0)">
+				<rect x="0" y="0" width="72" height="72" rx="14" fill="#581c87" />
+				<text class="text key-title" x="36" y="33">Scene</text>
+				<text class="key-sub" x="36" y="55">On</text>
+			</g>
+			<g transform="translate(360 0)">
+				<rect x="0" y="0" width="72" height="72" rx="14" fill="#065f46" />
+				<rect x="16" y="13" width="18" height="18" rx="4" fill="#bbf7d0" />
+				<rect x="38" y="13" width="18" height="18" rx="4" fill="#bfdbfe" />
+				<rect x="16" y="36" width="18" height="18" rx="4" fill="#ddd6fe" />
+				<rect x="38" y="36" width="18" height="18" rx="4" fill="#fde68a" />
+			</g>
+			<g transform="translate(0 96)">
+				<rect x="0" y="0" width="72" height="72" rx="14" fill="#0f766e" />
+				<text class="text key-title" x="36" y="33">Auto</text>
+				<text class="key-sub" x="36" y="55">Layout</text>
+			</g>
+			<g transform="translate(90 96)">
+				<rect x="0" y="0" width="72" height="72" rx="14" fill="#7f1d1d" />
+				<text class="text key-title" x="36" y="33">Mute</text>
+				<text class="key-sub" x="36" y="55">All</text>
+			</g>
+			<g transform="translate(180 96)">
+				<rect x="0" y="0" width="72" height="72" rx="14" fill="#075985" />
+				<path d="M36 13 L36 59 M13 36 L59 36 M36 13 L28 23 M36 13 L44 23 M36 59 L28 49 M36 59 L44 49 M13 36 L23 28 M13 36 L23 44 M59 36 L49 28 M59 36 L49 44" stroke="#e0f2fe" stroke-width="5" stroke-linecap="round" fill="none" />
+			</g>
+			<g transform="translate(270 96)">
+				<rect x="0" y="0" width="72" height="72" rx="14" fill="#14532d" />
+				<circle cx="36" cy="36" r="22" fill="none" stroke="#bbf7d0" stroke-width="7" />
+				<path d="M36 36 L52 20" stroke="#bbf7d0" stroke-width="6" stroke-linecap="round" />
+			</g>
+			<g transform="translate(360 96)">
+				<rect x="0" y="0" width="72" height="72" rx="14" fill="#78350f" />
+				<text class="text key-title" x="36" y="33">Cmd</text>
+				<text class="key-sub" x="36" y="55">API</text>
+			</g>
+			<g transform="translate(0 192)">
+				<rect x="0" y="0" width="72" height="72" rx="14" fill="#713f12" />
+				<text class="text key-title" x="36" y="33">Next</text>
+				<text class="key-sub" x="36" y="55">Guest</text>
+			</g>
+			<g transform="translate(90 192)">
+				<rect x="0" y="0" width="72" height="72" rx="14" fill="#7c2d12" />
+				<text class="text key-title" x="36" y="33">Send</text>
+				<text class="key-sub" x="36" y="55">Room</text>
+			</g>
+			<g transform="translate(180 192)">
+				<rect x="0" y="0" width="72" height="72" rx="14" fill="#991b1b" />
+				<circle cx="36" cy="36" r="18" fill="#fee2e2" />
+			</g>
+			<g transform="translate(270 192)">
+				<rect x="0" y="0" width="72" height="72" rx="14" fill="#1e3a8a" />
+				<rect x="18" y="20" width="36" height="26" rx="5" fill="#dbeafe" />
+				<path d="M28 52 H44" stroke="#dbeafe" stroke-width="5" stroke-linecap="round" />
+			</g>
+			<g transform="translate(360 192)">
+				<rect x="0" y="0" width="72" height="72" rx="14" fill="#365314" />
+				<path d="M18 42 C21 21 33 19 33 35 L33 19 C33 13 43 13 43 20 L43 36 C43 29 54 30 54 39 C54 56 44 62 33 62 C23 62 17 54 18 42 Z" fill="#ecfccb" />
+			</g>
+		</g>
+		<rect x="256" y="610" width="154" height="10" rx="5" fill="#111827" />
+	</g>
+
+	<g transform="translate(665 118)">
+		<rect x="0" y="0" width="420" height="58" rx="29" fill="#0b1220" stroke="#1f2937" />
+		<circle cx="31" cy="29" r="12" fill="#35d07f" />
+		<text class="text badge" x="56" y="35">Native Stream Deck controls for VDO.Ninja</text>
+		<text class="text" x="0" y="126" font-size="54" font-weight="800">Production controls</text>
+		<text class="text" x="0" y="184" font-size="54" font-weight="800">on keys and dials</text>
+		<text class="caption" x="0" y="236">Connect to any VDO.Ninja page opened with</text>
+		<text class="caption" x="0" y="268">a private API key and control the show.</text>
+		<g transform="translate(0 324)">
+			<rect x="0" y="0" width="148" height="42" rx="21" fill="#063f2a" />
+			<text class="text badge" x="24" y="27">Mic / camera</text>
+			<rect x="164" y="0" width="136" height="42" rx="21" fill="#172554" />
+			<text class="text badge" x="188" y="27">Guest scenes</text>
+			<rect x="316" y="0" width="122" height="42" rx="21" fill="#312e81" />
+			<text class="text badge" x="340" y="27">PTZ dials</text>
+			<rect x="0" y="58" width="128" height="42" rx="21" fill="#064e3b" />
+			<text class="text badge" x="24" y="85">Mixer slots</text>
+			<rect x="144" y="58" width="150" height="42" rx="21" fill="#7f1d1d" />
+			<text class="text badge" x="168" y="85">Mute all guests</text>
+			<rect x="310" y="58" width="154" height="42" rx="21" fill="#78350f" />
+			<text class="text badge" x="334" y="85">Custom API</text>
+		</g>
+		<g transform="translate(0 470)">
+			<rect x="0" y="0" width="490" height="86" rx="18" fill="#0b1220" stroke="#233044" />
+			<text class="muted text" x="24" y="34" font-size="18">Example:</text>
+			<text class="text" x="24" y="63" font-size="20" font-family="Consolas, monospace">https://vdo.ninja/?director=ROOM&amp;api=KEY</text>
+		</g>
+	</g>
+</svg>

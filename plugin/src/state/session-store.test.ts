@@ -197,8 +197,8 @@ describe("SessionStore", () => {
 			action: "getDetails",
 			result: {
 				local123: { streamID: "local123", localStream: true, label: "Director" },
-				guestB: { streamID: "guestB", label: "Second" },
-				guestA: { streamID: "guestA", label: "First", others: { "remove-queue": true, "hand-raised": true } }
+				guestB: { streamID: "guestB", label: "Second", slot: 2 },
+				guestA: { streamID: "guestA", label: "First", slot: false, others: { "remove-queue": true, "hand-raised": true } }
 			}
 		});
 		store.applyCallback({
@@ -210,8 +210,8 @@ describe("SessionStore", () => {
 		});
 
 		expect(store.getStreamChoices()).toEqual([
-			expect.objectContaining({ streamID: "guestA", label: "First", position: 1, held: true, handRaised: true }),
-			expect.objectContaining({ streamID: "guestB", label: "Second", position: 2, held: false })
+			expect.objectContaining({ streamID: "guestA", label: "First", position: 1, slot: false, held: true, handRaised: true }),
+			expect.objectContaining({ streamID: "guestB", label: "Second", position: 2, slot: 2, held: false })
 		]);
 	});
 

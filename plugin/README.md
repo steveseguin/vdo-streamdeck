@@ -1,6 +1,6 @@
 # VDO.Ninja Stream Deck Plugin
 
-This is the native Stream Deck plugin implementation workspace.
+This is the native Stream Deck plugin implementation workspace. For the visitor-facing overview, screenshots, supported-action matrix, and install notes, start with the [repo README](../README.md).
 
 Current positioning: early native prototype/MVP. It is not yet a full replacement for the Bitfocus Companion VDO.Ninja module because presets, named connections, and broader dynamic feedback are still in progress.
 
@@ -67,11 +67,12 @@ Runtime alignment note:
 - Selected guest stores a stream ID. Selecting by slot resolves the current slot to its stream ID when the select action is pressed, so later slot changes do not silently retarget selected-guest actions.
 - Custom scene names/IDs are supported through the dedicated `Guest Scene` action and raw/custom commands. Toggle uses the legacy `addScene` shape; explicit force on/off uses current VDO.Ninja's `addScene` + `value2=true/false` shape.
 - Mixer Control follows existing API semantics: `layout=0` is auto, `layout=1` is the first configured layout, and `setslot` uses user-facing destination slot numbers where `1` is mixer slot 1 and `0` unsets the assignment. Layout object fields such as `slot: 0` keep VDO.Ninja's existing zero-based layout-item convention.
+- Slot assignment requires VDO.Ninja slot controls. Open the director with `&slotmode=1` or use `/mixer?director=ROOM&api=KEY`; current VDO.Ninja reports the local page's `slotmode` flag in `getDetails`, and the inspector shows a setup hint when it is off.
 - All-guest mute uses VDO.Ninja's director `muteAllGuests` API wrapper, which calls the same page function as the visible mute-all button.
 - All-guest transfer fans out existing `forward` commands one guest at a time and requires a second press by default.
 - PTZ Key follows current VDO.Ninja paths: local `zoom`/`pan`/`tilt`/`focus`/`exposure`, guest `ptzZoom`/`ptzPan`/`ptzTilt`/`ptzFocus`/`ptzAutofocus`. Guest exposure and local autofocus are intentionally blocked.
 - PTZ Dial uses the same PTZ command paths as PTZ Key, sends relative deltas only, accumulates fast dial ticks, and rate-limits sends to the configured interval.
-- Guest PTZ requires the guest publisher to load with `&ptz` and approve the browser PTZ permission prompt.
+- Local PTZ requires the controlled camera page to load with `&ptz` and approve browser PTZ permission. Guest PTZ requires the guest publisher to load with `&ptz`; director/mixer pages can then send guest `ptz*` commands. Current VDO.Ninja reports the local page's `ptz` flag in `getDetails`.
 - Value Dial sends absolute values for `volume`, `panning`, `bitrate`, `setBufferDelay`, and guest `volume`. Buffer delay uses `value2: "*"` for all current inbound streams and omits `value2` for default/future streams.
 - Local push-to-talk sends `mic=true` on key down and `mic=false` on key up; push-to-mute sends the inverse. The action uses sequence guards so stale async completions do not repaint the key after a newer release.
 - No-wait realtime WebSocket commands are skipped when the plugin sees high send rate or WebSocket backlog. This only affects incremental controls such as relative PTZ/value nudges; awaited discrete commands such as scene, mute, transfer, layout, and slot assignment are not skipped.

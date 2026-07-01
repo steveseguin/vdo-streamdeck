@@ -99,7 +99,8 @@ export class MixerControlAction extends SingletonAction<MixerControlSettings> {
 
 function defaultTitle(settings: MixerControlSettings): string {
 	if (settings.command === "setGuestSlot") {
-		return `Set\nSlot ${settings.slot || "1"}`;
+		const destinationSlot = settings.slot || "1";
+		return destinationSlot === "0" ? "Unset\nSlot" : `Set\nSlot ${destinationSlot}`;
 	}
 	if (settings.command === "muteAllGuests") {
 		if (settings.muteBehavior === "on") {
@@ -121,8 +122,9 @@ function renderTargetTitle(template: string | undefined, choice: StreamChoice | 
 	const label = choice?.label || "Guest";
 	const sourceSlot = typeof choice?.position === "number" ? String(choice.position) : "";
 	const destinationSlot = slot || "1";
+	const destinationLabel = destinationSlot === "0" ? "Unslot" : `Slot ${destinationSlot}`;
 	if (!template) {
-		return sourceSlot ? `G${sourceSlot}\nSlot ${destinationSlot}` : `${shortLabel(label)}\nSlot ${destinationSlot}`;
+		return sourceSlot ? `G${sourceSlot}\n${destinationLabel}` : `${shortLabel(label)}\n${destinationLabel}`;
 	}
 	const replacements: Record<string, string> = {
 		label,
@@ -142,9 +144,9 @@ function isSlotActive(choice: StreamChoice | undefined, slot: string | undefined
 		return false;
 	}
 	if (destination === 0) {
-		return typeof choice.position !== "number";
+		return choice.slot === false || choice.slot === 0;
 	}
-	return choice.position === destination;
+	return choice.slot === destination;
 }
 
 function allGuestsMuted(): boolean {

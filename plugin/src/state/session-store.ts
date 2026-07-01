@@ -69,6 +69,7 @@ export class SessionStore {
 					streamID: stream.streamID,
 					label: stream.label || stream.streamID,
 					position: typeof stream.position === "number" ? stream.position : positions.get(stream.streamID),
+					slot: stream.slot,
 					localStream: !!(stream.localStream || stream.localstream),
 					held: isTruthyMapValue(stream.others?.["remove-queue"]),
 					handRaised: isTruthyMapValue(stream.others?.["hand-raised"]),
