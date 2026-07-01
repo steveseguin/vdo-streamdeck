@@ -4,8 +4,11 @@ import { VdoClient } from "./vdo-client.js";
 
 type VdoClientHarness = VdoClient & {
 	settings: GlobalSettings;
+	socket: { readyState: number; send: ReturnType<typeof vi.fn> } | null;
 	sendHttp(payload: VdoCommandPayload): Promise<VdoCallback>;
 	buildEndpoint(protocol: "ws" | "wss" | "http" | "https", defaultPort?: string): string;
+	buildHttpUrl(protocol: "http" | "https", payload: VdoCommandPayload): string;
+	closeSocket(): void;
 };
 
 describe("VdoClient", () => {
@@ -40,6 +43,68 @@ describe("VdoClient", () => {
 			action: "mic",
 			result: true
 		});
+	});
+
+	it("encodes simple commands with the existing HTTP GET route shape", async () => {
+		const client = new VdoClient() as VdoClientHarness;
+		client.settings = { apiKey: "key value", apiHost: "api.example", useTls: true, httpFallback: true };
+
+		expect(client.buildHttpUrl("https", { action: "mic", value: "toggle" })).toBe("https://api.example/key%20value/mic/toggle");
+		expect(client.buildHttpUrl("https", { action: "addScene", target: "guest/1", value: "Scene A" })).toBe(
+			"https://api.example/key%20value/addScene/guest%2F1/Scene%20A"
+		);
+	});
+
+	it("uses the HTTP GET route for awaited commands by default", async () => {
+		const client = new VdoClient() as VdoClientHarness;
+		client.settings = { apiKey: "key", apiHost: "api.example", useTls: true };
+		const fetchMock = vi.fn().mockResolvedValue(new Response("false", { status: 200 }));
+		vi.stubGlobal("fetch", fetchMock);
+
+		await expect(client.sendCommand({ action: "camera", value: "toggle" })).resolves.toMatchObject({
+			action: "camera",
+			value: "toggle",
+			result: false
+		});
+		expect(fetchMock).toHaveBeenCalledWith("https://api.example/key/camera/toggle");
+	});
+
+	it("keeps value2 commands on the raw WebSocket path without request IDs", async () => {
+		const client = new VdoClient() as VdoClientHarness;
+		const send = vi.fn();
+		client.settings = { apiKey: "key", apiHost: "api.example", useTls: true, httpFallback: true };
+		client.socket = { readyState: 1, send };
+
+		await expect(client.sendCommand({ action: "zoom", value: 0.5, value2: "abs" })).resolves.toMatchObject({
+			action: "zoom",
+			value: 0.5,
+			value2: "abs"
+		});
+		expect(JSON.parse(send.mock.calls[0][0])).toEqual({
+			action: "zoom",
+			value: 0.5,
+			value2: "abs"
+		});
+	});
+
+	it("terminates connecting sockets without emitting unhandled close errors", () => {
+		const client = new VdoClient() as VdoClientHarness;
+		const socket = {
+			readyState: 0,
+			removeAllListeners: vi.fn(),
+			on: vi.fn(),
+			terminate: vi.fn(),
+			close: vi.fn()
+		};
+		client.socket = socket as unknown as VdoClientHarness["socket"];
+
+		expect(() => client.closeSocket()).not.toThrow();
+
+		expect(socket.removeAllListeners).toHaveBeenCalled();
+		expect(socket.on).toHaveBeenCalledWith("error", expect.any(Function));
+		expect(socket.terminate).toHaveBeenCalled();
+		expect(socket.close).not.toHaveBeenCalled();
+		expect(client.socket).toBeNull();
 	});
 
 	it("emits HTTP fallback callbacks through the normal callback path", async () => {

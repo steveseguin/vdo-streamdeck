@@ -18,7 +18,7 @@ export function normalizeGlobalSettings(settings: Partial<GlobalSettings> | unde
 		apiKey: stringOrEmpty(settings?.apiKey),
 		apiHost: stringOrEmpty(settings?.apiHost) || DEFAULT_API_HOST,
 		useTls: settings?.useTls !== false,
-		httpFallback: settings?.httpFallback === true,
+		httpFallback: settings?.httpFallback !== false,
 		requestTimeoutMs: positiveNumber(settings?.requestTimeoutMs, 5000),
 		detailsPollMs: positiveNumber(settings?.detailsPollMs, 2000),
 		statsPollMs: positiveNumber(settings?.statsPollMs, 5000)

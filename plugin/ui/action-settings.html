@@ -303,7 +303,7 @@
       </div>
       <label class="inline">
         <input id="httpFallback" type="checkbox">
-        HTTP POST fallback
+        Use HTTP API route
       </label>
       <div class="hint">Use different API keys for pages you want to control separately. Reusing one key on multiple open pages can make feedback ambiguous.</div>
     </details>
@@ -815,7 +815,7 @@
       byId("apiHost").value = globalSettings.apiHost || "api.vdo.ninja";
       byId("timeout").value = globalSettings.requestTimeoutMs || 5000;
       byId("detailsPoll").value = globalSettings.detailsPollMs || 2000;
-      byId("httpFallback").checked = globalSettings.httpFallback === true;
+      byId("httpFallback").checked = globalSettings.httpFallback !== false;
       byId("baseUrl").value = globalSettings.setupBaseUrl || DEFAULT_BASE_URL;
       byId("pageType").value = globalSettings.setupPageType || "director";
       byId("roomName").value = globalSettings.setupRoom || "";

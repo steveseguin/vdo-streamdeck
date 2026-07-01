@@ -7,10 +7,10 @@
   "Version": "0.1.0.0",
   "SDKVersion": 2,
   "Software": {
-    "MinimumVersion": "7.1"
+    "MinimumVersion": "6.8"
   },
   "Nodejs": {
-    "Version": "24"
+    "Version": "20"
   },
   "OS": [
     {

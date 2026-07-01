@@ -131,7 +131,7 @@ export class VdoClient {
 				this.sendRaw(request);
 				return request as VdoCallback;
 			}
-			if (this.settings.httpFallback) {
+			if (this.shouldUseHttp(request)) {
 				const callback = await this.sendHttp(request);
 				this.handleCallback(callback);
 				return callback;
@@ -141,6 +141,23 @@ export class VdoClient {
 
 		const requestId = this.nextRequestId();
 		request.get = requestId;
+
+		if (this.shouldUseHttp(request)) {
+			const callback = await this.sendHttp(request);
+			this.handleCallback(callback);
+			return callback;
+		}
+
+		if (this.settings.httpFallback && this.requiresRawWebSocket(request)) {
+			if (!this.isSocketOpen()) {
+				throw new Error("VDO.Ninja API WebSocket is not connected");
+			}
+			const rawRequest = { ...request };
+			delete rawRequest.get;
+			this.sendRaw(rawRequest);
+			this.setState("connected");
+			return rawRequest as VdoCallback;
+		}
 
 		if (this.isSocketOpen()) {
 			const promise = new Promise<VdoCallback>((resolve, reject) => {
@@ -166,7 +183,7 @@ export class VdoClient {
 			return promise;
 		}
 
-		if (this.settings.httpFallback) {
+		if (this.shouldUseHttp(request)) {
 			const callback = await this.sendHttp(request);
 			this.handleCallback(callback);
 			return callback;
@@ -180,11 +197,7 @@ export class VdoClient {
 			throw new Error("Missing VDO.Ninja API key");
 		}
 		const protocol = this.settings.useTls === false ? "http" : "https";
-		const response = await fetch(`${this.buildEndpoint(protocol)}/${encodeURIComponent(this.settings.apiKey)}`, {
-			method: "POST",
-			headers: { "content-type": "application/json" },
-			body: JSON.stringify(payload)
-		});
+		const response = await fetch(this.buildHttpUrl(protocol, payload));
 		const text = await response.text();
 		const trimmed = text.trim();
 		if (!response.ok) {
@@ -213,6 +226,14 @@ export class VdoClient {
 			get: payload.get,
 			result
 		};
+	}
+
+	private shouldUseHttp(payload: VdoCommandPayload): boolean {
+		return this.settings.httpFallback !== false && !this.requiresRawWebSocket(payload);
+	}
+
+	private requiresRawWebSocket(payload: VdoCommandPayload): boolean {
+		return hasOwn(payload, "value2");
 	}
 
 	private sendRaw(payload: JsonObject): void {
@@ -272,8 +293,15 @@ export class VdoClient {
 		const socket = this.socket;
 		this.socket = null;
 		socket.removeAllListeners();
+		socket.on("error", () => {
+			// ws emits an error when a connecting socket is closed during settings changes.
+		});
 		try {
-			socket.close();
+			if (socket.readyState === WebSocket.CONNECTING) {
+				socket.terminate();
+			} else if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CLOSING) {
+				socket.close();
+			}
 		} catch {
 			// Ignore close races.
 		}
@@ -317,6 +345,17 @@ export class VdoClient {
 		return `${protocol}://${host}${port}`;
 	}
 
+	private buildHttpUrl(protocol: "http" | "https", payload: VdoCommandPayload): string {
+		const parts: JsonValue[] = [this.settings.apiKey || "", payload.action];
+		if (hasOwn(payload, "target")) {
+			parts.push(payload.target ?? "null");
+			parts.push(hasOwn(payload, "value") ? payload.value ?? "null" : "null");
+		} else if (hasOwn(payload, "value")) {
+			parts.push(payload.value ?? "null");
+		}
+		return `${this.buildEndpoint(protocol)}/${parts.map(valueToPathSegment).join("/")}`;
+	}
+
 	private setState(state: ConnectionStateName): void {
 		if (this.state === state) {
 			return;
@@ -343,4 +382,18 @@ export class VdoClient {
 			listener(payload);
 		}
 	}
+}
+
+function hasOwn(object: JsonObject, key: string): boolean {
+	return Object.prototype.hasOwnProperty.call(object, key);
+}
+
+function valueToPathSegment(value: JsonValue): string {
+	if (value === null || value === "") {
+		return "null";
+	}
+	if (typeof value === "object") {
+		return encodeURIComponent(JSON.stringify(value));
+	}
+	return encodeURIComponent(String(value));
 }

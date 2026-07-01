@@ -22,7 +22,7 @@ Current slice:
 - Provides a custom command action for arbitrary `{ action, target, value, value2 }` payloads.
 - Provides property inspector sections for API host, polling, fallback, and per-action settings.
 - Tracks full `getDetails` callbacks, partial `details` updates, join/leave/position refreshes, and remote mute/video state updates.
-- Polls `getDetails` using the configured interval as a backstop for DOM-derived VDO.Ninja state.
+- Polls `getDetails` through the documented HTTP API route using the configured interval as a backstop for DOM-derived VDO.Ninja state.
 - Includes focused tests for command payloads, custom value parsing, and state normalization.
 
 Build:
@@ -43,7 +43,7 @@ Use:
 5. Keep that VDO.Ninja page open and press `Test`.
 6. Add `Local Control`, `Select Guest`, `Guest Command`, `Guest Scene`, `PTZ Key`, `PTZ Dial`, `Value Dial`, or `Custom Command` actions.
 
-Current local machine note: Elgato's current getting-started docs and this plugin manifest expect Node.js 24+ for the official development workflow.
+Current local machine note: the plugin manifest targets the Node 20 runtime bundled with Stream Deck 6.8+; newer local Node versions work for development.
 
 No-hardware checks:
 
@@ -68,6 +68,7 @@ Runtime alignment note:
 - PTZ Dial uses the same PTZ command paths as PTZ Key, sends relative deltas only, accumulates fast dial ticks, and rate-limits sends to the configured interval.
 - Value Dial sends absolute values for `volume`, `panning`, `bitrate`, `setBufferDelay`, and guest `volume`. Buffer delay uses `value2: "*"` for all current inbound streams and omits `value2` for default/future streams.
 - Local push-to-talk sends `mic=true` on key down and `mic=false` on key up; push-to-mute sends the inverse. The action uses sequence guards so stale async completions do not repaint the key after a newer release.
-- HTTP fallback treats relay `failed` and `timeout` responses as errors.
+- The HTTP API route is enabled by default for request/response commands because the public relay owns HTTP callback IDs. Commands that require `value2` use raw WebSocket payloads so secondary values are preserved.
+- HTTP route responses `failed` and `timeout` are treated as errors.
 
 See `../docs/runtime-comparison-audit.md` for the current comparison against VDO.Ninja's local signaling and callback paths.

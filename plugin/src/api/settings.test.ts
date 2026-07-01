@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+	normalizeGlobalSettings,
 	normalizeGuestCommandSettings,
 	normalizeGuestSceneSettings,
 	normalizeLocalControlSettings,
@@ -10,6 +11,11 @@ import {
 } from "./settings.js";
 
 describe("settings normalization", () => {
+	it("enables the HTTP API route by default", () => {
+		expect(normalizeGlobalSettings(undefined).httpFallback).toBe(true);
+		expect(normalizeGlobalSettings({ httpFallback: false }).httpFallback).toBe(false);
+	});
+
 	it("preserves selected guest target mode for guest actions", () => {
 		expect(normalizeGuestCommandSettings({ targetMode: "selected" }).targetMode).toBe("selected");
 		expect(normalizeGuestSceneSettings({ targetMode: "selected" }).targetMode).toBe("selected");
