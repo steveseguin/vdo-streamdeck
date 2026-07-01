@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144" viewBox="0 0 144 144" role="img" aria-label="VDO.Ninja scene icon">
+  <rect width="144" height="144" rx="18" fill="#20242d"/>
+  <rect x="24" y="32" width="96" height="68" rx="8" fill="#0f172a" stroke="#f4f7fb" stroke-width="6"/>
+  <rect x="36" y="44" width="34" height="22" rx="4" fill="#7dd3fc"/>
+  <rect x="74" y="44" width="34" height="22" rx="4" fill="#38bdf8"/>
+  <rect x="36" y="70" width="72" height="18" rx="4" fill="#22c55e"/>
+  <path d="M48 114h48" stroke="#f4f7fb" stroke-width="8" stroke-linecap="round"/>
+  <path d="M72 100v14" stroke="#f4f7fb" stroke-width="8" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,76 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import type { GlobalSettings, VdoCallback, VdoCommandPayload } from "./types.js";
+import { VdoClient } from "./vdo-client.js";
+
+type VdoClientHarness = VdoClient & {
+	settings: GlobalSettings;
+	sendHttp(payload: VdoCommandPayload): Promise<VdoCallback>;
+	buildEndpoint(protocol: "ws" | "wss" | "http" | "https", defaultPort?: string): string;
+};
+
+describe("VdoClient", () => {
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
+
+	it("treats HTTP relay failed responses as no-page errors", async () => {
+		const client = new VdoClient() as VdoClientHarness;
+		client.settings = { apiKey: "key", apiHost: "api.example", useTls: true };
+		vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("failed", { status: 200 })));
+
+		await expect(client.sendHttp({ action: "getDetails", get: "request-1" })).rejects.toThrow("No VDO.Ninja page");
+		expect(client.connectionState).toBe("no-page");
+	});
+
+	it("treats HTTP relay timeout responses as timeout errors", async () => {
+		const client = new VdoClient() as VdoClientHarness;
+		client.settings = { apiKey: "key", apiHost: "api.example", useTls: true };
+		vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("timeout", { status: 200 })));
+
+		await expect(client.sendHttp({ action: "mic", get: "request-1" })).rejects.toThrow("Timed out");
+		expect(client.connectionState).toBe("timeout");
+	});
+
+	it("uses HTTP fallback for no-wait commands when WebSocket is closed", async () => {
+		const client = new VdoClient() as VdoClientHarness;
+		client.settings = { apiKey: "key", apiHost: "api.example", useTls: true, httpFallback: true };
+		vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("true", { status: 200 })));
+
+		await expect(client.sendCommand({ action: "mic" }, { awaitCallback: false })).resolves.toMatchObject({
+			action: "mic",
+			result: true
+		});
+	});
+
+	it("emits HTTP fallback callbacks through the normal callback path", async () => {
+		const client = new VdoClient() as VdoClientHarness;
+		client.settings = { apiKey: "key", apiHost: "api.example", useTls: true, httpFallback: true };
+		vi.stubGlobal(
+			"fetch",
+			vi.fn().mockResolvedValue(
+				new Response(JSON.stringify({ local123: { streamID: "local123", localStream: true } }), { status: 200 })
+			)
+		);
+		const callbacks: VdoCallback[] = [];
+		client.onCallback(callback => callbacks.push(callback));
+
+		await client.sendCommand({ action: "getDetails" });
+
+		expect(callbacks).toHaveLength(1);
+		expect(callbacks[0]).toMatchObject({
+			action: "getDetails",
+			result: { local123: { streamID: "local123", localStream: true } }
+		});
+		expect(client.connectionState).toBe("connected");
+	});
+
+	it("builds API endpoints without double-appending ports or protocols", () => {
+		const client = new VdoClient() as VdoClientHarness;
+		client.settings = { apiKey: "key", apiHost: "localhost:8080", useTls: false };
+		expect(client.buildEndpoint("ws", "80")).toBe("ws://localhost:8080");
+
+		client.settings = { apiKey: "key", apiHost: "https://api.vdo.ninja/", useTls: true };
+		expect(client.buildEndpoint("wss", "443")).toBe("wss://api.vdo.ninja:443");
+		expect(client.buildEndpoint("https")).toBe("https://api.vdo.ninja");
+	});
+});

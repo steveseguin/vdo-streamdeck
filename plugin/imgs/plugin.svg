@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <rect width="256" height="256" rx="48" fill="#14171f"/>
+  <path fill="#35d07f" d="M42 76h112a26 26 0 0 1 26 26v12l32-22a8 8 0 0 1 12 7v58a8 8 0 0 1-12 7l-32-22v12a26 26 0 0 1-26 26H42a26 26 0 0 1-26-26v-52a26 26 0 0 1 26-26Z"/>
+  <path fill="#10141b" d="M46 102h104v52H46z"/>
+  <path fill="#fff" d="M66 115h52v12H66zm0 22h36v12H66z"/>
+  <text x="128" y="224" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" fill="#fff">VDO.Ninja</text>
+</svg>

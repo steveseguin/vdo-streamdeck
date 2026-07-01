@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144" viewBox="0 0 144 144" role="img" aria-label="VDO.Ninja PTZ key icon">
+  <rect width="144" height="144" rx="18" fill="#20242d"/>
+  <path d="M34 55h49c10 0 18 8 18 18v14c0 10-8 18-18 18H34c-10 0-18-8-18-18V73c0-10 8-18 18-18z" fill="#38bdf8"/>
+  <circle cx="61" cy="80" r="18" fill="#0f172a"/>
+  <circle cx="61" cy="80" r="9" fill="#f4f7fb"/>
+  <path d="M101 68l25-14v52l-25-14z" fill="#7dd3fc"/>
+  <path d="M72 23v20M72 23l-9 9M72 23l9 9M72 121v-20M72 121l-9-9M72 121l9-9M23 72h20M23 72l9-9M23 72l9 9M121 72h-20M121 72l-9-9M121 72l-9 9" stroke="#fbbf24" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,1751 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VDO.Ninja Settings</title>
+  <script src="qrcode.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #20242d;
+      color: #f4f7fb;
+    }
+
+    body {
+      margin: 0;
+      padding: 12px;
+      font-size: 12px;
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    h3 {
+      margin: 10px 0 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #dde6f4;
+    }
+
+    section {
+      border-top: 1px solid #3a4050;
+      padding: 12px 0;
+    }
+
+    section:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0 4px;
+      color: #cfd6e4;
+      font-size: 11px;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+      background: #12151b;
+      color: #fff;
+      border: 1px solid #4a5264;
+      border-radius: 4px;
+      padding: 7px;
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 64px;
+      resize: vertical;
+    }
+
+    input[readonly] {
+      color: #d8e2f2;
+      background: #171b23;
+    }
+
+    button {
+      min-height: 30px;
+      border: 1px solid #59657a;
+      border-radius: 4px;
+      background: #293141;
+      color: #f4f7fb;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button.primary {
+      border-color: #2f9f7b;
+      background: #17775e;
+    }
+
+    button:disabled {
+      color: #8994a8;
+      cursor: default;
+      opacity: 0.7;
+    }
+
+    details {
+      margin-top: 10px;
+    }
+
+    summary {
+      color: #cfd6e4;
+      cursor: pointer;
+    }
+
+    code {
+      color: #d5e3ff;
+      font-family: Consolas, Monaco, monospace;
+    }
+
+    .intro {
+      margin: 0 0 10px;
+      color: #cfd6e4;
+      line-height: 1.35;
+    }
+
+    .status {
+      display: grid;
+      grid-template-columns: 10px 1fr;
+      align-items: center;
+      gap: 8px;
+      min-height: 32px;
+      margin: 8px 0 10px;
+      padding: 8px;
+      border: 1px solid #424a5b;
+      border-radius: 6px;
+      background: #171b23;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #818ba0;
+    }
+
+    .status.ok .dot {
+      background: #32c48d;
+    }
+
+    .status.warn .dot {
+      background: #dfb44b;
+    }
+
+    .status.error .dot {
+      background: #e05f5f;
+    }
+
+    .status-text {
+      line-height: 1.3;
+      color: #dbe4f2;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .button-row.two {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .button-row.four {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .hint {
+      margin-top: 6px;
+      color: #9ca7ba;
+      line-height: 1.35;
+    }
+
+    .inline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .inline input {
+      width: auto;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .field-group {
+      margin-top: 8px;
+    }
+
+    .qr-panel {
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    #qrCanvas {
+      width: 180px;
+      height: 180px;
+      max-width: 100%;
+      background: #fff;
+      border: 8px solid #fff;
+      border-radius: 4px;
+      image-rendering: pixelated;
+    }
+
+    .copy-state {
+      min-height: 16px;
+      margin-top: 6px;
+      color: #9ca7ba;
+      line-height: 1.3;
+    }
+  </style>
+</head>
+<body>
+  <section>
+    <h2>VDO.Ninja Setup</h2>
+    <p class="intro">VDO.Ninja is free, browser-based, and does not require a login. Open the page you want to control with a matching <code>&api</code> key.</p>
+
+    <div id="statusBox" class="status">
+      <div class="dot"></div>
+      <div id="statusText" class="status-text">Configure an API key to begin.</div>
+    </div>
+
+    <label for="apiKey">Private API key</label>
+    <input id="apiKey" type="password" autocomplete="off" placeholder="Same key used in &api=KEY">
+    <div class="button-row three">
+      <button id="generateKey" type="button">Generate</button>
+      <button id="copyKey" type="button">Copy Key</button>
+      <button id="testConnection" type="button" class="primary">Test</button>
+    </div>
+
+    <h3>Build VDO.Ninja Link</h3>
+    <label for="pageType">Page type</label>
+    <select id="pageType">
+      <option value="director">Director room</option>
+      <option value="push">Push camera</option>
+      <option value="view">View stream</option>
+      <option value="scene">Scene / clean output</option>
+      <option value="custom">Custom URL</option>
+    </select>
+
+    <div id="baseUrlGroup" class="field-group">
+      <label for="baseUrl">VDO.Ninja base URL</label>
+      <input id="baseUrl" type="text" placeholder="https://vdo.ninja">
+    </div>
+
+    <div id="roomGroup" class="field-group">
+      <label for="roomName">Room</label>
+      <input id="roomName" type="text" placeholder="my-show-room">
+    </div>
+
+    <div id="streamGroup" class="field-group hidden">
+      <label for="streamId">Stream ID</label>
+      <input id="streamId" type="text" placeholder="guest1">
+    </div>
+
+    <div id="sceneGroup" class="field-group hidden">
+      <label for="sceneId">Scene ID or name</label>
+      <input id="sceneId" type="text" placeholder="custom-scene">
+    </div>
+
+    <div id="customUrlGroup" class="field-group hidden">
+      <label for="customUrl">Custom VDO.Ninja URL</label>
+      <input id="customUrl" type="text" placeholder="https://vdo.ninja/?view=guest1">
+    </div>
+
+    <label for="generatedUrl">Generated URL</label>
+    <input id="generatedUrl" type="text" readonly>
+    <div class="button-row four">
+      <button id="copyUrl" type="button">Copy</button>
+      <button id="openUrl" type="button">Open</button>
+      <button id="showQr" type="button">QR</button>
+      <button id="hideKey" type="button">Show Key</button>
+    </div>
+    <div id="copyState" class="copy-state"></div>
+
+    <div id="qrPanel" class="qr-panel hidden">
+      <canvas id="qrCanvas" width="180" height="180" aria-label="Generated VDO.Ninja link QR code"></canvas>
+      <div class="hint">Scan to open this generated link on a phone or guest device.</div>
+    </div>
+
+    <details>
+      <summary>Advanced connection settings</summary>
+      <label for="apiHost">API host</label>
+      <input id="apiHost" type="text" placeholder="api.vdo.ninja">
+      <div class="row">
+        <div>
+          <label for="timeout">Timeout ms</label>
+          <input id="timeout" type="number" min="1000" step="500" value="5000">
+        </div>
+        <div>
+          <label for="detailsPoll">Details poll ms</label>
+          <input id="detailsPoll" type="number" min="500" step="500" value="2000">
+        </div>
+      </div>
+      <label class="inline">
+        <input id="httpFallback" type="checkbox">
+        HTTP POST fallback
+      </label>
+      <div class="hint">Use different API keys for pages you want to control separately. Reusing one key on multiple open pages can make feedback ambiguous.</div>
+    </details>
+  </section>
+
+  <section id="localSettings" class="hidden">
+    <h2>Local Control</h2>
+    <label for="localCommand">Control</label>
+    <select id="localCommand">
+      <option value="mic">Mic</option>
+      <option value="camera">Camera</option>
+      <option value="speaker">Speaker</option>
+      <option value="record">Record</option>
+      <option value="screenshare">Screen Share</option>
+      <option value="hand">Raise Hand</option>
+      <option value="keyframe">Force Keyframe</option>
+      <option value="reload">Reload Page</option>
+      <option value="hangup">Hang Up</option>
+    </select>
+    <label for="behavior">Press behavior</label>
+    <select id="behavior">
+      <option value="toggle">Toggle</option>
+      <option value="on">Force On</option>
+      <option value="off">Force Off</option>
+      <option value="press">Press Only</option>
+      <option value="pushToTalk">Hold to Talk - mic only</option>
+      <option value="pushToMute">Hold to Mute - mic only</option>
+    </select>
+    <label for="localTitle">Title override</label>
+    <input id="localTitle" type="text" placeholder="Optional">
+    <label class="inline">
+      <input id="dangerousConfirm" type="checkbox" checked>
+      Double-press dangerous actions
+    </label>
+  </section>
+
+  <section id="guestSettings" class="hidden">
+    <h2>Guest Command</h2>
+    <label for="guestCommand">Command</label>
+    <select id="guestCommand">
+      <option value="mic">Mic</option>
+      <option value="camera">Camera</option>
+      <option value="speaker">Speaker</option>
+      <option value="display">Display</option>
+      <option value="volume">Volume</option>
+      <option value="group">Group</option>
+      <option value="forward">Transfer</option>
+      <option value="activateQueuedGuest">Activate Guest</option>
+      <option value="hangup">Hang Up</option>
+      <option value="soloVideo">Solo Video</option>
+      <option value="soloChat">Solo Talk</option>
+      <option value="soloChatBidirectional">Two-way Talk</option>
+      <option value="sendDirectorChat">Overlay Message</option>
+      <option value="sendPinnedDirectorChat">Pinned Overlay</option>
+      <option value="forceKeyframe">Force Keyframe</option>
+      <option value="refreshVideo">Refresh Video</option>
+      <option value="refreshConnection">Refresh Connection</option>
+      <option value="recoverStream">Recover Stream</option>
+    </select>
+
+    <label for="guestTargetMode">Target</label>
+    <select id="guestTargetMode">
+      <option value="slot">Guest slot</option>
+      <option value="streamId">Stream ID</option>
+      <option value="firstHeld">First held guest</option>
+      <option value="selected">Selected guest</option>
+    </select>
+
+    <div id="guestSlotGroup">
+      <label for="guestSlot">Slot number</label>
+      <input id="guestSlot" type="number" min="1" step="1" placeholder="1">
+    </div>
+
+    <div id="guestStreamGroup" class="hidden">
+      <label for="guestStreamId">Stream</label>
+      <select id="guestStreamId"></select>
+      <div class="button-row two">
+        <button id="refreshTargets" type="button">Refresh Targets</button>
+        <button id="useManualStream" type="button">Manual ID</button>
+      </div>
+      <input id="manualGuestStreamId" class="hidden" type="text" placeholder="stream ID or UUID">
+    </div>
+
+    <label for="guestBehavior">Press behavior</label>
+    <select id="guestBehavior">
+      <option value="toggle">Toggle</option>
+      <option value="on">Force On</option>
+      <option value="off">Force Off</option>
+      <option value="press">Press Only</option>
+    </select>
+
+    <div id="guestValueGroup">
+      <label id="guestValueLabel" for="guestValue">Value</label>
+      <input id="guestValue" type="text" placeholder="Optional">
+    </div>
+
+    <label for="guestTitle">Title template</label>
+    <input id="guestTitle" type="text" placeholder="{slot} {label} {command} {state}">
+    <div class="hint">Tokens: <code>{slot}</code>, <code>{label}</code>, <code>{streamID}</code>, <code>{command}</code>, <code>{state}</code>.</div>
+
+    <label class="inline">
+      <input id="guestDangerousConfirm" type="checkbox" checked>
+      Double-press dangerous actions
+    </label>
+  </section>
+
+  <section id="selectGuestSettings" class="hidden">
+    <h2>Select Guest</h2>
+    <label for="selectMode">Mode</label>
+    <select id="selectMode">
+      <option value="fixed">Select configured guest</option>
+      <option value="next">Select next guest</option>
+      <option value="previous">Select previous guest</option>
+      <option value="firstHeld">Select first held guest</option>
+      <option value="clear">Clear selected guest</option>
+    </select>
+
+    <div id="selectFixedGroup">
+      <label for="selectTargetMode">Target</label>
+      <select id="selectTargetMode">
+        <option value="slot">Guest slot</option>
+        <option value="streamId">Stream ID</option>
+        <option value="firstHeld">First held guest</option>
+      </select>
+
+      <div id="selectSlotGroup">
+        <label for="selectSlot">Slot number</label>
+        <input id="selectSlot" type="number" min="1" step="1" placeholder="1">
+      </div>
+
+      <div id="selectStreamGroup" class="hidden">
+        <label for="selectStreamId">Stream</label>
+        <select id="selectStreamId"></select>
+        <div class="button-row two">
+          <button id="refreshSelectTargets" type="button">Refresh Targets</button>
+          <button id="useManualSelectStream" type="button">Manual ID</button>
+        </div>
+        <input id="manualSelectStreamId" class="hidden" type="text" placeholder="stream ID or UUID">
+      </div>
+    </div>
+
+    <label for="currentSelectedTarget">Current selected guest</label>
+    <input id="currentSelectedTarget" type="text" readonly>
+
+    <label for="selectTitle">Title template</label>
+    <input id="selectTitle" type="text" placeholder="{slot} {label} {streamID} {state}">
+    <div class="hint">Guest Command and Guest Scene actions can use target mode <code>Selected guest</code>. Tokens: <code>{slot}</code>, <code>{label}</code>, <code>{streamID}</code>, <code>{mode}</code>, <code>{state}</code>.</div>
+  </section>
+
+  <section id="guestSceneSettings" class="hidden">
+    <h2>Guest Scene</h2>
+    <label for="sceneTargetMode">Target</label>
+    <select id="sceneTargetMode">
+      <option value="slot">Guest slot</option>
+      <option value="streamId">Stream ID</option>
+      <option value="firstHeld">First held guest</option>
+      <option value="selected">Selected guest</option>
+    </select>
+
+    <div id="sceneSlotGroup">
+      <label for="sceneSlot">Slot number</label>
+      <input id="sceneSlot" type="number" min="1" step="1" placeholder="1">
+    </div>
+
+    <div id="sceneStreamGroup" class="hidden">
+      <label for="sceneStreamId">Stream</label>
+      <select id="sceneStreamId"></select>
+      <div class="button-row two">
+        <button id="refreshSceneTargets" type="button">Refresh Targets</button>
+        <button id="useManualSceneStream" type="button">Manual ID</button>
+      </div>
+      <input id="manualSceneStreamId" class="hidden" type="text" placeholder="stream ID or UUID">
+    </div>
+
+    <label for="sceneName">Scene ID or name</label>
+    <input id="sceneName" type="text" list="sceneChoices" placeholder="1 or custom-scene">
+    <datalist id="sceneChoices"></datalist>
+
+    <label for="sceneMode">Mode</label>
+    <select id="sceneMode">
+      <option value="toggle">Toggle</option>
+      <option value="on">Force On - fixed scenes 1-8 only</option>
+      <option value="off">Force Off - fixed scenes 1-8 only</option>
+    </select>
+    <div class="hint">Toggle keeps VDO.Ninja's existing addScene behavior. On/off sends addScene with value2=true/false, which also works with custom scene IDs/names on current VDO.Ninja.</div>
+
+    <label for="sceneTitle">Title template</label>
+    <input id="sceneTitle" type="text" placeholder="{slot} {label} Scene {scene} {state}">
+    <div class="hint">Tokens: <code>{slot}</code>, <code>{label}</code>, <code>{streamID}</code>, <code>{scene}</code>, <code>{state}</code>.</div>
+  </section>
+
+  <section id="ptzKeySettings" class="hidden">
+    <h2>PTZ Key</h2>
+    <label for="ptzScope">Control target</label>
+    <select id="ptzScope">
+      <option value="local">Local page camera</option>
+      <option value="guest">Guest camera</option>
+    </select>
+
+    <div id="ptzTargetGroup" class="hidden">
+      <label for="ptzTargetMode">Guest target</label>
+      <select id="ptzTargetMode">
+        <option value="slot">Guest slot</option>
+        <option value="streamId">Stream ID</option>
+        <option value="selected">Selected guest</option>
+        <option value="firstHeld">First held guest</option>
+      </select>
+
+      <div id="ptzSlotGroup">
+        <label for="ptzSlot">Slot number</label>
+        <input id="ptzSlot" type="number" min="1" step="1" placeholder="1">
+      </div>
+
+      <div id="ptzStreamGroup" class="hidden">
+        <label for="ptzStreamId">Stream</label>
+        <select id="ptzStreamId"></select>
+        <div class="button-row two">
+          <button id="refreshPtzTargets" type="button">Refresh Targets</button>
+          <button id="useManualPtzStream" type="button">Manual ID</button>
+        </div>
+        <input id="manualPtzStreamId" class="hidden" type="text" placeholder="stream ID or UUID">
+      </div>
+    </div>
+
+    <label for="ptzControl">Control</label>
+    <select id="ptzControl">
+      <option value="zoom">Zoom</option>
+      <option value="pan">Pan</option>
+      <option value="tilt">Tilt</option>
+      <option value="focus">Focus</option>
+      <option value="exposure">Exposure - local only</option>
+      <option value="autofocus">Autofocus - guest only</option>
+    </select>
+
+    <div id="ptzModeGroup">
+      <label for="ptzMode">Mode</label>
+      <select id="ptzMode">
+        <option value="relative">Relative step</option>
+        <option value="absolute">Absolute position</option>
+      </select>
+    </div>
+
+    <div id="ptzDirectionGroup">
+      <label for="ptzDirection">Direction</label>
+      <select id="ptzDirection">
+        <option value="positive">Positive / right / up / farther</option>
+        <option value="negative">Negative / left / down / nearer</option>
+      </select>
+    </div>
+
+    <label id="ptzValueLabel" for="ptzValue">Value</label>
+    <input id="ptzValue" type="text" placeholder="0.1">
+
+    <label id="ptzDisableAutofocusGroup" class="inline hidden">
+      <input id="ptzDisableAutofocus" type="checkbox">
+      Disable guest autofocus before focus
+    </label>
+
+    <label for="ptzTitle">Title template</label>
+    <input id="ptzTitle" type="text" placeholder="{slot} {label} {control} {direction}">
+    <div class="hint">Relative values are signed deltas. Absolute values use <code>value2=abs</code>. Guest exposure and local autofocus are blocked because VDO.Ninja does not expose those command paths today.</div>
+  </section>
+
+  <section id="ptzDialSettings" class="hidden">
+    <h2>PTZ Dial</h2>
+    <label for="ptzDialScope">Control target</label>
+    <select id="ptzDialScope">
+      <option value="local">Local page camera</option>
+      <option value="guest">Guest camera</option>
+    </select>
+
+    <div id="ptzDialTargetGroup" class="hidden">
+      <label for="ptzDialTargetMode">Guest target</label>
+      <select id="ptzDialTargetMode">
+        <option value="slot">Guest slot</option>
+        <option value="streamId">Stream ID</option>
+        <option value="selected">Selected guest</option>
+        <option value="firstHeld">First held guest</option>
+      </select>
+
+      <div id="ptzDialSlotGroup">
+        <label for="ptzDialSlot">Slot number</label>
+        <input id="ptzDialSlot" type="number" min="1" step="1" placeholder="1">
+      </div>
+
+      <div id="ptzDialStreamGroup" class="hidden">
+        <label for="ptzDialStreamId">Stream</label>
+        <select id="ptzDialStreamId"></select>
+        <div class="button-row two">
+          <button id="refreshPtzDialTargets" type="button">Refresh Targets</button>
+          <button id="useManualPtzDialStream" type="button">Manual ID</button>
+        </div>
+        <input id="manualPtzDialStreamId" class="hidden" type="text" placeholder="stream ID or UUID">
+      </div>
+    </div>
+
+    <label for="ptzDialControl">Control</label>
+    <select id="ptzDialControl">
+      <option value="zoom">Zoom</option>
+      <option value="pan">Pan</option>
+      <option value="tilt">Tilt</option>
+      <option value="focus">Focus</option>
+      <option value="exposure">Exposure - local only</option>
+    </select>
+
+    <label for="ptzDialStep">Step per tick</label>
+    <input id="ptzDialStep" type="text" placeholder="0.05">
+
+    <label for="ptzDialInterval">Send interval (ms)</label>
+    <input id="ptzDialInterval" type="number" min="20" step="10" placeholder="80">
+
+    <label class="inline">
+      <input id="ptzDialInvert" type="checkbox">
+      Invert dial direction
+    </label>
+
+    <label class="inline">
+      <input id="ptzDialAcceleration" type="checkbox">
+      Accelerate fast turns
+    </label>
+
+    <label id="ptzDialDisableAutofocusGroup" class="inline hidden">
+      <input id="ptzDialDisableAutofocus" type="checkbox">
+      Disable guest autofocus before focus
+    </label>
+
+    <label for="ptzDialPushAction">Dial press / touch</label>
+    <select id="ptzDialPushAction">
+      <option value="none">No command</option>
+      <option value="cycleControl">Cycle PTZ control</option>
+      <option value="autofocusOn">Guest autofocus on</option>
+      <option value="autofocusOff">Guest autofocus off</option>
+    </select>
+
+    <label for="ptzDialTitle">Title template</label>
+    <input id="ptzDialTitle" type="text" placeholder="{slot} {label} {control} {status}">
+    <div class="hint">Dial turns send relative PTZ deltas, accumulated and rate-limited before sending to VDO.Ninja. Guest exposure is blocked because VDO.Ninja does not expose a remote exposure command today.</div>
+  </section>
+
+  <section id="valueDialSettings" class="hidden">
+    <h2>Value Dial</h2>
+    <label for="valueDialScope">Control target</label>
+    <select id="valueDialScope">
+      <option value="local">Local page / inbound streams</option>
+      <option value="guest">Guest volume</option>
+    </select>
+
+    <div id="valueDialTargetGroup" class="hidden">
+      <label for="valueDialTargetMode">Guest target</label>
+      <select id="valueDialTargetMode">
+        <option value="slot">Guest slot</option>
+        <option value="streamId">Stream ID</option>
+        <option value="selected">Selected guest</option>
+        <option value="firstHeld">First held guest</option>
+      </select>
+
+      <div id="valueDialSlotGroup">
+        <label for="valueDialSlot">Slot number</label>
+        <input id="valueDialSlot" type="number" min="1" step="1" placeholder="1">
+      </div>
+
+      <div id="valueDialStreamGroup" class="hidden">
+        <label for="valueDialStreamId">Stream</label>
+        <select id="valueDialStreamId"></select>
+        <div class="button-row two">
+          <button id="refreshValueDialTargets" type="button">Refresh Targets</button>
+          <button id="useManualValueDialStream" type="button">Manual ID</button>
+        </div>
+        <input id="manualValueDialStreamId" class="hidden" type="text" placeholder="stream ID or UUID">
+      </div>
+    </div>
+
+    <label for="valueDialControl">Control</label>
+    <select id="valueDialControl">
+      <option value="volume">Volume</option>
+      <option value="panning">Audio panning - local only</option>
+      <option value="bitrate">Video bitrate - local only</option>
+      <option value="bufferDelay">Buffer delay - local only</option>
+    </select>
+
+    <div id="valueDialBufferApplyGroup" class="hidden">
+      <label for="valueDialBufferApply">Buffer applies to</label>
+      <select id="valueDialBufferApply">
+        <option value="all">All current inbound streams</option>
+        <option value="default">Default for future streams</option>
+      </select>
+    </div>
+
+    <label for="valueDialValue">Current value</label>
+    <input id="valueDialValue" type="text" placeholder="100">
+
+    <div class="row">
+      <div>
+        <label for="valueDialMin">Minimum</label>
+        <input id="valueDialMin" type="text" placeholder="0">
+      </div>
+      <div>
+        <label for="valueDialMax">Maximum</label>
+        <input id="valueDialMax" type="text" placeholder="200">
+      </div>
+    </div>
+
+    <label for="valueDialStep">Step per tick</label>
+    <input id="valueDialStep" type="text" placeholder="5">
+
+    <label for="valueDialResetValue">Reset value</label>
+    <input id="valueDialResetValue" type="text" placeholder="100">
+
+    <label for="valueDialInterval">Send interval (ms)</label>
+    <input id="valueDialInterval" type="number" min="20" step="10" placeholder="100">
+
+    <label class="inline">
+      <input id="valueDialInvert" type="checkbox">
+      Invert dial direction
+    </label>
+
+    <label class="inline">
+      <input id="valueDialAcceleration" type="checkbox">
+      Accelerate fast turns
+    </label>
+
+    <label for="valueDialPushAction">Dial press / touch</label>
+    <select id="valueDialPushAction">
+      <option value="reset">Reset value</option>
+      <option value="cycleControl">Cycle value control</option>
+      <option value="none">No command</option>
+    </select>
+
+    <label for="valueDialTitle">Title template</label>
+    <input id="valueDialTitle" type="text" placeholder="{slot} {label} {control} {value}{unit}">
+    <div class="hint">Volume is percent, panning is 0-180, bitrate is kbps, and buffer delay is milliseconds. Buffer delay uses VDO.Ninja's <code>value2</code> target path, so this first pass supports default or all-stream local buffer control.</div>
+  </section>
+
+  <section id="customSettings" class="hidden">
+    <h2>Custom Command</h2>
+    <label for="customAction">Action</label>
+    <input id="customAction" type="text" placeholder="getDetails">
+    <label for="customTarget">Target</label>
+    <input id="customTarget" type="text" placeholder="Slot, stream ID, UUID, or blank">
+    <label for="customValue">Value</label>
+    <textarea id="customValue" placeholder="true, false, 1, text, or JSON"></textarea>
+    <label for="customValue2">Value2</label>
+    <textarea id="customValue2" placeholder="Optional secondary value"></textarea>
+    <label for="customTitle">Title override</label>
+    <input id="customTitle" type="text" placeholder="Optional">
+    <label class="inline">
+      <input id="awaitCallback" type="checkbox" checked>
+      Wait for callback
+    </label>
+  </section>
+
+  <script>
+    const DEFAULT_BASE_URL = "https://vdo.ninja";
+    let websocket = null;
+    let pluginUuid = null;
+    let actionContext = null;
+    let actionUuid = "";
+    let globalSettings = {};
+    let actionSettings = {};
+    let targetChoices = [];
+    let selectedStreamID = "";
+    let bound = false;
+    let qrVisible = false;
+    let keyVisible = false;
+
+    window.connectElgatoStreamDeckSocket = function(port, uuid, registerEvent, info, actionInfo) {
+      pluginUuid = uuid;
+      try {
+        const parsed = JSON.parse(actionInfo);
+        actionContext = parsed.context;
+        actionUuid = parsed.action || "";
+        actionSettings = parsed.payload && parsed.payload.settings ? parsed.payload.settings : {};
+      } catch (error) {
+        actionSettings = {};
+      }
+
+      websocket = new WebSocket("ws://127.0.0.1:" + port);
+      websocket.onopen = function() {
+        websocket.send(JSON.stringify({ event: registerEvent, uuid: pluginUuid }));
+        websocket.send(JSON.stringify({ event: "getGlobalSettings", context: pluginUuid }));
+        if (actionContext) {
+          websocket.send(JSON.stringify({ event: "getSettings", context: actionContext }));
+        }
+        bind();
+        render();
+        sendToPlugin({ type: "requestStatus" });
+      };
+      websocket.onmessage = function(event) {
+        const message = JSON.parse(event.data);
+        if (message.event === "didReceiveGlobalSettings") {
+          globalSettings = message.payload && message.payload.settings ? message.payload.settings : {};
+          renderGlobal();
+        } else if (message.event === "didReceiveSettings") {
+          actionSettings = message.payload && message.payload.settings ? message.payload.settings : {};
+          renderAction();
+        } else if (message.event === "sendToPropertyInspector") {
+          handlePluginMessage(message.payload || {});
+        }
+      };
+    };
+
+    function render() {
+      renderGlobal();
+      renderAction();
+    }
+
+    function renderGlobal() {
+      byId("apiKey").value = globalSettings.apiKey || "";
+      byId("apiHost").value = globalSettings.apiHost || "api.vdo.ninja";
+      byId("timeout").value = globalSettings.requestTimeoutMs || 5000;
+      byId("detailsPoll").value = globalSettings.detailsPollMs || 2000;
+      byId("httpFallback").checked = globalSettings.httpFallback === true;
+      byId("baseUrl").value = globalSettings.setupBaseUrl || DEFAULT_BASE_URL;
+      byId("pageType").value = globalSettings.setupPageType || "director";
+      byId("roomName").value = globalSettings.setupRoom || "";
+      byId("streamId").value = globalSettings.setupStreamId || "";
+      byId("sceneId").value = globalSettings.setupScene || "";
+      byId("customUrl").value = globalSettings.setupCustomUrl || "";
+      renderLinkBuilder();
+      updateKeyVisibility();
+      updateStatusFromState(globalSettings.apiKey ? "unknown" : "missing-key");
+    }
+
+    function renderAction() {
+      byId("localSettings").classList.toggle("hidden", actionUuid !== "ninja.vdo.streamdeck.local-control");
+      byId("selectGuestSettings").classList.toggle("hidden", actionUuid !== "ninja.vdo.streamdeck.select-guest");
+      byId("guestSettings").classList.toggle("hidden", actionUuid !== "ninja.vdo.streamdeck.guest-command");
+      byId("guestSceneSettings").classList.toggle("hidden", actionUuid !== "ninja.vdo.streamdeck.guest-scene");
+      byId("ptzKeySettings").classList.toggle("hidden", actionUuid !== "ninja.vdo.streamdeck.ptz-key");
+      byId("ptzDialSettings").classList.toggle("hidden", actionUuid !== "ninja.vdo.streamdeck.ptz-dial");
+      byId("valueDialSettings").classList.toggle("hidden", actionUuid !== "ninja.vdo.streamdeck.value-dial");
+      byId("customSettings").classList.toggle("hidden", actionUuid !== "ninja.vdo.streamdeck.custom-command");
+
+      if (actionUuid === "ninja.vdo.streamdeck.local-control") {
+        byId("localCommand").value = actionSettings.command || "mic";
+        byId("behavior").value = actionSettings.behavior || "toggle";
+        byId("localTitle").value = actionSettings.title || "";
+        byId("dangerousConfirm").checked = actionSettings.dangerousConfirm !== false;
+        renderLocalSettings();
+      } else if (actionUuid === "ninja.vdo.streamdeck.select-guest") {
+        byId("selectMode").value = actionSettings.mode || "fixed";
+        byId("selectTargetMode").value = actionSettings.targetMode || "slot";
+        byId("selectTitle").value = actionSettings.title || "";
+        if ((actionSettings.targetMode || "slot") === "streamId") {
+          byId("selectStreamId").value = actionSettings.target || "";
+          byId("manualSelectStreamId").value = actionSettings.target || "";
+        } else {
+          byId("selectSlot").value = actionSettings.target || "1";
+        }
+        renderSelectGuestSettings();
+        sendToPlugin({ type: "requestTargets" });
+      } else if (actionUuid === "ninja.vdo.streamdeck.guest-command") {
+        byId("guestCommand").value = actionSettings.command || "mic";
+        byId("guestTargetMode").value = actionSettings.targetMode || "slot";
+        byId("guestBehavior").value = actionSettings.behavior || "toggle";
+        byId("guestValue").value = actionSettings.value || "";
+        byId("guestTitle").value = actionSettings.title || "";
+        byId("guestDangerousConfirm").checked = actionSettings.dangerousConfirm !== false;
+        if ((actionSettings.targetMode || "slot") === "streamId") {
+          byId("guestStreamId").value = actionSettings.target || "";
+          byId("manualGuestStreamId").value = actionSettings.target || "";
+        } else {
+          byId("guestSlot").value = actionSettings.target || "1";
+        }
+        renderGuestSettings();
+        sendToPlugin({ type: "requestTargets" });
+      } else if (actionUuid === "ninja.vdo.streamdeck.guest-scene") {
+        byId("sceneTargetMode").value = actionSettings.targetMode || "slot";
+        byId("sceneName").value = actionSettings.scene || "1";
+        byId("sceneMode").value = actionSettings.mode || "toggle";
+        byId("sceneTitle").value = actionSettings.title || "";
+        if ((actionSettings.targetMode || "slot") === "streamId") {
+          byId("sceneStreamId").value = actionSettings.target || "";
+          byId("manualSceneStreamId").value = actionSettings.target || "";
+        } else {
+          byId("sceneSlot").value = actionSettings.target || "1";
+        }
+        renderGuestSceneSettings();
+        sendToPlugin({ type: "requestTargets" });
+      } else if (actionUuid === "ninja.vdo.streamdeck.ptz-key") {
+        byId("ptzScope").value = actionSettings.scope || "local";
+        byId("ptzTargetMode").value = actionSettings.targetMode || "slot";
+        byId("ptzControl").value = actionSettings.control || "zoom";
+        byId("ptzMode").value = actionSettings.mode || "relative";
+        byId("ptzDirection").value = actionSettings.direction || "positive";
+        byId("ptzValue").value = actionSettings.value || (actionSettings.control === "autofocus" ? "true" : "0.1");
+        byId("ptzDisableAutofocus").checked = actionSettings.disableAutofocus === true;
+        byId("ptzTitle").value = actionSettings.title || "";
+        if ((actionSettings.targetMode || "slot") === "streamId") {
+          byId("ptzStreamId").value = actionSettings.target || "";
+          byId("manualPtzStreamId").value = actionSettings.target || "";
+        } else {
+          byId("ptzSlot").value = actionSettings.target || "1";
+        }
+        renderPtzKeySettings();
+        sendToPlugin({ type: "requestTargets" });
+      } else if (actionUuid === "ninja.vdo.streamdeck.ptz-dial") {
+        byId("ptzDialScope").value = actionSettings.scope || "local";
+        byId("ptzDialTargetMode").value = actionSettings.targetMode || "slot";
+        byId("ptzDialControl").value = actionSettings.control || "zoom";
+        byId("ptzDialStep").value = actionSettings.step || "0.05";
+        byId("ptzDialInterval").value = actionSettings.intervalMs || 80;
+        byId("ptzDialInvert").checked = actionSettings.invert === true;
+        byId("ptzDialAcceleration").checked = actionSettings.acceleration === true;
+        byId("ptzDialDisableAutofocus").checked = actionSettings.disableAutofocus === true;
+        byId("ptzDialPushAction").value = actionSettings.pushAction || "none";
+        byId("ptzDialTitle").value = actionSettings.title || "";
+        if ((actionSettings.targetMode || "slot") === "streamId") {
+          byId("ptzDialStreamId").value = actionSettings.target || "";
+          byId("manualPtzDialStreamId").value = actionSettings.target || "";
+        } else {
+          byId("ptzDialSlot").value = actionSettings.target || "1";
+        }
+        renderPtzDialSettings();
+        sendToPlugin({ type: "requestTargets" });
+      } else if (actionUuid === "ninja.vdo.streamdeck.value-dial") {
+        const control = actionSettings.control || "volume";
+        const defaults = valueDialDefaults(control);
+        byId("valueDialScope").value = actionSettings.scope || "local";
+        byId("valueDialTargetMode").value = actionSettings.targetMode || "slot";
+        byId("valueDialControl").value = control;
+        byId("valueDialBufferApply").value = actionSettings.bufferApply || "all";
+        byId("valueDialValue").value = actionSettings.value || defaults.value;
+        byId("valueDialMin").value = actionSettings.min || defaults.min;
+        byId("valueDialMax").value = actionSettings.max || defaults.max;
+        byId("valueDialStep").value = actionSettings.step || defaults.step;
+        byId("valueDialResetValue").value = actionSettings.resetValue || defaults.resetValue;
+        byId("valueDialInterval").value = actionSettings.intervalMs || 100;
+        byId("valueDialInvert").checked = actionSettings.invert === true;
+        byId("valueDialAcceleration").checked = actionSettings.acceleration === true;
+        byId("valueDialPushAction").value = actionSettings.pushAction || "reset";
+        byId("valueDialTitle").value = actionSettings.title || "";
+        if ((actionSettings.targetMode || "slot") === "streamId") {
+          byId("valueDialStreamId").value = actionSettings.target || "";
+          byId("manualValueDialStreamId").value = actionSettings.target || "";
+        } else {
+          byId("valueDialSlot").value = actionSettings.target || "1";
+        }
+        renderValueDialSettings();
+        sendToPlugin({ type: "requestTargets" });
+      } else if (actionUuid === "ninja.vdo.streamdeck.custom-command") {
+        byId("customAction").value = actionSettings.action || "getDetails";
+        byId("customTarget").value = actionSettings.target || "";
+        byId("customValue").value = valueToText(actionSettings.value);
+        byId("customValue2").value = valueToText(actionSettings.value2);
+        byId("customTitle").value = actionSettings.title || "";
+        byId("awaitCallback").checked = actionSettings.awaitCallback !== false;
+      }
+    }
+
+    function bind() {
+      if (bound) return;
+      bound = true;
+
+      [
+        "apiKey",
+        "apiHost",
+        "timeout",
+        "detailsPoll",
+        "httpFallback",
+        "baseUrl",
+        "pageType",
+        "roomName",
+        "streamId",
+        "sceneId",
+        "customUrl"
+      ].forEach(id => {
+        byId(id).oninput = saveGlobal;
+        byId(id).onchange = saveGlobal;
+      });
+
+      ["localCommand", "behavior", "localTitle", "dangerousConfirm"].forEach(id => {
+        byId(id).oninput = saveAction;
+        byId(id).onchange = saveAction;
+      });
+
+      [
+        "selectMode",
+        "selectTargetMode",
+        "selectSlot",
+        "selectStreamId",
+        "manualSelectStreamId",
+        "selectTitle"
+      ].forEach(id => {
+        byId(id).oninput = saveAction;
+        byId(id).onchange = saveAction;
+      });
+
+      [
+        "guestCommand",
+        "guestTargetMode",
+        "guestSlot",
+        "guestStreamId",
+        "manualGuestStreamId",
+        "guestBehavior",
+        "guestValue",
+        "guestTitle",
+        "guestDangerousConfirm"
+      ].forEach(id => {
+        byId(id).oninput = saveAction;
+        byId(id).onchange = saveAction;
+      });
+
+      [
+        "sceneTargetMode",
+        "sceneSlot",
+        "sceneStreamId",
+        "manualSceneStreamId",
+        "sceneName",
+        "sceneMode",
+        "sceneTitle"
+      ].forEach(id => {
+        byId(id).oninput = saveAction;
+        byId(id).onchange = saveAction;
+      });
+
+      [
+        "ptzScope",
+        "ptzTargetMode",
+        "ptzSlot",
+        "ptzStreamId",
+        "manualPtzStreamId",
+        "ptzControl",
+        "ptzMode",
+        "ptzDirection",
+        "ptzValue",
+        "ptzDisableAutofocus",
+        "ptzTitle"
+      ].forEach(id => {
+        byId(id).oninput = saveAction;
+        byId(id).onchange = saveAction;
+      });
+
+      [
+        "ptzDialScope",
+        "ptzDialTargetMode",
+        "ptzDialSlot",
+        "ptzDialStreamId",
+        "manualPtzDialStreamId",
+        "ptzDialControl",
+        "ptzDialStep",
+        "ptzDialInterval",
+        "ptzDialInvert",
+        "ptzDialAcceleration",
+        "ptzDialDisableAutofocus",
+        "ptzDialPushAction",
+        "ptzDialTitle"
+      ].forEach(id => {
+        byId(id).oninput = saveAction;
+        byId(id).onchange = saveAction;
+      });
+
+      [
+        "valueDialScope",
+        "valueDialTargetMode",
+        "valueDialSlot",
+        "valueDialStreamId",
+        "manualValueDialStreamId",
+        "valueDialControl",
+        "valueDialBufferApply",
+        "valueDialValue",
+        "valueDialMin",
+        "valueDialMax",
+        "valueDialStep",
+        "valueDialResetValue",
+        "valueDialInterval",
+        "valueDialInvert",
+        "valueDialAcceleration",
+        "valueDialPushAction",
+        "valueDialTitle"
+      ].forEach(id => {
+        byId(id).oninput = saveAction;
+        byId(id).onchange = saveAction;
+      });
+
+      ["customAction", "customTarget", "customValue", "customValue2", "customTitle", "awaitCallback"].forEach(id => {
+        byId(id).oninput = saveAction;
+        byId(id).onchange = saveAction;
+      });
+
+      byId("generateKey").onclick = function() {
+        byId("apiKey").value = generateApiKey();
+        keyVisible = true;
+        saveGlobal();
+        updateCopyState("Generated a private API key.");
+      };
+      byId("copyKey").onclick = function() {
+        copyText(byId("apiKey").value, "API key copied.");
+      };
+      byId("copyUrl").onclick = function() {
+        copyText(byId("generatedUrl").value, "Generated URL copied.");
+      };
+      byId("openUrl").onclick = function() {
+        const url = byId("generatedUrl").value;
+        if (!url) return;
+        sendToPlugin({ type: "openUrl", url });
+      };
+      byId("showQr").onclick = function() {
+        qrVisible = !qrVisible;
+        byId("qrPanel").classList.toggle("hidden", !qrVisible);
+        byId("showQr").textContent = qrVisible ? "Hide QR" : "QR";
+        if (qrVisible) {
+          drawQr(byId("generatedUrl").value);
+        }
+      };
+      byId("hideKey").onclick = function() {
+        keyVisible = !keyVisible;
+        updateKeyVisibility();
+      };
+      byId("testConnection").onclick = function() {
+        saveGlobal();
+        updateStatus("warn", "Testing for a VDO.Ninja page using this key...");
+        sendToPlugin({ type: "testConnection" });
+      };
+      byId("refreshTargets").onclick = function() {
+        sendToPlugin({ type: "requestTargets" });
+        updateCopyState("Refreshing VDO.Ninja targets.");
+      };
+      byId("useManualStream").onclick = function() {
+        byId("manualGuestStreamId").classList.toggle("hidden");
+        if (!byId("manualGuestStreamId").classList.contains("hidden")) {
+          byId("manualGuestStreamId").focus();
+        }
+      };
+      byId("refreshSelectTargets").onclick = function() {
+        sendToPlugin({ type: "requestTargets" });
+        updateCopyState("Refreshing VDO.Ninja targets.");
+      };
+      byId("useManualSelectStream").onclick = function() {
+        byId("manualSelectStreamId").classList.toggle("hidden");
+        if (!byId("manualSelectStreamId").classList.contains("hidden")) {
+          byId("manualSelectStreamId").focus();
+        }
+      };
+      byId("refreshSceneTargets").onclick = function() {
+        sendToPlugin({ type: "requestTargets" });
+        updateCopyState("Refreshing VDO.Ninja targets.");
+      };
+      byId("useManualSceneStream").onclick = function() {
+        byId("manualSceneStreamId").classList.toggle("hidden");
+        if (!byId("manualSceneStreamId").classList.contains("hidden")) {
+          byId("manualSceneStreamId").focus();
+        }
+      };
+      byId("refreshPtzTargets").onclick = function() {
+        sendToPlugin({ type: "requestTargets" });
+        updateCopyState("Refreshing VDO.Ninja targets.");
+      };
+      byId("useManualPtzStream").onclick = function() {
+        byId("manualPtzStreamId").classList.toggle("hidden");
+        if (!byId("manualPtzStreamId").classList.contains("hidden")) {
+          byId("manualPtzStreamId").focus();
+        }
+      };
+      byId("refreshPtzDialTargets").onclick = function() {
+        sendToPlugin({ type: "requestTargets" });
+        updateCopyState("Refreshing VDO.Ninja targets.");
+      };
+      byId("useManualPtzDialStream").onclick = function() {
+        byId("manualPtzDialStreamId").classList.toggle("hidden");
+        if (!byId("manualPtzDialStreamId").classList.contains("hidden")) {
+          byId("manualPtzDialStreamId").focus();
+        }
+      };
+      byId("refreshValueDialTargets").onclick = function() {
+        sendToPlugin({ type: "requestTargets" });
+        updateCopyState("Refreshing VDO.Ninja targets.");
+      };
+      byId("useManualValueDialStream").onclick = function() {
+        byId("manualValueDialStreamId").classList.toggle("hidden");
+        if (!byId("manualValueDialStreamId").classList.contains("hidden")) {
+          byId("manualValueDialStreamId").focus();
+        }
+      };
+    }
+
+    function saveGlobal() {
+      renderLinkBuilder();
+      globalSettings = {
+        apiKey: byId("apiKey").value.trim(),
+        apiHost: byId("apiHost").value.trim() || "api.vdo.ninja",
+        requestTimeoutMs: numberValue("timeout", 5000),
+        detailsPollMs: numberValue("detailsPoll", 2000),
+        httpFallback: byId("httpFallback").checked,
+        setupBaseUrl: byId("baseUrl").value.trim() || DEFAULT_BASE_URL,
+        setupPageType: byId("pageType").value,
+        setupRoom: byId("roomName").value.trim(),
+        setupStreamId: byId("streamId").value.trim(),
+        setupScene: byId("sceneId").value.trim(),
+        setupCustomUrl: byId("customUrl").value.trim()
+      };
+      send({ event: "setGlobalSettings", context: pluginUuid, payload: globalSettings });
+      updateStatusFromState(globalSettings.apiKey ? "unknown" : "missing-key");
+    }
+
+    function saveAction() {
+      if (!actionContext) return;
+      if (actionUuid === "ninja.vdo.streamdeck.local-control") {
+        let behavior = byId("behavior").value;
+        if (byId("localCommand").value !== "mic" && (behavior === "pushToTalk" || behavior === "pushToMute")) {
+          behavior = "toggle";
+          byId("behavior").value = behavior;
+        }
+        actionSettings = {
+          command: byId("localCommand").value,
+          behavior,
+          title: byId("localTitle").value.trim(),
+          dangerousConfirm: byId("dangerousConfirm").checked
+        };
+        renderLocalSettings();
+      } else if (actionUuid === "ninja.vdo.streamdeck.select-guest") {
+        const targetMode = byId("selectTargetMode").value;
+        const manualStream = byId("manualSelectStreamId").value.trim();
+        actionSettings = {
+          mode: byId("selectMode").value,
+          targetMode,
+          target: targetMode === "slot" ? byId("selectSlot").value.trim() || "1" : targetMode === "streamId" ? manualStream || byId("selectStreamId").value : "",
+          title: byId("selectTitle").value.trim()
+        };
+        renderSelectGuestSettings();
+      } else if (actionUuid === "ninja.vdo.streamdeck.guest-command") {
+        const targetMode = byId("guestTargetMode").value;
+        const manualStream = byId("manualGuestStreamId").value.trim();
+        actionSettings = {
+          command: byId("guestCommand").value,
+          targetMode,
+          target: targetMode === "slot" ? byId("guestSlot").value.trim() || "1" : targetMode === "streamId" ? manualStream || byId("guestStreamId").value : "",
+          behavior: byId("guestBehavior").value,
+          value: byId("guestValue").value.trim(),
+          title: byId("guestTitle").value.trim(),
+          dangerousConfirm: byId("guestDangerousConfirm").checked
+        };
+        renderGuestSettings();
+      } else if (actionUuid === "ninja.vdo.streamdeck.guest-scene") {
+        const targetMode = byId("sceneTargetMode").value;
+        const manualStream = byId("manualSceneStreamId").value.trim();
+        actionSettings = {
+          targetMode,
+          target: targetMode === "slot" ? byId("sceneSlot").value.trim() || "1" : targetMode === "streamId" ? manualStream || byId("sceneStreamId").value : "",
+          scene: byId("sceneName").value.trim() || "1",
+          mode: byId("sceneMode").value,
+          title: byId("sceneTitle").value.trim()
+        };
+        renderGuestSceneSettings();
+      } else if (actionUuid === "ninja.vdo.streamdeck.ptz-key") {
+        const targetMode = byId("ptzTargetMode").value;
+        const manualStream = byId("manualPtzStreamId").value.trim();
+        actionSettings = {
+          scope: byId("ptzScope").value,
+          targetMode,
+          target: targetMode === "slot" ? byId("ptzSlot").value.trim() || "1" : targetMode === "streamId" ? manualStream || byId("ptzStreamId").value : "",
+          control: byId("ptzControl").value,
+          mode: byId("ptzMode").value,
+          direction: byId("ptzDirection").value,
+          value: byId("ptzValue").value.trim(),
+          disableAutofocus: byId("ptzDisableAutofocus").checked,
+          title: byId("ptzTitle").value.trim()
+        };
+        renderPtzKeySettings();
+      } else if (actionUuid === "ninja.vdo.streamdeck.ptz-dial") {
+        const targetMode = byId("ptzDialTargetMode").value;
+        const manualStream = byId("manualPtzDialStreamId").value.trim();
+        actionSettings = {
+          scope: byId("ptzDialScope").value,
+          targetMode,
+          target: targetMode === "slot" ? byId("ptzDialSlot").value.trim() || "1" : targetMode === "streamId" ? manualStream || byId("ptzDialStreamId").value : "",
+          control: byId("ptzDialControl").value,
+          step: byId("ptzDialStep").value.trim(),
+          intervalMs: numberValue("ptzDialInterval", 80),
+          invert: byId("ptzDialInvert").checked,
+          acceleration: byId("ptzDialAcceleration").checked,
+          disableAutofocus: byId("ptzDialDisableAutofocus").checked,
+          pushAction: byId("ptzDialPushAction").value,
+          title: byId("ptzDialTitle").value.trim()
+        };
+        renderPtzDialSettings();
+      } else if (actionUuid === "ninja.vdo.streamdeck.value-dial") {
+        const scope = byId("valueDialScope").value;
+        const targetMode = byId("valueDialTargetMode").value;
+        const manualStream = byId("manualValueDialStreamId").value.trim();
+        const previousControl = actionSettings.control || "volume";
+        let control = byId("valueDialControl").value;
+        if (scope === "guest") {
+          control = "volume";
+          byId("valueDialControl").value = "volume";
+        }
+        if (control !== previousControl) {
+          const defaults = valueDialDefaults(control);
+          byId("valueDialValue").value = defaults.value;
+          byId("valueDialMin").value = defaults.min;
+          byId("valueDialMax").value = defaults.max;
+          byId("valueDialStep").value = defaults.step;
+          byId("valueDialResetValue").value = defaults.resetValue;
+        }
+        actionSettings = {
+          scope,
+          targetMode,
+          target: targetMode === "slot" ? byId("valueDialSlot").value.trim() || "1" : targetMode === "streamId" ? manualStream || byId("valueDialStreamId").value : "",
+          control,
+          bufferApply: byId("valueDialBufferApply").value,
+          value: byId("valueDialValue").value.trim(),
+          min: byId("valueDialMin").value.trim(),
+          max: byId("valueDialMax").value.trim(),
+          step: byId("valueDialStep").value.trim(),
+          resetValue: byId("valueDialResetValue").value.trim(),
+          intervalMs: numberValue("valueDialInterval", 100),
+          invert: byId("valueDialInvert").checked,
+          acceleration: byId("valueDialAcceleration").checked,
+          pushAction: byId("valueDialPushAction").value,
+          title: byId("valueDialTitle").value.trim()
+        };
+        renderValueDialSettings();
+      } else if (actionUuid === "ninja.vdo.streamdeck.custom-command") {
+        actionSettings = {
+          action: byId("customAction").value.trim(),
+          target: byId("customTarget").value.trim(),
+          value: byId("customValue").value.trim(),
+          value2: byId("customValue2").value.trim(),
+          title: byId("customTitle").value.trim(),
+          awaitCallback: byId("awaitCallback").checked
+        };
+      } else {
+        return;
+      }
+      send({ event: "setSettings", context: actionContext, payload: actionSettings });
+    }
+
+    function renderLinkBuilder() {
+      const type = byId("pageType").value || "director";
+      byId("roomGroup").classList.toggle("hidden", !(type === "director" || type === "scene"));
+      byId("streamGroup").classList.toggle("hidden", !(type === "push" || type === "view"));
+      byId("sceneGroup").classList.toggle("hidden", type !== "scene");
+      byId("customUrlGroup").classList.toggle("hidden", type !== "custom");
+      byId("baseUrlGroup").classList.toggle("hidden", type === "custom");
+
+      const url = buildGeneratedUrl();
+      byId("generatedUrl").value = url;
+      byId("openUrl").disabled = !url;
+      byId("copyUrl").disabled = !url;
+      byId("showQr").disabled = !url;
+      if (qrVisible) {
+        drawQr(url);
+      }
+    }
+
+    function renderLocalSettings() {
+      const command = byId("localCommand").value || "mic";
+      ["pushToTalk", "pushToMute"].forEach(value => {
+        const option = byId("behavior").querySelector("option[value='" + value + "']");
+        if (option) option.disabled = command !== "mic";
+      });
+      if (command !== "mic" && (byId("behavior").value === "pushToTalk" || byId("behavior").value === "pushToMute")) {
+        byId("behavior").value = "toggle";
+      }
+    }
+
+    function renderGuestSettings() {
+      const mode = byId("guestTargetMode").value || "slot";
+      const command = byId("guestCommand").value || "mic";
+      byId("guestSlotGroup").classList.toggle("hidden", mode !== "slot");
+      byId("guestStreamGroup").classList.toggle("hidden", mode !== "streamId");
+      byId("guestBehavior").disabled = !guestCommandSupportsBehavior(command);
+      byId("guestValueGroup").classList.toggle("hidden", !guestCommandNeedsValue(command));
+      byId("guestValueLabel").textContent = guestValueLabel(command);
+      byId("guestValue").placeholder = guestValuePlaceholder(command);
+    }
+
+    function renderSelectGuestSettings() {
+      const mode = byId("selectMode").value || "fixed";
+      const targetMode = byId("selectTargetMode").value || "slot";
+      byId("selectFixedGroup").classList.toggle("hidden", mode !== "fixed");
+      byId("selectSlotGroup").classList.toggle("hidden", targetMode !== "slot");
+      byId("selectStreamGroup").classList.toggle("hidden", targetMode !== "streamId");
+      renderSelectedTargetText();
+    }
+
+    function renderGuestSceneSettings() {
+      const mode = byId("sceneTargetMode").value || "slot";
+      byId("sceneSlotGroup").classList.toggle("hidden", mode !== "slot");
+      byId("sceneStreamGroup").classList.toggle("hidden", mode !== "streamId");
+      renderSceneChoices();
+    }
+
+    function renderPtzKeySettings() {
+      const scope = byId("ptzScope").value || "local";
+      const targetMode = byId("ptzTargetMode").value || "slot";
+      const control = byId("ptzControl").value || "zoom";
+      const mode = byId("ptzMode").value || "relative";
+      byId("ptzTargetGroup").classList.toggle("hidden", scope !== "guest");
+      byId("ptzSlotGroup").classList.toggle("hidden", targetMode !== "slot");
+      byId("ptzStreamGroup").classList.toggle("hidden", targetMode !== "streamId");
+      byId("ptzModeGroup").classList.toggle("hidden", control === "autofocus");
+      byId("ptzDirectionGroup").classList.toggle("hidden", control === "autofocus" || mode === "absolute");
+      byId("ptzDisableAutofocusGroup").classList.toggle("hidden", !(scope === "guest" && control === "focus"));
+      byId("ptzValueLabel").textContent = control === "autofocus" ? "Autofocus value" : mode === "absolute" ? "Absolute value" : "Step value";
+      byId("ptzValue").placeholder = control === "autofocus" ? "true, false, manual, or off" : mode === "absolute" ? ptzAbsolutePlaceholder(control) : "0.1";
+    }
+
+    function renderPtzDialSettings() {
+      const scope = byId("ptzDialScope").value || "local";
+      const targetMode = byId("ptzDialTargetMode").value || "slot";
+      const control = byId("ptzDialControl").value || "zoom";
+      byId("ptzDialTargetGroup").classList.toggle("hidden", scope !== "guest");
+      byId("ptzDialSlotGroup").classList.toggle("hidden", targetMode !== "slot");
+      byId("ptzDialStreamGroup").classList.toggle("hidden", targetMode !== "streamId");
+      byId("ptzDialDisableAutofocusGroup").classList.toggle("hidden", !(scope === "guest" && control === "focus"));
+      const exposureOption = byId("ptzDialControl").querySelector("option[value='exposure']");
+      if (exposureOption) exposureOption.disabled = scope === "guest";
+      ["autofocusOn", "autofocusOff"].forEach(value => {
+        const option = byId("ptzDialPushAction").querySelector("option[value='" + value + "']");
+        if (option) option.disabled = scope !== "guest";
+      });
+    }
+
+    function renderValueDialSettings() {
+      const scope = byId("valueDialScope").value || "local";
+      const targetMode = byId("valueDialTargetMode").value || "slot";
+      let control = byId("valueDialControl").value || "volume";
+      if (scope === "guest" && control !== "volume") {
+        control = "volume";
+        byId("valueDialControl").value = "volume";
+      }
+      byId("valueDialTargetGroup").classList.toggle("hidden", scope !== "guest");
+      byId("valueDialSlotGroup").classList.toggle("hidden", targetMode !== "slot");
+      byId("valueDialStreamGroup").classList.toggle("hidden", targetMode !== "streamId");
+      byId("valueDialBufferApplyGroup").classList.toggle("hidden", !(scope === "local" && control === "bufferDelay"));
+      ["panning", "bitrate", "bufferDelay"].forEach(value => {
+        const option = byId("valueDialControl").querySelector("option[value='" + value + "']");
+        if (option) option.disabled = scope === "guest";
+      });
+      const defaults = valueDialDefaults(control);
+      byId("valueDialValue").placeholder = defaults.value;
+      byId("valueDialMin").placeholder = defaults.min;
+      byId("valueDialMax").placeholder = defaults.max;
+      byId("valueDialStep").placeholder = defaults.step;
+      byId("valueDialResetValue").placeholder = defaults.resetValue;
+    }
+
+    function renderTargetChoices() {
+      renderStreamSelect(byId("selectStreamId"), actionUuid === "ninja.vdo.streamdeck.select-guest" ? actionSettings.target || "" : "");
+      renderStreamSelect(byId("guestStreamId"), actionUuid === "ninja.vdo.streamdeck.guest-command" ? actionSettings.target || "" : "");
+      renderStreamSelect(byId("sceneStreamId"), actionUuid === "ninja.vdo.streamdeck.guest-scene" ? actionSettings.target || "" : "");
+      renderStreamSelect(byId("ptzStreamId"), actionUuid === "ninja.vdo.streamdeck.ptz-key" ? actionSettings.target || "" : "");
+      renderStreamSelect(byId("ptzDialStreamId"), actionUuid === "ninja.vdo.streamdeck.ptz-dial" ? actionSettings.target || "" : "");
+      renderStreamSelect(byId("valueDialStreamId"), actionUuid === "ninja.vdo.streamdeck.value-dial" ? actionSettings.target || "" : "");
+      renderSelectedTargetText();
+    }
+
+    function renderStreamSelect(select, currentValue) {
+      const current = select.value || currentValue || "";
+      select.textContent = "";
+      const empty = document.createElement("option");
+      empty.value = "";
+      empty.textContent = targetChoices.length ? "Choose stream..." : "No guests detected";
+      select.appendChild(empty);
+      targetChoices.forEach(choice => {
+        const option = document.createElement("option");
+        option.value = choice.streamID || "";
+        const parts = [];
+        if (typeof choice.position === "number") parts.push("G" + choice.position);
+        parts.push(choice.label || choice.streamID || "Guest");
+        if (choice.held) parts.push("held");
+        if (choice.handRaised) parts.push("hand");
+        option.textContent = parts.join(" - ");
+        select.appendChild(option);
+      });
+      if (current) {
+        select.value = current;
+      }
+    }
+
+    function renderSceneChoices() {
+      const datalist = byId("sceneChoices");
+      datalist.textContent = "";
+      const scenes = new Set(["1", "2", "3", "4", "5", "6", "7", "8"]);
+      targetChoices.forEach(choice => {
+        if (choice.scenes && typeof choice.scenes === "object") {
+          Object.keys(choice.scenes).forEach(scene => scenes.add(scene));
+        }
+      });
+      Array.from(scenes).sort(sceneSort).forEach(scene => {
+        const option = document.createElement("option");
+        option.value = scene;
+        datalist.appendChild(option);
+      });
+    }
+
+    function sceneSort(left, right) {
+      const leftNumber = Number(left);
+      const rightNumber = Number(right);
+      if (Number.isInteger(leftNumber) && Number.isInteger(rightNumber)) {
+        return leftNumber - rightNumber;
+      }
+      return left.localeCompare(right);
+    }
+
+    function renderSelectedTargetText() {
+      const input = byId("currentSelectedTarget");
+      if (!input) return;
+      if (!selectedStreamID) {
+        input.value = "None";
+        return;
+      }
+      const choice = targetChoices.find(item => item.streamID === selectedStreamID);
+      if (!choice) {
+        input.value = selectedStreamID + " (not currently detected)";
+        return;
+      }
+      const parts = [];
+      if (typeof choice.position === "number") parts.push("G" + choice.position);
+      parts.push(choice.label || choice.streamID);
+      input.value = parts.join(" - ");
+    }
+
+    function guestCommandSupportsBehavior(command) {
+      return ["mic", "camera", "speaker", "display", "soloVideo", "soloChat", "soloChatBidirectional"].includes(command);
+    }
+
+    function guestCommandNeedsValue(command) {
+      return ["volume", "group", "forward", "sendDirectorChat", "sendPinnedDirectorChat"].includes(command);
+    }
+
+    function guestValueLabel(command) {
+      if (command === "volume") return "Volume percent";
+      if (command === "group") return "Group ID";
+      if (command === "forward") return "Destination room";
+      if (command === "sendDirectorChat" || command === "sendPinnedDirectorChat") return "Message";
+      return "Value";
+    }
+
+    function guestValuePlaceholder(command) {
+      if (command === "volume") return "100";
+      if (command === "group") return "1";
+      if (command === "forward") return "target-room";
+      if (command === "sendDirectorChat" || command === "sendPinnedDirectorChat") return "Message shown to guest";
+      return "Optional";
+    }
+
+    function ptzAbsolutePlaceholder(control) {
+      if (control === "pan" || control === "tilt") return "-1 to 1";
+      if (control === "exposure") return "0 to 1";
+      return "0 to 1";
+    }
+
+    function valueDialDefaults(control) {
+      if (control === "panning") {
+        return { value: "90", min: "0", max: "180", step: "5", resetValue: "90" };
+      }
+      if (control === "bitrate") {
+        return { value: "2500", min: "0", max: "6000", step: "250", resetValue: "-1" };
+      }
+      if (control === "bufferDelay") {
+        return { value: "0", min: "0", max: "5000", step: "100", resetValue: "0" };
+      }
+      return { value: "100", min: "0", max: "200", step: "5", resetValue: "100" };
+    }
+
+    function buildGeneratedUrl() {
+      const type = byId("pageType").value || "director";
+      const apiKey = byId("apiKey").value.trim() || "API_KEY";
+      const base = normalizeBaseUrl(byId("baseUrl").value.trim() || DEFAULT_BASE_URL);
+
+      try {
+        if (type === "custom") {
+          const custom = byId("customUrl").value.trim();
+          if (!custom) return "";
+          return withApi(custom, apiKey);
+        }
+
+        const url = new URL(type === "director" ? "/mixer" : "/", base);
+        if (type === "director") {
+          url.searchParams.set("room", byId("roomName").value.trim() || "ROOM");
+        } else if (type === "push") {
+          url.searchParams.set("push", byId("streamId").value.trim() || "STREAM_ID");
+        } else if (type === "view") {
+          url.searchParams.set("view", byId("streamId").value.trim() || "STREAM_ID");
+        } else if (type === "scene") {
+          url.searchParams.set("room", byId("roomName").value.trim() || "ROOM");
+          url.searchParams.set("scene", byId("sceneId").value.trim() || "SCENE");
+        }
+        url.searchParams.set("api", apiKey);
+        return url.toString();
+      } catch (error) {
+        return "";
+      }
+    }
+
+    function withApi(rawUrl, apiKey) {
+      const url = new URL(rawUrl);
+      url.searchParams.set("api", apiKey || "API_KEY");
+      return url.toString();
+    }
+
+    function normalizeBaseUrl(raw) {
+      if (/^https?:\/\//i.test(raw)) {
+        return raw;
+      }
+      return "https://" + raw;
+    }
+
+    function generateApiKey() {
+      const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+      const bytes = new Uint8Array(18);
+      crypto.getRandomValues(bytes);
+      let key = "";
+      for (let i = 0; i < bytes.length; i += 1) {
+        key += alphabet[bytes[i] % alphabet.length];
+      }
+      return key;
+    }
+
+    function drawQr(text) {
+      const canvas = byId("qrCanvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (!text || typeof qrcode !== "function") {
+        updateCopyState("QR generator is available after the plugin is built.");
+        return;
+      }
+
+      const qr = qrcode(0, "M");
+      qr.addData(text);
+      qr.make();
+      const count = qr.getModuleCount();
+      const quiet = 4;
+      const cell = Math.floor(canvas.width / (count + quiet * 2));
+      const size = cell * (count + quiet * 2);
+      const offset = Math.floor((canvas.width - size) / 2);
+
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#000";
+      for (let row = 0; row < count; row += 1) {
+        for (let col = 0; col < count; col += 1) {
+          if (qr.isDark(row, col)) {
+            ctx.fillRect(offset + (col + quiet) * cell, offset + (row + quiet) * cell, cell, cell);
+          }
+        }
+      }
+    }
+
+    function handlePluginMessage(payload) {
+      if (!payload || typeof payload !== "object") return;
+      if (payload.type === "status" || payload.type === "connectionTestResult") {
+        const state = payload.state || "";
+        const ok = payload.ok === true;
+        updateStatus(ok ? "ok" : state === "no-page" || state === "timeout" || state === "connecting" ? "warn" : "error", payload.message || statusMessage(state));
+      } else if (payload.type === "openUrlResult") {
+        updateCopyState(payload.message || (payload.ok ? "Opened URL." : "Could not open URL."));
+      } else if (payload.type === "targetChoices") {
+        targetChoices = Array.isArray(payload.streams) ? payload.streams : [];
+        selectedStreamID = typeof payload.selectedStreamID === "string" ? payload.selectedStreamID : "";
+        renderTargetChoices();
+        renderSceneChoices();
+      }
+    }
+
+    function updateStatusFromState(state) {
+      if (state === "missing-key") {
+        updateStatus("warn", "Generate or enter an API key, then open a VDO.Ninja URL using the same key.");
+      } else if (state === "unknown") {
+        updateStatus("warn", "Open the generated VDO.Ninja URL, then test the connection.");
+      } else {
+        updateStatus("warn", statusMessage(state));
+      }
+    }
+
+    function statusMessage(state) {
+      if (state === "connected") return "VDO.Ninja page answered.";
+      if (state === "no-page") return "Waiting for a VDO.Ninja page using this API key.";
+      if (state === "timeout") return "Timed out waiting for a VDO.Ninja page to answer.";
+      if (state === "connecting") return "Connecting to the API relay.";
+      if (state === "error") return "The API connection reported an error.";
+      if (state === "missing-key") return "Generate or enter an API key first.";
+      return "Open the generated VDO.Ninja URL, then test the connection.";
+    }
+
+    function updateStatus(kind, message) {
+      const box = byId("statusBox");
+      box.classList.remove("ok", "warn", "error");
+      if (kind) box.classList.add(kind);
+      byId("statusText").textContent = message;
+    }
+
+    function updateKeyVisibility() {
+      byId("apiKey").type = keyVisible ? "text" : "password";
+      byId("hideKey").textContent = keyVisible ? "Hide Key" : "Show Key";
+    }
+
+    async function copyText(value, message) {
+      if (!value) return;
+      try {
+        await navigator.clipboard.writeText(value);
+      } catch (error) {
+        const helper = document.createElement("textarea");
+        helper.value = value;
+        document.body.appendChild(helper);
+        helper.select();
+        document.execCommand("copy");
+        helper.remove();
+      }
+      updateCopyState(message);
+    }
+
+    function updateCopyState(message) {
+      byId("copyState").textContent = message || "";
+      if (message) {
+        setTimeout(function() {
+          if (byId("copyState").textContent === message) {
+            byId("copyState").textContent = "";
+          }
+        }, 3500);
+      }
+    }
+
+    function sendToPlugin(payload) {
+      if (!actionContext) return;
+      send({ event: "sendToPlugin", action: actionUuid, context: actionContext, payload });
+    }
+
+    function send(payload) {
+      if (websocket && websocket.readyState === WebSocket.OPEN) {
+        websocket.send(JSON.stringify(payload));
+      }
+    }
+
+    function byId(id) {
+      return document.getElementById(id);
+    }
+
+    function numberValue(id, fallback) {
+      const value = Number(byId(id).value);
+      return Number.isFinite(value) && value > 0 ? value : fallback;
+    }
+
+    function valueToText(value) {
+      if (typeof value === "undefined" || value === null) return "";
+      if (typeof value === "object") return JSON.stringify(value);
+      return String(value);
+    }
+  </script>
+</body>
+</html>

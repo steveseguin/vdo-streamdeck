@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144" viewBox="0 0 144 144" role="img" aria-label="VDO.Ninja selected guest icon">
+  <rect width="144" height="144" rx="18" fill="#20242d"/>
+  <circle cx="72" cy="53" r="24" fill="#fbbf24"/>
+  <path d="M31 119c7-26 23-39 41-39s34 13 41 39" fill="#f59e0b"/>
+  <path d="M116 27l9 19 20 3-14 14 3 20-18-9-18 9 3-20-14-14 20-3z" transform="translate(-18 3) scale(.82)" fill="#f4f7fb"/>
+  <path d="M27 36h21M37 26v21M96 106h22M107 95v22" stroke="#38bdf8" stroke-width="7" stroke-linecap="round"/>
+</svg>

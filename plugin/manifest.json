@@ -1,0 +1,215 @@
+{
+  "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+  "UUID": "ninja.vdo.streamdeck",
+  "Name": "VDO.Ninja",
+  "Author": "VDO.Ninja",
+  "Description": "Control VDO.Ninja pages opened with &api from Stream Deck keys.",
+  "Version": "0.1.0.0",
+  "SDKVersion": 2,
+  "Software": {
+    "MinimumVersion": "7.1"
+  },
+  "Nodejs": {
+    "Version": "24"
+  },
+  "OS": [
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
+    },
+    {
+      "Platform": "mac",
+      "MinimumVersion": "12"
+    }
+  ],
+  "Category": "VDO.Ninja",
+  "CategoryIcon": "imgs/category",
+  "Icon": "imgs/plugin",
+  "CodePath": "bin/plugin.js",
+  "PropertyInspectorPath": "ui/action-settings.html",
+  "Actions": [
+    {
+      "UUID": "ninja.vdo.streamdeck.connection",
+      "Name": "Connection Status",
+      "Tooltip": "Configure the VDO.Ninja API key and show connection status.",
+      "Icon": "imgs/connection",
+      "Controllers": ["Keypad"],
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "imgs/state-neutral",
+          "Title": "VDO",
+          "ShowTitle": true
+        },
+        {
+          "Image": "imgs/state-on",
+          "Title": "VDO",
+          "ShowTitle": true
+        }
+      ]
+    },
+    {
+      "UUID": "ninja.vdo.streamdeck.local-control",
+      "Name": "Local Control",
+      "Tooltip": "Control the local VDO.Ninja page: mic, camera, speaker, record, hand, screen share, and more.",
+      "Icon": "imgs/local",
+      "Controllers": ["Keypad"],
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "imgs/state-off",
+          "Title": "Local",
+          "ShowTitle": true
+        },
+        {
+          "Image": "imgs/state-on",
+          "Title": "Local",
+          "ShowTitle": true
+        }
+      ]
+    },
+    {
+      "UUID": "ninja.vdo.streamdeck.select-guest",
+      "Name": "Select Guest",
+      "Tooltip": "Select a VDO.Ninja guest by slot, stream ID, next/previous guest, or first held guest for other actions to follow.",
+      "Icon": "imgs/select",
+      "Controllers": ["Keypad"],
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "imgs/state-off",
+          "Title": "Select",
+          "ShowTitle": true
+        },
+        {
+          "Image": "imgs/state-on",
+          "Title": "Target",
+          "ShowTitle": true
+        }
+      ]
+    },
+    {
+      "UUID": "ninja.vdo.streamdeck.guest-command",
+      "Name": "Guest Command",
+      "Tooltip": "Control a VDO.Ninja guest by slot, stream ID, selected guest, or first held guest.",
+      "Icon": "imgs/guest",
+      "Controllers": ["Keypad"],
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "imgs/state-off",
+          "Title": "Guest",
+          "ShowTitle": true
+        },
+        {
+          "Image": "imgs/state-on",
+          "Title": "Guest",
+          "ShowTitle": true
+        }
+      ]
+    },
+    {
+      "UUID": "ninja.vdo.streamdeck.guest-scene",
+      "Name": "Guest Scene",
+      "Tooltip": "Toggle a VDO.Ninja guest in an arbitrary scene by slot, stream ID, selected guest, or first held guest.",
+      "Icon": "imgs/scene",
+      "Controllers": ["Keypad"],
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "imgs/state-off",
+          "Title": "Scene",
+          "ShowTitle": true
+        },
+        {
+          "Image": "imgs/state-on",
+          "Title": "Scene",
+          "ShowTitle": true
+        }
+      ]
+    },
+    {
+      "UUID": "ninja.vdo.streamdeck.ptz-key",
+      "Name": "PTZ Key",
+      "Tooltip": "Send local or guest PTZ camera commands: zoom, pan, tilt, focus, exposure, and guest autofocus.",
+      "Icon": "imgs/ptz",
+      "Controllers": ["Keypad"],
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "imgs/state-off",
+          "Title": "PTZ",
+          "ShowTitle": true
+        },
+        {
+          "Image": "imgs/state-on",
+          "Title": "PTZ",
+          "ShowTitle": true
+        }
+      ]
+    },
+    {
+      "UUID": "ninja.vdo.streamdeck.ptz-dial",
+      "Name": "PTZ Dial",
+      "Tooltip": "Adjust local or guest PTZ camera controls with Stream Deck + dials.",
+      "Icon": "imgs/ptz",
+      "Controllers": ["Encoder"],
+      "Encoder": {
+        "Icon": "imgs/ptz",
+        "StackColor": "#38bdf8",
+        "layout": "$X1",
+        "TriggerDescription": {
+          "Rotate": "Adjust PTZ",
+          "Push": "Configured PTZ push action",
+          "Touch": "Configured PTZ push action"
+        }
+      },
+      "States": [
+        {
+          "Image": "imgs/ptz",
+          "Title": "PTZ",
+          "ShowTitle": true
+        }
+      ]
+    },
+    {
+      "UUID": "ninja.vdo.streamdeck.value-dial",
+      "Name": "Value Dial",
+      "Tooltip": "Adjust VDO.Ninja values with Stream Deck + dials: volume, panning, bitrate, buffer delay, and guest volume.",
+      "Icon": "imgs/value",
+      "Controllers": ["Encoder"],
+      "Encoder": {
+        "Icon": "imgs/value",
+        "StackColor": "#22c55e",
+        "layout": "$X1",
+        "TriggerDescription": {
+          "Rotate": "Adjust value",
+          "Push": "Reset or cycle value control",
+          "Touch": "Reset or cycle value control"
+        }
+      },
+      "States": [
+        {
+          "Image": "imgs/value",
+          "Title": "Value",
+          "ShowTitle": true
+        }
+      ]
+    },
+    {
+      "UUID": "ninja.vdo.streamdeck.custom-command",
+      "Name": "Custom Command",
+      "Tooltip": "Send any VDO.Ninja API command with action, target, value, and value2.",
+      "Icon": "imgs/custom",
+      "Controllers": ["Keypad"],
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "imgs/state-neutral",
+          "Title": "Command",
+          "ShowTitle": true
+        }
+      ]
+    }
+  ]
+}

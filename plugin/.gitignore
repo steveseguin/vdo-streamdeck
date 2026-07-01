@@ -1,0 +1,4 @@
+node_modules/
+ninja.vdo.streamdeck.sdPlugin/
+*.log
+!package-lock.json
