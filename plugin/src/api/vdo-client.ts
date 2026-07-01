@@ -20,6 +20,8 @@ export class VdoClient {
 	private reconnectAttempt = 0;
 	private requestCounter = 0;
 	private pending = new Map<string, PendingRequest>();
+	private sentTimestamps: number[] = [];
+	private skippedRealtimeCommands = 0;
 	private listeners = {
 		state: new Set<Listener<ConnectionStateName>>(),
 		callback: new Set<Listener<VdoCallback>>(),
@@ -33,6 +35,16 @@ export class VdoClient {
 
 	get currentSettings(): GlobalSettings {
 		return this.settings;
+	}
+
+	getTransportStats(): JsonObject {
+		this.pruneSentTimestamps(Date.now());
+		return {
+			messagesPerSecond: this.sentTimestamps.length,
+			bufferedAmount: this.socket?.bufferedAmount || 0,
+			pendingCallbacks: this.pending.size,
+			skippedRealtimeCommands: this.skippedRealtimeCommands
+		};
 	}
 
 	onState(listener: Listener<ConnectionStateName>): () => void {
@@ -127,6 +139,11 @@ export class VdoClient {
 		const request = { ...payload };
 
 		if (!awaitCallback) {
+			if (this.isRealtimeIncremental(request) && this.shouldSkipRealtimeCommand()) {
+				this.skippedRealtimeCommands += 1;
+				this.setState("connected");
+				return request as VdoCallback;
+			}
 			if (this.isSocketOpen()) {
 				this.sendRaw(request);
 				return request as VdoCallback;
@@ -236,11 +253,38 @@ export class VdoClient {
 		return hasOwn(payload, "value2");
 	}
 
+	private isRealtimeIncremental(payload: VdoCommandPayload): boolean {
+		return isRealtimeAction(payload.action);
+	}
+
+	private shouldSkipRealtimeCommand(): boolean {
+		if (!this.isSocketOpen()) {
+			return false;
+		}
+		const now = Date.now();
+		this.pruneSentTimestamps(now);
+		return this.sentTimestamps.length >= 30 || (this.socket?.bufferedAmount || 0) > 262144;
+	}
+
+	private recordSend(): void {
+		const now = Date.now();
+		this.sentTimestamps.push(now);
+		this.pruneSentTimestamps(now);
+	}
+
+	private pruneSentTimestamps(now: number): void {
+		const cutoff = now - 1000;
+		while (this.sentTimestamps.length && this.sentTimestamps[0] < cutoff) {
+			this.sentTimestamps.shift();
+		}
+	}
+
 	private sendRaw(payload: JsonObject): void {
 		if (!this.isSocketOpen() || !this.socket) {
 			throw new Error("VDO.Ninja API WebSocket is not connected");
 		}
 		this.socket.send(JSON.stringify(payload));
+		this.recordSend();
 	}
 
 	private handleMessage(raw: string): void {
@@ -382,6 +426,22 @@ export class VdoClient {
 			listener(payload);
 		}
 	}
+}
+
+function isRealtimeAction(action: string): boolean {
+	return action === "zoom" ||
+		action === "focus" ||
+		action === "pan" ||
+		action === "tilt" ||
+		action === "exposure" ||
+		action === "ptzZoom" ||
+		action === "ptzFocus" ||
+		action === "ptzPan" ||
+		action === "ptzTilt" ||
+		action === "volume" ||
+		action === "panning" ||
+		action === "bitrate" ||
+		action === "setBufferDelay";
 }
 
 function hasOwn(object: JsonObject, key: string): boolean {

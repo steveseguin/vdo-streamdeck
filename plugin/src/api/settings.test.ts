@@ -4,6 +4,7 @@ import {
 	normalizeGuestCommandSettings,
 	normalizeGuestSceneSettings,
 	normalizeLocalControlSettings,
+	normalizeMixerControlSettings,
 	normalizePtzDialSettings,
 	normalizePtzKeySettings,
 	normalizeSelectGuestSettings,
@@ -116,6 +117,20 @@ describe("settings normalization", () => {
 			pushAction: "autofocusOff",
 			disableAutofocus: true,
 			title: "{label} focus"
+		});
+	});
+
+	it("normalizes mixer control settings with safe defaults", () => {
+		expect(normalizeMixerControlSettings(undefined)).toEqual({
+			command: "layout",
+			targetMode: "slot",
+			target: "",
+			layout: "0",
+			slot: "1",
+			muteBehavior: "toggle",
+			transferRoom: "",
+			title: "",
+			dangerousConfirm: true
 		});
 	});
 

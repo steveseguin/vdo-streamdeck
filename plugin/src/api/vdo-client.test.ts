@@ -4,7 +4,7 @@ import { VdoClient } from "./vdo-client.js";
 
 type VdoClientHarness = VdoClient & {
 	settings: GlobalSettings;
-	socket: { readyState: number; send: ReturnType<typeof vi.fn> } | null;
+	socket: { readyState: number; send: ReturnType<typeof vi.fn>; bufferedAmount?: number } | null;
 	sendHttp(payload: VdoCommandPayload): Promise<VdoCallback>;
 	buildEndpoint(protocol: "ws" | "wss" | "http" | "https", defaultPort?: string): string;
 	buildHttpUrl(protocol: "http" | "https", payload: VdoCommandPayload): string;
@@ -84,6 +84,30 @@ describe("VdoClient", () => {
 			action: "zoom",
 			value: 0.5,
 			value2: "abs"
+		});
+	});
+
+	it("skips overloaded no-wait realtime commands without dropping discrete commands", async () => {
+		const client = new VdoClient() as VdoClientHarness;
+		const send = vi.fn();
+		client.settings = { apiKey: "key", apiHost: "api.example", useTls: true, httpFallback: true };
+		client.socket = { readyState: 1, bufferedAmount: 262145, send };
+
+		await expect(client.sendCommand({ action: "ptzZoom", target: "guest1", value: 0.1 }, { awaitCallback: false })).resolves.toMatchObject({
+			action: "ptzZoom",
+			target: "guest1",
+			value: 0.1
+		});
+		expect(send).not.toHaveBeenCalled();
+		expect(client.getTransportStats()).toMatchObject({
+			skippedRealtimeCommands: 1
+		});
+
+		await client.sendCommand({ action: "setslot", target: "guest1", value: 2 }, { awaitCallback: false });
+		expect(JSON.parse(send.mock.calls[0][0])).toEqual({
+			action: "setslot",
+			target: "guest1",
+			value: 2
 		});
 	});
 

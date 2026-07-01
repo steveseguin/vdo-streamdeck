@@ -129,6 +129,26 @@
       ]
     },
     {
+      "UUID": "ninja.vdo.streamdeck.mixer-control",
+      "Name": "Mixer Control",
+      "Tooltip": "Control VDO.Ninja mixer layouts, guest slots, all-guest mute, and all-guest transfer.",
+      "Icon": "imgs/category",
+      "Controllers": ["Keypad"],
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "imgs/state-off",
+          "Title": "Mixer",
+          "ShowTitle": true
+        },
+        {
+          "Image": "imgs/state-on",
+          "Title": "Mixer",
+          "ShowTitle": true
+        }
+      ]
+    },
+    {
       "UUID": "ninja.vdo.streamdeck.ptz-key",
       "Name": "PTZ Key",
       "Tooltip": "Send local or guest PTZ camera commands: zoom, pan, tilt, focus, exposure, and guest autofocus.",

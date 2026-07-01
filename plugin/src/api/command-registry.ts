@@ -1,5 +1,15 @@
 import type { JsonValue } from "@elgato/utils";
-import type { GuestCommandSettings, GuestSceneSettings, LocalControlSettings, PtzDialSettings, PtzKeySettings, ValueDialSettings, VdoCommandPayload } from "./types.js";
+import type {
+	GuestCommandSettings,
+	GuestSceneSettings,
+	LocalControlSettings,
+	MixerControlSettings,
+	PtzDialSettings,
+	PtzKeySettings,
+	StreamChoice,
+	ValueDialSettings,
+	VdoCommandPayload
+} from "./types.js";
 
 export type LocalControlStateField = "muted" | "videoMuted" | "speakerMuted" | "seeding";
 
@@ -368,6 +378,58 @@ export function buildPtzDialPushPayloads(settings: PtzDialSettings, target?: Jso
 	return [];
 }
 
+export function buildMixerControlPayloads(
+	settings: MixerControlSettings,
+	options: { target?: JsonValue; streams?: StreamChoice[] } = {}
+): VdoCommandPayload[] {
+	const command = settings.command || "layout";
+
+	if (command === "setGuestSlot") {
+		if (typeof options.target === "undefined" || options.target === "") {
+			throw new Error("Slot assignment requires a guest target");
+		}
+		return [
+			{
+				action: "setslot",
+				target: options.target,
+				value: mixerSlotValue(settings.slot)
+			}
+		];
+	}
+
+	if (command === "muteAllGuests") {
+		return [
+			{
+				action: "muteAllGuests",
+				value: mixerMuteValue(settings.muteBehavior)
+			}
+		];
+	}
+
+	if (command === "transferAllGuests") {
+		const room = typeof settings.transferRoom === "string" ? settings.transferRoom.trim() : "";
+		if (!room) {
+			throw new Error("Transfer all requires a destination room");
+		}
+		const streams = options.streams || [];
+		if (!streams.length) {
+			throw new Error("Transfer all requires at least one guest");
+		}
+		return streams.map(stream => ({
+			action: "forward",
+			target: stream.UUID || stream.streamID,
+			value: room
+		}));
+	}
+
+	return [
+		{
+			action: "layout",
+			value: mixerLayoutValue(settings.layout)
+		}
+	];
+}
+
 export function buildValueDialPayload(settings: ValueDialSettings, value: number, target?: JsonValue): VdoCommandPayload {
 	const control = settings.control || "volume";
 	const scope = settings.scope || "local";
@@ -545,6 +607,31 @@ function positiveValueDialStep(value: unknown): number {
 	const raw = typeof value === "string" && value.trim() ? Number(value) : 1;
 	const parsed = Number.isFinite(raw) && raw > 0 ? raw : 1;
 	return parsed;
+}
+
+function mixerLayoutValue(value: unknown): number {
+	const parsed = integerFromUnknown(value, 0);
+	return Math.max(0, parsed);
+}
+
+function mixerSlotValue(value: unknown): number {
+	const parsed = integerFromUnknown(value, 1);
+	return Math.max(0, parsed);
+}
+
+function mixerMuteValue(value: MixerControlSettings["muteBehavior"]): JsonValue {
+	if (value === "on") {
+		return true;
+	}
+	if (value === "off") {
+		return false;
+	}
+	return "toggle";
+}
+
+function integerFromUnknown(value: unknown, fallback: number): number {
+	const parsed = typeof value === "number" ? value : typeof value === "string" && value.trim() ? Number(value) : NaN;
+	return Number.isFinite(parsed) ? Math.trunc(parsed) : fallback;
 }
 
 function valueDialAccelerationFactor(settings: ValueDialSettings, ticks: number): number {

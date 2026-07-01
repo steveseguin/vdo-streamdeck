@@ -5,6 +5,7 @@ import type {
 	GuestSceneSettings,
 	GuestTargetMode,
 	LocalControlSettings,
+	MixerControlSettings,
 	PtzDialSettings,
 	PtzKeySettings,
 	SelectGuestSettings,
@@ -93,6 +94,20 @@ export function normalizePtzDialSettings(settings: Partial<PtzDialSettings> | un
 		pushAction: normalizePtzDialPushAction(settings?.pushAction),
 		disableAutofocus: settings?.disableAutofocus === true,
 		title: stringOrEmpty(settings?.title)
+	};
+}
+
+export function normalizeMixerControlSettings(settings: Partial<MixerControlSettings> | undefined): MixerControlSettings {
+	return {
+		command: normalizeMixerCommand(settings?.command),
+		targetMode: normalizeTargetMode(settings?.targetMode),
+		target: stringOrEmpty(settings?.target),
+		layout: normalizeNumberString(settings?.layout, "0"),
+		slot: normalizeNumberString(settings?.slot, "1"),
+		muteBehavior: normalizeMixerMuteBehavior(settings?.muteBehavior),
+		transferRoom: stringOrEmpty(settings?.transferRoom),
+		title: stringOrEmpty(settings?.title),
+		dangerousConfirm: settings?.dangerousConfirm !== false
 	};
 }
 
@@ -197,6 +212,20 @@ function normalizePtzDialPushAction(value: unknown): PtzDialSettings["pushAction
 		return value;
 	}
 	return "none";
+}
+
+function normalizeMixerCommand(value: unknown): MixerControlSettings["command"] {
+	if (value === "setGuestSlot" || value === "muteAllGuests" || value === "transferAllGuests") {
+		return value;
+	}
+	return "layout";
+}
+
+function normalizeMixerMuteBehavior(value: unknown): MixerControlSettings["muteBehavior"] {
+	if (value === "on" || value === "off") {
+		return value;
+	}
+	return "toggle";
 }
 
 function normalizeValueDialControl(value: unknown): ValueDialSettings["control"] {

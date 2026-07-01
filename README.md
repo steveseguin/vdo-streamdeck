@@ -26,6 +26,7 @@ Working assumption:
 
 3. Director controls:
    - Select guest, guest mic/camera/speaker/display, guest volume, add/mute scene, group/view group, solo chat, solo video, hangup, transfer, force keyframe, mix order.
+   - Mixer controls for layout selection, guest slot assignment, all-guest mute, and guarded all-guest transfer.
 
 4. PTZ controls:
    - Button actions for local/guest nudges and absolute positions.
@@ -33,8 +34,9 @@ Working assumption:
    - Dial push for autofocus or cycling the controlled parameter.
 
 5. Feedback:
-   - Use `getDetails`, `getGuestList`, `getStats`, and callbacks to update button titles/colors.
-   - Surface guest labels, stream IDs, selected target, scene membership, mic/camera/speaker state, and basic stats.
+    - Use `getDetails`, `getGuestList`, `getStats`, and callbacks to update button titles/colors.
+    - Surface guest labels, stream IDs, selected target, scene membership, mic/camera/speaker state, and basic stats.
+    - Track WebSocket send rate/backlog so high-rate no-wait PTZ/value commands can be skipped before control latency piles up.
 
 6. Power-user action:
    - Custom VDO.Ninja API command action that can send arbitrary `{ action, target, value, value2 }`.

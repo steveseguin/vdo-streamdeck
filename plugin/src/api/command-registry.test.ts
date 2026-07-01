@@ -4,6 +4,7 @@ import {
 	buildGuestScenePayload,
 	buildLocalControlPayload,
 	buildLocalMomentaryPayload,
+	buildMixerControlPayloads,
 	buildPtzDialPayloads,
 	buildPtzDialPushPayloads,
 	buildPtzKeyPayloads,
@@ -229,6 +230,66 @@ describe("command registry", () => {
 		expect(() => buildPtzKeyPayloads({ scope: "local", control: "autofocus" })).toThrow("Local autofocus");
 		expect(() => buildPtzDialPayloads({ scope: "guest", control: "exposure" }, 1, "guest123")).toThrow("Guest-targeted exposure");
 		expect(() => buildPtzDialPushPayloads({ scope: "local", pushAction: "autofocusOn" })).toThrow("guest target");
+	});
+
+	it("builds mixer layout payloads using user-facing layout numbers", () => {
+		expect(buildMixerControlPayloads({ command: "layout", layout: "0" })).toEqual([
+			{
+				action: "layout",
+				value: 0
+			}
+		]);
+		expect(buildMixerControlPayloads({ command: "layout", layout: "3" })).toEqual([
+			{
+				action: "layout",
+				value: 3
+			}
+		]);
+	});
+
+	it("builds guest slot assignment payloads with destination slot numbers", () => {
+		expect(buildMixerControlPayloads({ command: "setGuestSlot", slot: "2" }, { target: "guest123" })).toEqual([
+			{
+				action: "setslot",
+				target: "guest123",
+				value: 2
+			}
+		]);
+	});
+
+	it("builds global guest mute payloads", () => {
+		expect(buildMixerControlPayloads({ command: "muteAllGuests", muteBehavior: "on" })).toEqual([
+			{
+				action: "muteAllGuests",
+				value: true
+			}
+		]);
+		expect(buildMixerControlPayloads({ command: "muteAllGuests", muteBehavior: "off" })).toEqual([
+			{
+				action: "muteAllGuests",
+				value: false
+			}
+		]);
+	});
+
+	it("builds transfer-all fan-out payloads", () => {
+		expect(
+			buildMixerControlPayloads(
+				{ command: "transferAllGuests", transferRoom: "room-2" },
+				{ streams: [{ streamID: "guestA", label: "A" }, { streamID: "guestB", UUID: "uuidB", label: "B" }] }
+			)
+		).toEqual([
+			{
+				action: "forward",
+				target: "guestA",
+				value: "room-2"
+			},
+			{
+				action: "forward",
+				target: "uuidB",
+				value: "room-2"
+			}
+		]);
 	});
 
 	it("builds local value dial volume payloads", () => {

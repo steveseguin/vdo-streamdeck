@@ -153,6 +153,18 @@ export interface PtzDialSettings extends JsonObject {
 	title?: string;
 }
 
+export interface MixerControlSettings extends JsonObject {
+	command?: "layout" | "setGuestSlot" | "muteAllGuests" | "transferAllGuests";
+	targetMode?: GuestTargetMode;
+	target?: string;
+	layout?: string;
+	slot?: string;
+	muteBehavior?: "toggle" | "on" | "off";
+	transferRoom?: string;
+	title?: string;
+	dangerousConfirm?: boolean;
+}
+
 export interface ValueDialSettings extends JsonObject {
 	scope?: "local" | "guest";
 	targetMode?: GuestTargetMode;

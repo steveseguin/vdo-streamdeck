@@ -495,6 +495,75 @@
     <div class="hint">Tokens: <code>{slot}</code>, <code>{label}</code>, <code>{streamID}</code>, <code>{scene}</code>, <code>{state}</code>.</div>
   </section>
 
+  <section id="mixerSettings" class="hidden">
+    <h2>Mixer Control</h2>
+    <label for="mixerCommand">Control</label>
+    <select id="mixerCommand">
+      <option value="layout">Mixer layout</option>
+      <option value="setGuestSlot">Assign guest to slot</option>
+      <option value="muteAllGuests">Mute all guests</option>
+      <option value="transferAllGuests">Transfer all guests</option>
+    </select>
+
+    <div id="mixerLayoutGroup">
+      <label for="mixerLayout">Layout number</label>
+      <input id="mixerLayout" type="number" min="0" step="1" placeholder="0">
+      <div class="hint"><code>0</code> is auto layout. Numbered layouts use the same 1-based values as the VDO.Ninja API.</div>
+    </div>
+
+    <div id="mixerTargetGroup" class="hidden">
+      <label for="mixerTargetMode">Source guest</label>
+      <select id="mixerTargetMode">
+        <option value="slot">Current guest slot</option>
+        <option value="streamId">Stream ID</option>
+        <option value="selected">Selected guest</option>
+        <option value="firstHeld">First held guest</option>
+      </select>
+
+      <div id="mixerGuestSlotGroup">
+        <label for="mixerGuestSlot">Source guest slot</label>
+        <input id="mixerGuestSlot" type="number" min="1" step="1" placeholder="1">
+      </div>
+
+      <div id="mixerStreamGroup" class="hidden">
+        <label for="mixerStreamId">Stream</label>
+        <select id="mixerStreamId"></select>
+        <div class="button-row two">
+          <button id="refreshMixerTargets" type="button">Refresh Targets</button>
+          <button id="useManualMixerStream" type="button">Manual ID</button>
+        </div>
+        <input id="manualMixerStreamId" class="hidden" type="text" placeholder="stream ID or UUID">
+      </div>
+
+      <label for="mixerDestinationSlot">Destination slot</label>
+      <input id="mixerDestinationSlot" type="number" min="0" step="1" placeholder="1">
+      <div class="hint"><code>0</code> unsets the guest slot. Destination slots are VDO.Ninja slot numbers, not zero-based layout slot indexes.</div>
+    </div>
+
+    <div id="mixerMuteGroup" class="hidden">
+      <label for="mixerMuteBehavior">Mute behavior</label>
+      <select id="mixerMuteBehavior">
+        <option value="toggle">Toggle</option>
+        <option value="on">Mute all</option>
+        <option value="off">Unmute all</option>
+      </select>
+    </div>
+
+    <div id="mixerTransferGroup" class="hidden">
+      <label for="mixerTransferRoom">Destination room</label>
+      <input id="mixerTransferRoom" type="text" placeholder="target-room">
+    </div>
+
+    <label for="mixerTitle">Title template</label>
+    <input id="mixerTitle" type="text" placeholder="{slot} {label} {destinationSlot}">
+    <div class="hint">Slot assignment tokens: <code>{slot}</code>, <code>{label}</code>, <code>{streamID}</code>, <code>{destinationSlot}</code>.</div>
+
+    <label class="inline">
+      <input id="mixerDangerousConfirm" type="checkbox" checked>
+      Double-press transfer all
+    </label>
+  </section>
+
   <section id="ptzKeySettings" class="hidden">
     <h2>PTZ Key</h2>
     <label for="ptzScope">Control target</label>
@@ -832,6 +901,7 @@
       byId("selectGuestSettings").classList.toggle("hidden", actionUuid !== "ninja.vdo.streamdeck.select-guest");
       byId("guestSettings").classList.toggle("hidden", actionUuid !== "ninja.vdo.streamdeck.guest-command");
       byId("guestSceneSettings").classList.toggle("hidden", actionUuid !== "ninja.vdo.streamdeck.guest-scene");
+      byId("mixerSettings").classList.toggle("hidden", actionUuid !== "ninja.vdo.streamdeck.mixer-control");
       byId("ptzKeySettings").classList.toggle("hidden", actionUuid !== "ninja.vdo.streamdeck.ptz-key");
       byId("ptzDialSettings").classList.toggle("hidden", actionUuid !== "ninja.vdo.streamdeck.ptz-dial");
       byId("valueDialSettings").classList.toggle("hidden", actionUuid !== "ninja.vdo.streamdeck.value-dial");
@@ -882,6 +952,23 @@
           byId("sceneSlot").value = actionSettings.target || "1";
         }
         renderGuestSceneSettings();
+        sendToPlugin({ type: "requestTargets" });
+      } else if (actionUuid === "ninja.vdo.streamdeck.mixer-control") {
+        byId("mixerCommand").value = actionSettings.command || "layout";
+        byId("mixerLayout").value = actionSettings.layout || "0";
+        byId("mixerTargetMode").value = actionSettings.targetMode || "slot";
+        byId("mixerDestinationSlot").value = actionSettings.slot || "1";
+        byId("mixerMuteBehavior").value = actionSettings.muteBehavior || "toggle";
+        byId("mixerTransferRoom").value = actionSettings.transferRoom || "";
+        byId("mixerTitle").value = actionSettings.title || "";
+        byId("mixerDangerousConfirm").checked = actionSettings.dangerousConfirm !== false;
+        if ((actionSettings.targetMode || "slot") === "streamId") {
+          byId("mixerStreamId").value = actionSettings.target || "";
+          byId("manualMixerStreamId").value = actionSettings.target || "";
+        } else {
+          byId("mixerGuestSlot").value = actionSettings.target || "1";
+        }
+        renderMixerSettings();
         sendToPlugin({ type: "requestTargets" });
       } else if (actionUuid === "ninja.vdo.streamdeck.ptz-key") {
         byId("ptzScope").value = actionSettings.scope || "local";
@@ -1021,6 +1108,23 @@
       });
 
       [
+        "mixerCommand",
+        "mixerLayout",
+        "mixerTargetMode",
+        "mixerGuestSlot",
+        "mixerStreamId",
+        "manualMixerStreamId",
+        "mixerDestinationSlot",
+        "mixerMuteBehavior",
+        "mixerTransferRoom",
+        "mixerTitle",
+        "mixerDangerousConfirm"
+      ].forEach(id => {
+        byId(id).oninput = saveAction;
+        byId(id).onchange = saveAction;
+      });
+
+      [
         "ptzScope",
         "ptzTargetMode",
         "ptzSlot",
@@ -1148,6 +1252,16 @@
           byId("manualSceneStreamId").focus();
         }
       };
+      byId("refreshMixerTargets").onclick = function() {
+        sendToPlugin({ type: "requestTargets" });
+        updateCopyState("Refreshing VDO.Ninja targets.");
+      };
+      byId("useManualMixerStream").onclick = function() {
+        byId("manualMixerStreamId").classList.toggle("hidden");
+        if (!byId("manualMixerStreamId").classList.contains("hidden")) {
+          byId("manualMixerStreamId").focus();
+        }
+      };
       byId("refreshPtzTargets").onclick = function() {
         sendToPlugin({ type: "requestTargets" });
         updateCopyState("Refreshing VDO.Ninja targets.");
@@ -1248,6 +1362,22 @@
           title: byId("sceneTitle").value.trim()
         };
         renderGuestSceneSettings();
+      } else if (actionUuid === "ninja.vdo.streamdeck.mixer-control") {
+        const command = byId("mixerCommand").value;
+        const targetMode = byId("mixerTargetMode").value;
+        const manualStream = byId("manualMixerStreamId").value.trim();
+        actionSettings = {
+          command,
+          targetMode,
+          target: targetMode === "slot" ? byId("mixerGuestSlot").value.trim() || "1" : targetMode === "streamId" ? manualStream || byId("mixerStreamId").value : "",
+          layout: byId("mixerLayout").value.trim() || "0",
+          slot: byId("mixerDestinationSlot").value.trim() || "1",
+          muteBehavior: byId("mixerMuteBehavior").value,
+          transferRoom: byId("mixerTransferRoom").value.trim(),
+          title: byId("mixerTitle").value.trim(),
+          dangerousConfirm: byId("mixerDangerousConfirm").checked
+        };
+        renderMixerSettings();
       } else if (actionUuid === "ninja.vdo.streamdeck.ptz-key") {
         const targetMode = byId("ptzTargetMode").value;
         const manualStream = byId("manualPtzStreamId").value.trim();
@@ -1387,6 +1517,18 @@
       renderSceneChoices();
     }
 
+    function renderMixerSettings() {
+      const command = byId("mixerCommand").value || "layout";
+      const targetMode = byId("mixerTargetMode").value || "slot";
+      byId("mixerLayoutGroup").classList.toggle("hidden", command !== "layout");
+      byId("mixerTargetGroup").classList.toggle("hidden", command !== "setGuestSlot");
+      byId("mixerGuestSlotGroup").classList.toggle("hidden", targetMode !== "slot");
+      byId("mixerStreamGroup").classList.toggle("hidden", targetMode !== "streamId");
+      byId("mixerMuteGroup").classList.toggle("hidden", command !== "muteAllGuests");
+      byId("mixerTransferGroup").classList.toggle("hidden", command !== "transferAllGuests");
+      byId("mixerDangerousConfirm").disabled = command !== "transferAllGuests";
+    }
+
     function renderPtzKeySettings() {
       const scope = byId("ptzScope").value || "local";
       const targetMode = byId("ptzTargetMode").value || "slot";
@@ -1446,6 +1588,7 @@
       renderStreamSelect(byId("selectStreamId"), actionUuid === "ninja.vdo.streamdeck.select-guest" ? actionSettings.target || "" : "");
       renderStreamSelect(byId("guestStreamId"), actionUuid === "ninja.vdo.streamdeck.guest-command" ? actionSettings.target || "" : "");
       renderStreamSelect(byId("sceneStreamId"), actionUuid === "ninja.vdo.streamdeck.guest-scene" ? actionSettings.target || "" : "");
+      renderStreamSelect(byId("mixerStreamId"), actionUuid === "ninja.vdo.streamdeck.mixer-control" ? actionSettings.target || "" : "");
       renderStreamSelect(byId("ptzStreamId"), actionUuid === "ninja.vdo.streamdeck.ptz-key" ? actionSettings.target || "" : "");
       renderStreamSelect(byId("ptzDialStreamId"), actionUuid === "ninja.vdo.streamdeck.ptz-dial" ? actionSettings.target || "" : "");
       renderStreamSelect(byId("valueDialStreamId"), actionUuid === "ninja.vdo.streamdeck.value-dial" ? actionSettings.target || "" : "");
@@ -1652,7 +1795,10 @@
       if (payload.type === "status" || payload.type === "connectionTestResult") {
         const state = payload.state || "";
         const ok = payload.ok === true;
-        updateStatus(ok ? "ok" : state === "no-page" || state === "timeout" || state === "connecting" ? "warn" : "error", payload.message || statusMessage(state));
+        updateStatus(
+          ok ? "ok" : state === "no-page" || state === "timeout" || state === "connecting" ? "warn" : "error",
+          (payload.message || statusMessage(state)) + transportStatusSuffix(payload.transport)
+        );
       } else if (payload.type === "openUrlResult") {
         updateCopyState(payload.message || (payload.ok ? "Opened URL." : "Could not open URL."));
       } else if (payload.type === "targetChoices") {
@@ -1681,6 +1827,18 @@
       if (state === "error") return "The API connection reported an error.";
       if (state === "missing-key") return "Generate or enter an API key first.";
       return "Open the generated VDO.Ninja URL, then test the connection.";
+    }
+
+    function transportStatusSuffix(transport) {
+      if (!transport || typeof transport !== "object") return "";
+      const messagesPerSecond = Number(transport.messagesPerSecond) || 0;
+      const bufferedAmount = Number(transport.bufferedAmount) || 0;
+      const skipped = Number(transport.skippedRealtimeCommands) || 0;
+      if (!skipped && !bufferedAmount && messagesPerSecond < 20) return "";
+      const parts = [messagesPerSecond + "/s"];
+      if (bufferedAmount) parts.push(Math.ceil(bufferedAmount / 1024) + " KB queued");
+      if (skipped) parts.push(skipped + " skipped");
+      return " WS " + parts.join(", ");
     }
 
     function updateStatus(kind, message) {

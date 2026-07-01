@@ -144,6 +144,7 @@ async function sendInspectorStatus(type: string, ok?: boolean, message?: string)
 		ok: ok ?? vdoClient.connectionState === "connected",
 		state: vdoClient.connectionState,
 		streamCount: sessionStore.getStreamCount(),
+		transport: vdoClient.getTransportStats(),
 		message: message || statusMessage(vdoClient.connectionState)
 	});
 }
