@@ -43,7 +43,19 @@ Use:
 5. Keep that VDO.Ninja page open and press `Test`.
 6. Add `Local Control`, `Select Guest`, `Guest Command`, `Guest Scene`, `PTZ Key`, `PTZ Dial`, `Value Dial`, or `Custom Command` actions.
 
-Current local machine note: Elgato's current getting-started docs recommend Node.js 24+ for the official workflow. The SDK package itself supports Node >=20.5.1, so this implementation builds on the current local Node 22 runtime.
+Current local machine note: Elgato's current getting-started docs and this plugin manifest expect Node.js 24+ for the official development workflow.
+
+No-hardware checks:
+
+```bash
+npm test
+npm run check
+npm run build
+npx @elgato/cli@latest validate ninja.vdo.streamdeck.sdPlugin --no-update-check
+npx @elgato/cli@latest pack ninja.vdo.streamdeck.sdPlugin --dry-run --no-update-check
+```
+
+These verify command payloads, TypeScript, generated plugin layout, manifest rules, and package contents without a physical Stream Deck. Interactive button/dial testing still requires the Stream Deck app with either hardware or Stream Deck Mobile.
 
 Runtime alignment note:
 

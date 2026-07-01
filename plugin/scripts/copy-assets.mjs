@@ -1,4 +1,4 @@
-import { copyFile, cp, mkdir } from "node:fs/promises";
+import { copyFile, mkdir, readdir, rm } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
 const files = [
@@ -14,6 +14,13 @@ for (const [source, destination] of files) {
 	await copyFile(join(process.cwd(), source), dest);
 }
 
-await cp(join(process.cwd(), "imgs"), join(process.cwd(), "ninja.vdo.streamdeck.sdPlugin/imgs"), {
-	recursive: true
-});
+const sourceImageDir = join(process.cwd(), "imgs");
+const destinationImageDir = join(process.cwd(), "ninja.vdo.streamdeck.sdPlugin/imgs");
+await rm(destinationImageDir, { recursive: true, force: true });
+await mkdir(destinationImageDir, { recursive: true });
+
+for (const file of await readdir(sourceImageDir)) {
+	if (file.endsWith(".png")) {
+		await copyFile(join(sourceImageDir, file), join(destinationImageDir, file));
+	}
+}
