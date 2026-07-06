@@ -2,7 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { deflateSync } from "node:zlib";
 
-const SIZE = 144;
+let SIZE = 144;
 const assets = {
 	category: { bg: [18, 21, 27], fg: [53, 208, 127], mark: "grid" },
 	connection: { bg: [20, 24, 32], fg: [56, 189, 248], mark: "link" },
@@ -12,7 +12,6 @@ const assets = {
 	mixer: { bg: [18, 23, 33], fg: [53, 208, 127], mark: "mixer" },
 	"mixer-off": { bg: [18, 23, 33], fg: [71, 85, 105], mark: "mixer-off" },
 	"mixer-on": { bg: [16, 107, 63], fg: [255, 255, 255], mark: "mixer-on" },
-	plugin: { bg: [20, 23, 31], fg: [53, 208, 127], mark: "camera" },
 	ptz: { bg: [18, 23, 33], fg: [56, 189, 248], mark: "cross" },
 	scene: { bg: [18, 23, 33], fg: [168, 85, 247], mark: "layers" },
 	select: { bg: [20, 24, 32], fg: [250, 204, 21], mark: "target" },
@@ -28,6 +27,20 @@ for (const [name, config] of Object.entries(assets)) {
 	drawMark(pixels, config.mark, config.fg);
 	await writePng(join(process.cwd(), "imgs", name + ".png"), pixels, SIZE, SIZE);
 	await writePng(join(process.cwd(), "imgs", name + "@2x.png"), scalePixels(pixels, SIZE, SIZE, 2), SIZE * 2, SIZE * 2);
+}
+
+// Plugin icon: Stream Deck preferences/marketplace requires PNG at 256x256 and 512x512 (@2x).
+{
+	const bg = [20, 23, 31];
+	const fg = [53, 208, 127];
+	SIZE = 256;
+	const pixels = createCanvas(SIZE, SIZE, bg);
+	drawRoundedRect(pixels, 39, 75, 135, 96, 18, fg);
+	drawPolygon(pixels, [[174, 103], [224, 75], [224, 171], [174, 142]], fg);
+	drawRect(pixels, 68, 107, 68, 32, bg);
+	await writePng(join(process.cwd(), "imgs", "plugin.png"), pixels, SIZE, SIZE);
+	await writePng(join(process.cwd(), "imgs", "plugin@2x.png"), scalePixels(pixels, SIZE, SIZE, 2), SIZE * 2, SIZE * 2);
+	SIZE = 144;
 }
 
 function createCanvas(width, height, color) {

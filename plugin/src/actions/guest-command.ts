@@ -34,6 +34,11 @@ export class GuestCommandAction extends SingletonAction<GuestCommandSettings> {
 			this.arm(ev.action.id);
 			await ev.action.setState(0);
 			await ev.action.setTitle("Press\nagain");
+			setTimeout(() => {
+				if (!this.isArmed(ev.action.id)) {
+					void this.render(ev.action, settings);
+				}
+			}, 2100);
 			return;
 		}
 

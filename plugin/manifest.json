@@ -3,7 +3,8 @@
   "UUID": "ninja.vdo.streamdeck",
   "Name": "VDO.Ninja",
   "Author": "VDO.Ninja",
-  "Description": "Control VDO.Ninja pages opened with &api from Stream Deck keys.",
+  "URL": "https://vdo.ninja",
+  "Description": "Control VDO.Ninja from Stream Deck keys and dials: mic, camera, guests, scenes, mixer layouts, PTZ, volume, and custom API commands on any VDO.Ninja page opened with &api=KEY.",
   "Version": "0.1.0.0",
   "SDKVersion": 2,
   "Software": {
@@ -23,7 +24,7 @@
     }
   ],
   "Category": "VDO.Ninja",
-  "CategoryIcon": "imgs/category",
+  "CategoryIcon": "imgs/actions/category",
   "Icon": "imgs/plugin",
   "CodePath": "bin/plugin.js",
   "PropertyInspectorPath": "ui/action-settings.html",
@@ -32,8 +33,10 @@
       "UUID": "ninja.vdo.streamdeck.connection",
       "Name": "Connection Status",
       "Tooltip": "Configure the VDO.Ninja API key and show connection status.",
-      "Icon": "imgs/connection",
-      "Controllers": ["Keypad"],
+      "Icon": "imgs/actions/connection",
+      "Controllers": [
+        "Keypad"
+      ],
       "DisableAutomaticStates": true,
       "States": [
         {
@@ -48,14 +51,17 @@
           "Title": "VDO",
           "ShowTitle": true
         }
-      ]
+      ],
+      "UserTitleEnabled": false
     },
     {
       "UUID": "ninja.vdo.streamdeck.local-control",
       "Name": "Local Control",
       "Tooltip": "Control the local VDO.Ninja page: mic, camera, speaker, record, hand, screen share, and more.",
-      "Icon": "imgs/local",
-      "Controllers": ["Keypad"],
+      "Icon": "imgs/actions/local",
+      "Controllers": [
+        "Keypad"
+      ],
       "DisableAutomaticStates": true,
       "States": [
         {
@@ -70,14 +76,17 @@
           "Title": "Local",
           "ShowTitle": true
         }
-      ]
+      ],
+      "UserTitleEnabled": false
     },
     {
       "UUID": "ninja.vdo.streamdeck.select-guest",
       "Name": "Select Guest",
       "Tooltip": "Select a VDO.Ninja guest by slot, stream ID, next/previous guest, or first held guest for other actions to follow.",
-      "Icon": "imgs/select",
-      "Controllers": ["Keypad"],
+      "Icon": "imgs/actions/select",
+      "Controllers": [
+        "Keypad"
+      ],
       "DisableAutomaticStates": true,
       "States": [
         {
@@ -92,14 +101,17 @@
           "Title": "Target",
           "ShowTitle": true
         }
-      ]
+      ],
+      "UserTitleEnabled": false
     },
     {
       "UUID": "ninja.vdo.streamdeck.guest-command",
       "Name": "Guest Command",
       "Tooltip": "Control a VDO.Ninja guest by slot, stream ID, selected guest, or first held guest.",
-      "Icon": "imgs/guest",
-      "Controllers": ["Keypad"],
+      "Icon": "imgs/actions/guest",
+      "Controllers": [
+        "Keypad"
+      ],
       "DisableAutomaticStates": true,
       "States": [
         {
@@ -114,14 +126,17 @@
           "Title": "Guest",
           "ShowTitle": true
         }
-      ]
+      ],
+      "UserTitleEnabled": false
     },
     {
       "UUID": "ninja.vdo.streamdeck.guest-scene",
       "Name": "Guest Scene",
       "Tooltip": "Toggle a VDO.Ninja guest in an arbitrary scene by slot, stream ID, selected guest, or first held guest.",
-      "Icon": "imgs/scene",
-      "Controllers": ["Keypad"],
+      "Icon": "imgs/actions/scene",
+      "Controllers": [
+        "Keypad"
+      ],
       "DisableAutomaticStates": true,
       "States": [
         {
@@ -136,14 +151,17 @@
           "Title": "Scene",
           "ShowTitle": true
         }
-      ]
+      ],
+      "UserTitleEnabled": false
     },
     {
       "UUID": "ninja.vdo.streamdeck.mixer-control",
       "Name": "Mixer Control",
       "Tooltip": "Control VDO.Ninja mixer layouts, guest slots, all-guest mute, and all-guest transfer.",
-      "Icon": "imgs/mixer",
-      "Controllers": ["Keypad"],
+      "Icon": "imgs/actions/mixer",
+      "Controllers": [
+        "Keypad"
+      ],
       "DisableAutomaticStates": true,
       "States": [
         {
@@ -158,14 +176,17 @@
           "Title": "Mixer",
           "ShowTitle": true
         }
-      ]
+      ],
+      "UserTitleEnabled": false
     },
     {
       "UUID": "ninja.vdo.streamdeck.ptz-key",
       "Name": "PTZ Key",
       "Tooltip": "Send local or guest PTZ camera commands: zoom, pan, tilt, focus, exposure, and guest autofocus.",
-      "Icon": "imgs/ptz",
-      "Controllers": ["Keypad"],
+      "Icon": "imgs/actions/ptz",
+      "Controllers": [
+        "Keypad"
+      ],
       "DisableAutomaticStates": true,
       "States": [
         {
@@ -180,14 +201,17 @@
           "Title": "PTZ",
           "ShowTitle": true
         }
-      ]
+      ],
+      "UserTitleEnabled": false
     },
     {
       "UUID": "ninja.vdo.streamdeck.ptz-dial",
       "Name": "PTZ Dial",
       "Tooltip": "Adjust local or guest PTZ camera controls with Stream Deck + dials.",
-      "Icon": "imgs/ptz",
-      "Controllers": ["Encoder"],
+      "Icon": "imgs/actions/ptz",
+      "Controllers": [
+        "Encoder"
+      ],
       "Encoder": {
         "Icon": "imgs/ptz",
         "StackColor": "#38bdf8",
@@ -205,14 +229,17 @@
           "Title": "PTZ",
           "ShowTitle": true
         }
-      ]
+      ],
+      "UserTitleEnabled": false
     },
     {
       "UUID": "ninja.vdo.streamdeck.value-dial",
       "Name": "Value Dial",
       "Tooltip": "Adjust VDO.Ninja values with Stream Deck + dials: volume, panning, bitrate, buffer delay, and guest volume.",
-      "Icon": "imgs/value",
-      "Controllers": ["Encoder"],
+      "Icon": "imgs/actions/value",
+      "Controllers": [
+        "Encoder"
+      ],
       "Encoder": {
         "Icon": "imgs/value",
         "StackColor": "#22c55e",
@@ -230,14 +257,17 @@
           "Title": "Value",
           "ShowTitle": true
         }
-      ]
+      ],
+      "UserTitleEnabled": false
     },
     {
       "UUID": "ninja.vdo.streamdeck.custom-command",
       "Name": "Custom Command",
       "Tooltip": "Send any VDO.Ninja API command with action, target, value, and value2.",
-      "Icon": "imgs/custom",
-      "Controllers": ["Keypad"],
+      "Icon": "imgs/actions/custom",
+      "Controllers": [
+        "Keypad"
+      ],
       "DisableAutomaticStates": true,
       "States": [
         {
@@ -246,7 +276,8 @@
           "Title": "Command",
           "ShowTitle": true
         }
-      ]
+      ],
+      "UserTitleEnabled": false
     }
   ]
 }

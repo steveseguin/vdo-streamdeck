@@ -102,6 +102,13 @@
       cursor: pointer;
     }
 
+    .setup-summary {
+      font-size: 13px;
+      font-weight: 700;
+      color: #f4f7fb;
+      padding: 2px 0;
+    }
+
     code {
       color: #d5e3ff;
       font-family: Consolas, Monaco, monospace;
@@ -221,20 +228,22 @@
 </head>
 <body>
   <section>
-    <h2>VDO.Ninja Setup</h2>
-    <p class="intro">VDO.Ninja is free, browser-based, and does not require a login. Open the page you want to control with a matching <code>&api</code> key.</p>
-
     <div id="statusBox" class="status">
       <div class="dot"></div>
       <div id="statusText" class="status-text">Configure an API key to begin.</div>
     </div>
     <div id="capabilityHint" class="hint hidden"></div>
 
+    <details id="setupDetails">
+      <summary class="setup-summary">VDO.Ninja connection setup</summary>
+      <p class="intro">VDO.Ninja is free, browser-based, and does not require a login. Open the page you want to control with a matching <code>&api</code> key.</p>
+
     <label for="apiKey">Private API key</label>
     <input id="apiKey" type="password" autocomplete="off" placeholder="Same key used in &api=KEY">
-    <div class="button-row three">
+    <div class="button-row four">
       <button id="generateKey" type="button">Generate</button>
-      <button id="copyKey" type="button">Copy Key</button>
+      <button id="copyKey" type="button">Copy</button>
+      <button id="hideKey" type="button">Show</button>
       <button id="testConnection" type="button" class="primary">Test</button>
     </div>
 
@@ -275,11 +284,10 @@
 
     <label for="generatedUrl">Generated URL</label>
     <input id="generatedUrl" type="text" readonly>
-    <div class="button-row four">
+    <div class="button-row">
       <button id="copyUrl" type="button">Copy</button>
       <button id="openUrl" type="button">Open</button>
       <button id="showQr" type="button">QR</button>
-      <button id="hideKey" type="button">Show Key</button>
     </div>
     <div id="copyState" class="copy-state"></div>
 
@@ -307,6 +315,7 @@
         Use HTTP API route
       </label>
       <div class="hint">Use different API keys for pages you want to control separately. Reusing one key on multiple open pages can make feedback ambiguous.</div>
+    </details>
     </details>
   </section>
 
@@ -841,6 +850,9 @@
     let keyVisible = false;
     let latestConnectionState = "";
     let latestCapabilities = null;
+    let globalSettingsLoaded = false;
+    let setupOpenInitialized = false;
+    let lastConnectionKey = null;
 
     window.connectElgatoStreamDeckSocket = function(port, uuid, registerEvent, info, actionInfo) {
       pluginUuid = uuid;
@@ -868,6 +880,7 @@
         const message = JSON.parse(event.data);
         if (message.event === "didReceiveGlobalSettings") {
           globalSettings = message.payload && message.payload.settings ? message.payload.settings : {};
+          globalSettingsLoaded = true;
           renderGlobal();
         } else if (message.event === "didReceiveSettings") {
           actionSettings = message.payload && message.payload.settings ? message.payload.settings : {};
@@ -897,6 +910,28 @@
       byId("customUrl").value = globalSettings.setupCustomUrl || "";
       renderLinkBuilder();
       updateKeyVisibility();
+      updateStatusIfConnectionChanged();
+      if (globalSettingsLoaded && !setupOpenInitialized) {
+        setupOpenInitialized = true;
+        byId("setupDetails").open =
+          actionUuid === "ninja.vdo.streamdeck.connection" || !(globalSettings.apiKey || "").trim();
+      }
+    }
+
+    function connectionSettingsKey(settings) {
+      return [
+        (settings.apiKey || "").trim(),
+        (settings.apiHost || "api.vdo.ninja").trim(),
+        settings.httpFallback !== false
+      ].join("|");
+    }
+
+    function updateStatusIfConnectionChanged() {
+      const connectionKey = connectionSettingsKey(globalSettings);
+      if (connectionKey === lastConnectionKey) {
+        return;
+      }
+      lastConnectionKey = connectionKey;
       updateStatusFromState(globalSettings.apiKey ? "unknown" : "missing-key");
     }
 
@@ -1297,6 +1332,28 @@
           byId("manualValueDialStreamId").focus();
         }
       };
+
+      // A saved manual ID would otherwise silently win over a new dropdown pick.
+      [
+        ["selectStreamId", "manualSelectStreamId"],
+        ["guestStreamId", "manualGuestStreamId"],
+        ["sceneStreamId", "manualSceneStreamId"],
+        ["mixerStreamId", "manualMixerStreamId"],
+        ["ptzStreamId", "manualPtzStreamId"],
+        ["ptzDialStreamId", "manualPtzDialStreamId"],
+        ["valueDialStreamId", "manualValueDialStreamId"]
+      ].forEach(function(pair) {
+        const select = byId(pair[0]);
+        const manual = byId(pair[1]);
+        const useDropdownValue = function() {
+          if (select.value) {
+            manual.value = "";
+          }
+          saveAction();
+        };
+        select.oninput = useDropdownValue;
+        select.onchange = useDropdownValue;
+      });
     }
 
     function saveGlobal() {
@@ -1315,7 +1372,7 @@
         setupCustomUrl: byId("customUrl").value.trim()
       };
       send({ event: "setGlobalSettings", context: pluginUuid, payload: globalSettings });
-      updateStatusFromState(globalSettings.apiKey ? "unknown" : "missing-key");
+      updateStatusIfConnectionChanged();
     }
 
     function saveAction() {
@@ -1901,7 +1958,7 @@
 
     function updateKeyVisibility() {
       byId("apiKey").type = keyVisible ? "text" : "password";
-      byId("hideKey").textContent = keyVisible ? "Hide Key" : "Show Key";
+      byId("hideKey").textContent = keyVisible ? "Hide" : "Show";
     }
 
     async function copyText(value, message) {

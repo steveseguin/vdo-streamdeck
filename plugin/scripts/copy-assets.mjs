@@ -24,3 +24,13 @@ for (const file of await readdir(sourceImageDir)) {
 		await copyFile(join(sourceImageDir, file), join(destinationImageDir, file));
 	}
 }
+
+const sourceActionIconDir = join(sourceImageDir, "actions");
+const destinationActionIconDir = join(destinationImageDir, "actions");
+await mkdir(destinationActionIconDir, { recursive: true });
+
+for (const file of await readdir(sourceActionIconDir)) {
+	if (file.endsWith(".svg")) {
+		await copyFile(join(sourceActionIconDir, file), join(destinationActionIconDir, file));
+	}
+}
