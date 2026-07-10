@@ -36,7 +36,10 @@ export class PtzKeyAction extends SingletonAction<PtzKeySettings> {
 		try {
 			const payloads = buildPtzKeyPayloads(settings, target);
 			for (const payload of payloads) {
-				await vdoClient.sendCommand(payload);
+				const callback = await vdoClient.sendCommand(payload);
+				if (callback.result === false) {
+					throw new Error(`${payload.action} was rejected by VDO.Ninja`);
+				}
 			}
 			await ev.action.showOk();
 		} catch {

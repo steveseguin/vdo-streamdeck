@@ -1,6 +1,6 @@
 {
   "name": "vdo-ninja-streamdeck-plugin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Native Elgato Stream Deck plugin for controlling VDO.Ninja via &api.",
   "type": "module",

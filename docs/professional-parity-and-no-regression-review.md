@@ -1,6 +1,6 @@
 # Professional Parity and No-Regression Review
 
-Review date: 2026-06-30.
+Review date: 2026-06-30. Product-state recheck: 2026-07-10.
 
 This review asks whether the native Stream Deck plugin would be a regression for current VDO.Ninja + Bitfocus Companion users, and what must be true before the plugin is positioned as Marketplace-ready.
 
@@ -27,21 +27,22 @@ This review asks whether the native Stream Deck plugin would be a regression for
 
 ## Executive Finding
 
-The current native plugin MVP is not yet a Companion replacement. It is a useful foundation with better onboarding, connection handling, callback correlation, first-pass guest commands, and a raw custom-command escape hatch, but it currently ships only:
+The current native plugin is not yet a full Companion replacement, mainly because packaged profiles, named connections, stats displays, and physical hardware verification remain open. It now ships:
 
 - Connection status/setup.
-- Local control action.
-- First-pass guest command action.
+- Local control and momentary mic actions.
+- Select Guest, Guest Command, and Guest Scene actions with dynamic targets/titles.
+- Mixer Control for layouts, slots, legacy-safe mute all, and guarded transfer all.
+- PTZ Key, PTZ Dial, and Value Dial actions.
 - Custom command action.
 
-If released broadly in this state, professional Companion users would lose too much:
+The main remaining professional gaps are:
 
-- Scene membership feedback.
-- Dynamic guest label and stream ID titles.
-- Director/guest presets.
-- Variables/placeholders in actions.
-- PTZ-specific actions/dials.
-- Guest mic/camera/speaker feedback parity.
+- Packaged director/guest profiles and presets.
+- Named multi-endpoint connections.
+- Command-value variables/placeholders beyond title templates.
+- Stats/operator display actions.
+- Physical key, pedal, and dial verification.
 
 Therefore, the native plugin needs a no-regression release gate before Marketplace positioning.
 
@@ -155,7 +156,7 @@ Across OBS, StreamYard, Companion-style workflows, and production control surfac
 | Presets/profiles | Not implemented. | High. |
 | PTZ keys/dials | First-pass PTZ Key and PTZ Dial actions implemented; presets/profiles and hardware smoke tests are pending. | Medium. |
 | Multi-connection/named endpoints | Not implemented. | Medium-high. |
-| Queue/held guest UX | Store can see `others`, but no action UI. | Medium-high. |
+| Queue/held guest UX | First-held targeting and `Activate Guest` are implemented; activation requires VDO.Ninja v30.2+ because older pages expose no native queue-activation command. | Medium. |
 | Stats/operator health | Not implemented. | Medium. |
 
 ## No-Regression Release Gate
@@ -170,8 +171,8 @@ Do not present the plugin as a full Companion replacement or Marketplace-ready u
 2. Guest scene action:
    - Arbitrary scene ID/name support.
    - Scene membership feedback from `getDetails[streamID].scenes`.
-   - Custom scene explicit set-on/set-off through `addScene` + `value2=true/false` on current VDO.Ninja; older self-hosted pages only support toggle behavior.
-   - Current status: first-pass action supports slot, stream ID, selected guest, and first-held-guest targeting; arbitrary scene IDs/names toggle through `addScene`; fixed scenes 1-8 and current custom scenes support force on/off.
+   - Custom scene explicit set-on/set-off without breaking older pages.
+   - Current status: fixed scenes use legacy aliases; arbitrary scene IDs/names use live scene feedback plus the legacy `addScene` toggle and alert if safe forcing is not possible.
 
 3. Dynamic titles and target pickers:
    - Guest labels and stream IDs in dropdowns.

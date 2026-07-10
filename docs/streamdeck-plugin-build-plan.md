@@ -142,7 +142,7 @@ Responsibilities:
 - Add request/correlation IDs to commands for feedback-sensitive actions.
 - Match `callback.get` or command callbacks to pending requests.
 - Ingest async `update` events.
-- Fall back to HTTP POST for one-shot commands when configured.
+- Use the HTTP relay routes for awaited one-shot commands; use raw WebSocket delivery for realtime or `value2` payloads.
 - Redact API keys from logs.
 - Emit connection states: `missing-key`, `connecting`, `connected`, `no-page`, `timeout`, `disconnected`, `error`.
 
@@ -375,7 +375,7 @@ Implementation status:
 - First pass implemented in `plugin/src/actions/guest-scene.ts`.
 - Supports slot, stream ID, selected guest, and first-held-guest targeting.
 - Supports arbitrary scene ID/name toggles through `addScene`.
-- Supports force on/off for fixed and custom scenes through `addScene` + `value2=true/false`, preserving legacy `addScene2`-`addScene8` behavior for older custom commands.
+- Supports force on/off without requiring current-month API extensions: fixed scenes use legacy aliases, while arbitrary scenes use observed scene state plus the legacy toggle and alert when state is unavailable.
 - Uses scene membership from `getDetails[streamID].scenes` for button feedback.
 - Property inspector scene choices include observed scene IDs/names plus fixed scenes 1-8.
 - Still needs `muteScene`, richer stale-target display, and profile presets.
@@ -679,7 +679,7 @@ Fields:
 - API key.
 - API host, default `api.vdo.ninja`.
 - Use secure WebSocket.
-- HTTP POST fallback enabled.
+- HTTP request/response routing enabled for simple awaited commands; raw WebSocket delivery handles realtime and `value2` commands.
 - Request timeout ms, default 5000.
 - Details poll interval.
 - Stats poll interval.

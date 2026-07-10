@@ -36,6 +36,8 @@ export type GuestCommandDefinition = {
 	pressOnly?: boolean;
 	stateField?: "muted" | "videoMuted" | "speakerMuted" | "directorMuted" | "directorVideoHide";
 	invertState?: boolean;
+	awaitCallback?: boolean;
+	falseMeansFailure?: boolean;
 };
 
 export const LOCAL_CONTROLS: Record<string, LocalControlDefinition> = {
@@ -151,14 +153,16 @@ export const GUEST_COMMANDS: Record<string, GuestCommandDefinition> = {
 		label: "Transfer",
 		action: "forward",
 		valueKind: "text",
-		dangerous: true
+		dangerous: true,
+		falseMeansFailure: true
 	},
 	activateQueuedGuest: {
 		id: "activateQueuedGuest",
 		label: "Activate Guest",
 		action: "activateQueuedGuest",
 		valueKind: "none",
-		pressOnly: true
+		pressOnly: true,
+		falseMeansFailure: true
 	},
 	hangup: {
 		id: "hangup",
@@ -166,7 +170,8 @@ export const GUEST_COMMANDS: Record<string, GuestCommandDefinition> = {
 		action: "hangup",
 		valueKind: "none",
 		dangerous: true,
-		pressOnly: true
+		pressOnly: true,
+		falseMeansFailure: true
 	},
 	soloVideo: {
 		id: "soloVideo",
@@ -190,34 +195,39 @@ export const GUEST_COMMANDS: Record<string, GuestCommandDefinition> = {
 		id: "sendDirectorChat",
 		label: "Overlay",
 		action: "sendDirectorChat",
-		valueKind: "text"
+		valueKind: "text",
+		falseMeansFailure: true
 	},
 	sendPinnedDirectorChat: {
 		id: "sendPinnedDirectorChat",
 		label: "Pinned Overlay",
 		action: "sendPinnedDirectorChat",
-		valueKind: "text"
+		valueKind: "text",
+		falseMeansFailure: true
 	},
 	forceKeyframe: {
 		id: "forceKeyframe",
 		label: "Guest Keyframe",
 		action: "forceKeyframe",
 		valueKind: "none",
-		pressOnly: true
+		pressOnly: true,
+		awaitCallback: false
 	},
 	refreshVideo: {
 		id: "refreshVideo",
 		label: "Refresh Video",
 		action: "refreshVideo",
 		valueKind: "none",
-		pressOnly: true
+		pressOnly: true,
+		falseMeansFailure: true
 	},
 	refreshConnection: {
 		id: "refreshConnection",
 		label: "Refresh Conn",
 		action: "refreshConnection",
 		valueKind: "none",
-		pressOnly: true
+		pressOnly: true,
+		falseMeansFailure: true
 	},
 	recoverStream: {
 		id: "recoverStream",
@@ -225,7 +235,8 @@ export const GUEST_COMMANDS: Record<string, GuestCommandDefinition> = {
 		action: "recoverStream",
 		valueKind: "none",
 		dangerous: true,
-		pressOnly: true
+		pressOnly: true,
+		falseMeansFailure: true
 	}
 };
 
@@ -295,17 +306,43 @@ export function buildGuestCommandPayload(settings: GuestCommandSettings, target:
 	return payload;
 }
 
-export function buildGuestScenePayload(settings: GuestSceneSettings, target: JsonValue): VdoCommandPayload {
+export function buildGuestScenePayload(
+	settings: GuestSceneSettings,
+	target: JsonValue,
+	currentState?: boolean
+): VdoCommandPayload | null {
 	const scene = typeof settings.scene === "string" && settings.scene.trim() ? settings.scene.trim() : "1";
-	const payload: VdoCommandPayload = {
-		action: "addScene",
-		target
-	};
-	payload.value = scene;
-	if (settings.mode === "on" || settings.mode === "off") {
-		payload.value2 = settings.mode === "on";
+	if (settings.mode !== "on" && settings.mode !== "off") {
+		return {
+			action: "addScene",
+			target,
+			value: scene
+		};
 	}
-	return payload;
+
+	const desiredState = settings.mode === "on";
+	const fixedScene = integerSceneBetweenOneAndEight(scene);
+	if (fixedScene !== null) {
+		return {
+			action: fixedScene === 1 ? "addScene" : `addScene${fixedScene}`,
+			target,
+			// Legacy VDO.Ninja scene commands set the button's current value and then
+			// toggle it, so the input must be the inverse of the desired end state.
+			value: !desiredState
+		};
+	}
+
+	if (typeof currentState !== "boolean") {
+		throw new Error("Named scene on/off requires live scene state; use Toggle when state is unavailable");
+	}
+	if (currentState === desiredState) {
+		return null;
+	}
+	return {
+		action: "addScene",
+		target,
+		value: scene
+	};
 }
 
 export function buildPtzKeyPayloads(settings: PtzKeySettings, target?: JsonValue): VdoCommandPayload[] {
@@ -380,7 +417,7 @@ export function buildPtzDialPushPayloads(settings: PtzDialSettings, target?: Jso
 
 export function buildMixerControlPayloads(
 	settings: MixerControlSettings,
-	options: { target?: JsonValue; streams?: StreamChoice[] } = {}
+	options: { target?: JsonValue; streams?: StreamChoice[]; allGuestsMuted?: boolean } = {}
 ): VdoCommandPayload[] {
 	const command = settings.command || "layout";
 
@@ -398,12 +435,16 @@ export function buildMixerControlPayloads(
 	}
 
 	if (command === "muteAllGuests") {
-		return [
-			{
-				action: "muteAllGuests",
-				value: mixerMuteValue(settings.muteBehavior)
-			}
-		];
+		const streams = options.streams || [];
+		if (!streams.length) {
+			throw new Error("Mute all requires at least one guest");
+		}
+		const shouldMute = mixerShouldMute(settings.muteBehavior, options.allGuestsMuted === true);
+		return streams.map(stream => ({
+			action: "mic",
+			target: stream.UUID || stream.streamID,
+			value: !shouldMute
+		}));
 	}
 
 	if (command === "transferAllGuests") {
@@ -619,14 +660,21 @@ function mixerSlotValue(value: unknown): number {
 	return Math.max(0, parsed);
 }
 
-function mixerMuteValue(value: MixerControlSettings["muteBehavior"]): JsonValue {
+function mixerShouldMute(value: MixerControlSettings["muteBehavior"], allGuestsMuted: boolean): boolean {
 	if (value === "on") {
 		return true;
 	}
 	if (value === "off") {
 		return false;
 	}
-	return "toggle";
+	return !allGuestsMuted;
+}
+
+function integerSceneBetweenOneAndEight(value: string): number | null {
+	if (!/^[1-8]$/.test(value)) {
+		return null;
+	}
+	return Number(value);
 }
 
 function integerFromUnknown(value: unknown, fallback: number): number {

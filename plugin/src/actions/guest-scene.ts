@@ -33,8 +33,12 @@ export class GuestSceneAction extends SingletonAction<GuestSceneSettings> {
 		}
 
 		try {
-			const payload = buildGuestScenePayload(settings, target);
-			await vdoClient.sendCommand(payload);
+			const choice = resolveGuestTargetChoice(settings);
+			const currentState = choice ? getSceneState(choice.streamID, settings.scene || "1") : undefined;
+			const payload = buildGuestScenePayload(settings, target, currentState);
+			if (payload) {
+				await vdoClient.sendCommand(payload);
+			}
 			await ev.action.showOk();
 		} catch {
 			await ev.action.showAlert();
@@ -55,7 +59,7 @@ export class GuestSceneAction extends SingletonAction<GuestSceneSettings> {
 		const settings = normalizeGuestSceneSettings(rawSettings || (await actionContext.getSettings<GuestSceneSettings>()));
 		const choice = resolveGuestTargetChoice(settings);
 		const scene = settings.scene || "1";
-		const active = choice ? isInScene(choice.streamID, scene) : undefined;
+		const active = choice ? getSceneState(choice.streamID, scene) : undefined;
 		const title = renderGuestTitle(settings.title, `Scene ${scene}`, choice, {
 			scene,
 			state: active === true ? "On" : active === false ? "Off" : ""
@@ -66,7 +70,7 @@ export class GuestSceneAction extends SingletonAction<GuestSceneSettings> {
 	}
 }
 
-function isInScene(streamID: string, scene: string): boolean | undefined {
+function getSceneState(streamID: string, scene: string): boolean | undefined {
 	const stream = sessionStore.getStream(streamID);
 	if (!stream?.scenes || typeof stream.scenes !== "object") {
 		return undefined;

@@ -1,6 +1,6 @@
 # Runtime Comparison Audit
 
-Audit date: 2026-06-30.
+Audit date: 2026-06-30. Compatibility recheck: 2026-07-10.
 
 This compares the native Stream Deck plugin implementation in `plugin/` against the current local VDO.Ninja runtime. The plugin still stays inside `vdo-streamdeck/`; no VDO.Ninja source files were changed for this audit.
 
@@ -250,7 +250,7 @@ Plugin rule:
 - Future scene actions must accept arbitrary scene IDs/names.
 - Target dropdowns should derive observed scene choices from `details[streamID].scenes`, not from a fixed 0-8 list.
 - A default profile can include common scene buttons, but the underlying action must stay custom-scene capable.
-- A dedicated custom-scene action should expose toggle plus explicit set-on/set-off. Toggle should keep the old `addScene` shape; explicit state should use `addScene` + `value2` or `setScene`.
+- The dedicated scene action exposes toggle plus explicit set-on/set-off without requiring the current-month extension. Scenes 1-8 use legacy aliases; arbitrary names use observed `getDetails.scenes` state and a single legacy toggle only when needed.
 
 ## Callback and Info Calls
 
@@ -274,14 +274,15 @@ Naming note: there is no `getDetailsState` call in the checked source. Use `getD
 Implemented now:
 
 - Native Stream Deck SDK plugin scaffold.
-- API key/global settings property inspector.
+- Three-step setup property inspector with link building, local QR, connection testing, and collapsed advanced/self-hosted settings.
 - WebSocket API client with callback correlation.
-- HTTP POST fallback setting.
+- HTTP request/response routing plus raw WebSocket delivery for `value2` and realtime commands.
 - Connection status action.
-- Local control action.
+- Local control, selected guest, guest command, guest scene, mixer control, PTZ key, PTZ dial, and value dial actions.
 - Custom command action.
 - State store for local and remote details, guest list, partial updates, and join/leave refresh triggers.
-- Tests for command payloads, custom parsing, and state normalization.
+- Legacy-safe scene forcing and per-guest mute-all fan-out.
+- Tests for every exposed command choice, inspector button wiring/execution, command payloads, custom parsing, settings, transport, and state normalization.
 
 Still planned:
 
@@ -296,7 +297,7 @@ Still planned:
 - `getGuestList` is not a universal stream list. The plugin must continue using `getDetails` as the fallback stream source.
 - Remote scene membership depends on director DOM controls existing. In non-director links, `scenes` may be absent even when the page is viewing a scene.
 - Some command callbacks return `false` for missing targets, and some runtime functions can effectively return no useful result. Button feedback should use callbacks for acknowledgement and details/updates for durable state.
-- Custom scene set-on/set-off is now represented by `addScene` with `value2=true/false`, or `setScene`. Older self-hosted pages only support the toggle shape.
+- Current VDO.Ninja supports `addScene` with `value2=true/false`, or `setScene`, but the plugin deliberately uses legacy scene aliases and state-aware toggles so pre-v30.1 pages remain compatible.
 - Multi-API-key and multi-room control are not implemented yet.
 - Multi-page same-key state aggregation is not implemented because current callbacks do not identify the responding page.
 - No physical Stream Deck hardware or Stream Deck + dial smoke test has been run yet.

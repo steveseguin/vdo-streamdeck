@@ -42,12 +42,15 @@ export class MixerControlAction extends SingletonAction<MixerControlSettings> {
 		}
 
 		const target = command === "setGuestSlot" ? resolveGuestTargetValue(settings) : undefined;
-		const streams = command === "transferAllGuests" ? sessionStore.getStreamChoices({ includeLocal: false }) : undefined;
+		const streams = command === "muteAllGuests" ? muteableGuests() : command === "transferAllGuests" ? controllableGuests() : undefined;
 
 		try {
-			const payloads = buildMixerControlPayloads(settings, { target, streams });
+			const payloads = buildMixerControlPayloads(settings, { target, streams, allGuestsMuted: allGuestsMuted() });
 			for (let index = 0; index < payloads.length; index += 1) {
-				await vdoClient.sendCommand(payloads[index]);
+				const callback = await vdoClient.sendCommand(payloads[index]);
+				if ((command === "setGuestSlot" || command === "transferAllGuests") && callback.result === false) {
+					throw new Error(`${command} was rejected by VDO.Ninja`);
+				}
 				if (payloads.length > 1 && index < payloads.length - 1) {
 					await delay(75);
 				}
@@ -155,13 +158,32 @@ function isSlotActive(choice: StreamChoice | undefined, slot: string | undefined
 }
 
 function allGuestsMuted(): boolean {
-	const choices = sessionStore.getStreamChoices({ includeLocal: false });
+	const choices = muteableGuests();
 	if (!choices.length) {
 		return false;
 	}
 	return choices.every(choice => {
 		const stream = sessionStore.getStream(choice.streamID);
 		return isDirectorMuted(stream);
+	});
+}
+
+function muteableGuests(): StreamChoice[] {
+	return controllableGuests().filter(choice => {
+		const others = sessionStore.getStream(choice.streamID)?.others;
+		return !others || Object.prototype.hasOwnProperty.call(others, "mute-guest");
+	});
+}
+
+function controllableGuests(): StreamChoice[] {
+	return sessionStore.getStreamChoices({ includeLocal: false }).filter(choice => {
+		if (choice.director) {
+			return false;
+		}
+		if (choice.UUID?.includes("_screen") || choice.streamID.endsWith(":s")) {
+			return false;
+		}
+		return true;
 	});
 }
 

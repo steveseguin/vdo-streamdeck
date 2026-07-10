@@ -51,6 +51,7 @@ function registerPropertyInspectorMessages(): void {
 			await sendInspectorStatus("status");
 			await sendInspectorTargets();
 		} else if (type === "requestTargets") {
+			await refreshState(true);
 			await sendInspectorTargets();
 		} else if (type === "testConnection") {
 			await testConnectionFromInspector();
@@ -72,6 +73,9 @@ async function testConnectionFromInspector(): Promise<void> {
 		vdoClient.configure(settings);
 		try {
 			await vdoClient.sendCommand({ action: "getDetails" });
+			if (settings.httpFallback === false && vdoClient.connectionState !== "connected") {
+				await waitForConnectionResult((settings.requestTimeoutMs || 5000) + 1500, true);
+			}
 		} catch {
 			await waitForConnectionResult((settings.requestTimeoutMs || 5000) + 1500);
 		}
@@ -109,9 +113,10 @@ async function openUrlFromInspector(payload: JsonObject): Promise<void> {
 	}
 }
 
-function waitForConnectionResult(timeoutMs: number): Promise<ConnectionStateName> {
+function waitForConnectionResult(timeoutMs: number, waitForFreshPage = false): Promise<ConnectionStateName> {
 	const terminal = new Set<ConnectionStateName>(["connected", "no-page", "timeout", "error", "disconnected", "missing-key"]);
-	if (terminal.has(vdoClient.connectionState) && vdoClient.connectionState !== "disconnected") {
+	const shouldIgnore = (state: ConnectionStateName) => waitForFreshPage && (state === "no-page" || state === "timeout");
+	if (terminal.has(vdoClient.connectionState) && vdoClient.connectionState !== "disconnected" && !shouldIgnore(vdoClient.connectionState)) {
 		return Promise.resolve(vdoClient.connectionState);
 	}
 
@@ -131,7 +136,7 @@ function waitForConnectionResult(timeoutMs: number): Promise<ConnectionStateName
 		};
 
 		unsubscribe = vdoClient.onState(state => {
-			if (terminal.has(state)) {
+			if (terminal.has(state) && !shouldIgnore(state)) {
 				finish(state);
 			}
 		});

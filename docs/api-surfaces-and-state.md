@@ -23,7 +23,7 @@ This captures the VDO.Ninja control surfaces relevant to a native Stream Deck pl
 
 Primary runtime surface:
 - Use `&api` WebSocket for the native Stream Deck plugin.
-- Fall back to HTTP POST for one-shot commands if WebSocket is disconnected.
+- Use the HTTP relay routes for awaited one-shot commands and raw WebSocket delivery for realtime or `value2` payloads.
 - Use `getDetails`, updates, callbacks, and optional polling for state.
 
 Secondary/dev surface:

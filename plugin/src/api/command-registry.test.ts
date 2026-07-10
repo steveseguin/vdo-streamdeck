@@ -9,12 +9,28 @@ import {
 	buildPtzDialPushPayloads,
 	buildPtzKeyPayloads,
 	buildValueDialPayload,
+	GUEST_COMMANDS,
+	LOCAL_CONTROLS,
 	nextValueDialValue,
 	getGuestCommandDefinition,
 	getLocalControlDefinition
 } from "./command-registry.js";
 
 describe("command registry", () => {
+	it("builds a payload for every local control exposed by the plugin", () => {
+		for (const definition of Object.values(LOCAL_CONTROLS)) {
+			expect(() => buildLocalControlPayload({ command: definition.id, behavior: "toggle" }), definition.id).not.toThrow();
+			expect(buildLocalControlPayload({ command: definition.id, behavior: "toggle" }).action).toBe(definition.action);
+		}
+	});
+
+	it("builds a payload for every guest command exposed by the plugin", () => {
+		for (const definition of Object.values(GUEST_COMMANDS)) {
+			expect(() => buildGuestCommandPayload({ command: definition.id, behavior: "toggle" }, "guest123"), definition.id).not.toThrow();
+			expect(buildGuestCommandPayload({ command: definition.id, behavior: "toggle" }, "guest123").action).toBe(definition.action);
+		}
+	});
+
 	it("defaults to mic for unknown local controls", () => {
 		expect(getLocalControlDefinition("missing").action).toBe("mic");
 	});
@@ -108,37 +124,35 @@ describe("command registry", () => {
 		});
 	});
 
-	it("builds guest scene on payloads with explicit value2 state", () => {
+	it("uses the legacy fixed-scene API shape when forcing a scene on", () => {
 		expect(buildGuestScenePayload({ scene: "2", mode: "on" }, "guest123")).toEqual({
+			action: "addScene2",
+			target: "guest123",
+			value: false
+		});
+		expect(buildGuestScenePayload({ scene: "1", mode: "on" }, "guest123")).toEqual({
 			action: "addScene",
 			target: "guest123",
-			value: "2",
-			value2: true
+			value: false
 		});
 	});
 
-	it("builds guest scene off payloads with explicit value2 state", () => {
+	it("uses the legacy fixed-scene API shape when forcing a scene off", () => {
 		expect(buildGuestScenePayload({ scene: "2", mode: "off" }, "guest123")).toEqual({
-			action: "addScene",
+			action: "addScene2",
 			target: "guest123",
-			value: "2",
-			value2: false
+			value: true
 		});
 	});
 
-	it("builds explicit state payloads when forcing custom scenes", () => {
-		expect(buildGuestScenePayload({ scene: "custom-scene", mode: "on" }, "guest123")).toEqual({
+	it("uses observed state to force named scenes with the legacy toggle command", () => {
+		expect(buildGuestScenePayload({ scene: "custom-scene", mode: "on" }, "guest123", false)).toEqual({
 			action: "addScene",
 			target: "guest123",
-			value: "custom-scene",
-			value2: true
+			value: "custom-scene"
 		});
-		expect(buildGuestScenePayload({ scene: "custom-scene", mode: "off" }, "guest123")).toEqual({
-			action: "addScene",
-			target: "guest123",
-			value: "custom-scene",
-			value2: false
-		});
+		expect(buildGuestScenePayload({ scene: "custom-scene", mode: "on" }, "guest123", true)).toBeNull();
+		expect(() => buildGuestScenePayload({ scene: "custom-scene", mode: "off" }, "guest123")).toThrow("live scene state");
 	});
 
 	it("builds local PTZ relative payloads", () => {
@@ -257,19 +271,29 @@ describe("command registry", () => {
 		]);
 	});
 
-	it("builds global guest mute payloads", () => {
-		expect(buildMixerControlPayloads({ command: "muteAllGuests", muteBehavior: "on" })).toEqual([
+	it("builds legacy-compatible per-guest mute-all payloads", () => {
+		const streams = [{ streamID: "guestA", label: "A" }, { streamID: "guestB", UUID: "uuidB", label: "B" }];
+		expect(buildMixerControlPayloads({ command: "muteAllGuests", muteBehavior: "on" }, { streams })).toEqual([
 			{
-				action: "muteAllGuests",
-				value: true
-			}
-		]);
-		expect(buildMixerControlPayloads({ command: "muteAllGuests", muteBehavior: "off" })).toEqual([
+				action: "mic",
+				target: "guestA",
+				value: false
+			},
 			{
-				action: "muteAllGuests",
+				action: "mic",
+				target: "uuidB",
 				value: false
 			}
 		]);
+		expect(buildMixerControlPayloads({ command: "muteAllGuests", muteBehavior: "off" }, { streams: [streams[0]] })).toEqual([
+			{
+				action: "mic",
+				target: "guestA",
+				value: true
+			}
+		]);
+		expect(buildMixerControlPayloads({ command: "muteAllGuests", muteBehavior: "toggle" }, { streams: [streams[0]], allGuestsMuted: false })[0].value).toBe(false);
+		expect(buildMixerControlPayloads({ command: "muteAllGuests", muteBehavior: "toggle" }, { streams: [streams[0]], allGuestsMuted: true })[0].value).toBe(true);
 	});
 
 	it("builds transfer-all fan-out payloads", () => {

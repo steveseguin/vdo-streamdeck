@@ -93,6 +93,7 @@ export interface StreamChoice extends JsonObject {
 	position?: number;
 	slot?: number | boolean;
 	localStream?: boolean;
+	director?: boolean;
 	held?: boolean;
 	handRaised?: boolean;
 	scenes?: JsonObject;

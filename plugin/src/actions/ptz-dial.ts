@@ -159,7 +159,10 @@ export class PtzDialAction extends SingletonAction<PtzDialSettings> {
 		try {
 			const payloads = buildPtzDialPushPayloads(settings, target);
 			for (const payload of payloads) {
-				await vdoClient.sendCommand(payload);
+				const callback = await vdoClient.sendCommand(payload);
+				if (callback.result === false) {
+					throw new Error(`${payload.action} was rejected by VDO.Ninja`);
+				}
 			}
 			await this.render(actionContext, settings, pushStatus(settings));
 		} catch {

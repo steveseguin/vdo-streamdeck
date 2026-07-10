@@ -1,115 +1,131 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
 	<title id="title">VDO.Ninja Stream Deck property inspector preview</title>
-	<desc id="desc">A preview of the Stream Deck property inspector showing API setup, mixer control settings, guest targeting, and PTZ guidance.</desc>
+	<desc id="desc">A preview of the Stream Deck property inspector showing the compact connection status bar, collapsed setup panel, and Guest Command settings.</desc>
 	<defs>
 		<linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
 			<stop offset="0" stop-color="#111827" />
-			<stop offset="1" stop-color="#020617" />
+			<stop offset="1" stop-color="#030712" />
+		</linearGradient>
+		<linearGradient id="chrome" x1="0" x2="0" y1="0" y2="1">
+			<stop offset="0" stop-color="#1f2937" />
+			<stop offset="1" stop-color="#0b1220" />
 		</linearGradient>
 		<filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-			<feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000000" flood-opacity="0.35" />
+			<feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000000" flood-opacity="0.36" />
 		</filter>
 		<style>
 			.text { font-family: "Segoe UI", Arial, sans-serif; fill: #e5e7eb; }
+			.heading { font-size: 24px; font-weight: 800; }
 			.label { font-size: 15px; font-weight: 700; fill: #cbd5e1; }
-			.hint { font-size: 14px; fill: #94a3b8; }
-			.value { font-size: 17px; fill: #e5e7eb; }
-			.code { font-family: Consolas, monospace; font-size: 15px; fill: #dbeafe; }
-			.small { font-size: 13px; fill: #94a3b8; }
+			.value { font-size: 17px; fill: #f8fafc; }
+			.hint { font-size: 13px; fill: #94a3b8; }
+			.small { font-size: 12px; fill: #94a3b8; }
+			.code { font-family: Consolas, monospace; font-size: 14px; fill: #dbeafe; }
+			.rowText { font-size: 15px; fill: #dbeafe; }
+			.button { font-size: 14px; font-weight: 700; fill: #e5e7eb; text-anchor: middle; }
 		</style>
 	</defs>
+
 	<rect width="1200" height="760" fill="url(#bg)" />
-	<circle cx="160" cy="90" r="220" fill="#22c55e" opacity="0.07" />
-	<circle cx="1040" cy="690" r="260" fill="#0ea5e9" opacity="0.08" />
 
 	<g filter="url(#shadow)">
-		<rect x="82" y="70" width="1036" height="620" rx="28" fill="#0f172a" stroke="#263449" />
-		<rect x="82" y="70" width="1036" height="62" rx="28" fill="#111827" />
-		<rect x="82" y="104" width="1036" height="28" fill="#111827" />
-		<circle cx="118" cy="101" r="8" fill="#ef4444" />
-		<circle cx="144" cy="101" r="8" fill="#f59e0b" />
-		<circle cx="170" cy="101" r="8" fill="#22c55e" />
-		<text class="text" x="220" y="108" font-size="22" font-weight="800">VDO.Ninja - Mixer Control</text>
+		<rect x="76" y="56" width="1048" height="648" rx="24" fill="#0f172a" stroke="#263449" />
+		<rect x="76" y="56" width="1048" height="58" rx="24" fill="url(#chrome)" />
+		<rect x="76" y="90" width="1048" height="24" fill="#111827" />
+		<circle cx="110" cy="86" r="7" fill="#ef4444" />
+		<circle cx="134" cy="86" r="7" fill="#f59e0b" />
+		<circle cx="158" cy="86" r="7" fill="#22c55e" />
+		<text class="text" x="210" y="94" font-size="21" font-weight="800">VDO.Ninja Stream Deck Plugin</text>
 
-		<g transform="translate(118 164)">
-			<rect x="0" y="0" width="322" height="474" rx="18" fill="#111827" stroke="#243244" />
-			<text class="text" x="24" y="42" font-size="24" font-weight="800">Connection</text>
-			<rect x="24" y="66" width="274" height="48" rx="12" fill="#052e1a" stroke="#166534" />
-			<circle cx="48" cy="90" r="8" fill="#35d07f" />
-			<text class="value" x="68" y="96">VDO.Ninja page answered</text>
+		<g transform="translate(108 138)">
+			<rect x="0" y="0" width="304" height="526" rx="16" fill="#111827" stroke="#243244" />
+			<text class="heading text" x="24" y="42">Actions</text>
+			<text class="small" x="24" y="68">Monochrome action-list glyphs</text>
 
-			<text class="label" x="24" y="154">Private API key</text>
-			<rect x="24" y="168" width="274" height="38" rx="8" fill="#020617" stroke="#334155" />
-			<text class="code" x="40" y="193">my-production-key</text>
-
-			<text class="label" x="24" y="240">Page type</text>
-			<rect x="24" y="254" width="274" height="38" rx="8" fill="#020617" stroke="#334155" />
-			<text class="value" x="40" y="279">Director room</text>
-
-			<text class="label" x="24" y="326">Generated VDO.Ninja link</text>
-			<rect x="24" y="340" width="274" height="68" rx="8" fill="#020617" stroke="#334155" />
-			<text class="code" x="40" y="367">https://vdo.ninja/</text>
-			<text class="code" x="40" y="391">?director=ROOM&amp;api=KEY</text>
-
-			<rect x="24" y="430" width="128" height="34" rx="8" fill="#1d4ed8" />
-			<text class="text" x="56" y="453" font-size="15" font-weight="700">Copy URL</text>
-			<rect x="170" y="430" width="128" height="34" rx="8" fill="#166534" />
-			<text class="text" x="207" y="453" font-size="15" font-weight="700">Test</text>
-		</g>
-
-		<g transform="translate(470 164)">
-			<rect x="0" y="0" width="320" height="474" rx="18" fill="#111827" stroke="#243244" />
-			<text class="text" x="24" y="42" font-size="24" font-weight="800">Mixer Control</text>
-
-			<text class="label" x="24" y="82">Control</text>
-			<rect x="24" y="96" width="272" height="38" rx="8" fill="#020617" stroke="#334155" />
-			<text class="value" x="40" y="121">Assign guest to mixer slot</text>
-
-			<text class="label" x="24" y="166">Guest source</text>
-			<rect x="24" y="180" width="272" height="38" rx="8" fill="#020617" stroke="#334155" />
-			<text class="value" x="40" y="205">Guest position</text>
-
-			<text class="label" x="24" y="250">Guest position</text>
-			<rect x="24" y="264" width="120" height="38" rx="8" fill="#020617" stroke="#334155" />
-			<text class="value" x="42" y="289">1</text>
-
-			<text class="label" x="176" y="250">Destination mixer slot</text>
-			<rect x="176" y="264" width="120" height="38" rx="8" fill="#020617" stroke="#334155" />
-			<text class="value" x="194" y="289">2</text>
-
-			<rect x="24" y="326" width="272" height="58" rx="10" fill="#0b1220" stroke="#243244" />
-			<text class="hint" x="42" y="351">Slot 0 unsets the guest slot.</text>
-			<text class="hint" x="42" y="373">Use /mixer or &amp;slotmode=1.</text>
-
-			<text class="label" x="24" y="424">Safety</text>
-			<rect x="24" y="440" width="18" height="18" rx="4" fill="#35d07f" />
-			<path d="M29 449 L35 455 L49 441" stroke="#052e1a" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
-			<text class="value" x="56" y="456">Require second press for transfer all</text>
-		</g>
-
-		<g transform="translate(820 164)">
-			<rect x="0" y="0" width="262" height="474" rx="18" fill="#111827" stroke="#243244" />
-			<text class="text" x="24" y="42" font-size="24" font-weight="800">Action Set</text>
-			<g transform="translate(24 70)">
-				<rect x="0" y="0" width="214" height="34" rx="17" fill="#052e1a" />
-				<text class="text" x="18" y="23" font-size="15" font-weight="700">Connection status</text>
-				<rect x="0" y="48" width="214" height="34" rx="17" fill="#064e3b" />
-				<text class="text" x="18" y="71" font-size="15" font-weight="700">Local controls</text>
-				<rect x="0" y="96" width="214" height="34" rx="17" fill="#312e81" />
-				<text class="text" x="18" y="119" font-size="15" font-weight="700">Guest commands</text>
-				<rect x="0" y="144" width="214" height="34" rx="17" fill="#581c87" />
-				<text class="text" x="18" y="167" font-size="15" font-weight="700">Scene toggles</text>
-				<rect x="0" y="192" width="214" height="34" rx="17" fill="#065f46" />
-				<text class="text" x="18" y="215" font-size="15" font-weight="700">Mixer layouts and slots</text>
-				<rect x="0" y="240" width="214" height="34" rx="17" fill="#075985" />
-				<text class="text" x="18" y="263" font-size="15" font-weight="700">PTZ keys and dials</text>
-				<rect x="0" y="288" width="214" height="34" rx="17" fill="#14532d" />
-				<text class="text" x="18" y="311" font-size="15" font-weight="700">Value dials</text>
-				<rect x="0" y="336" width="214" height="34" rx="17" fill="#78350f" />
-				<text class="text" x="18" y="359" font-size="15" font-weight="700">Custom API payloads</text>
+			<g transform="translate(20 96)">
+				<rect x="0" y="0" width="264" height="42" rx="8" fill="#0b1220" />
+				<path d="M20 15h12a5 5 0 0 1 5 5v2l6-4v15l-6-4v2a5 5 0 0 1-5 5H20a5 5 0 0 1-5-5V20a5 5 0 0 1 5-5Z" fill="#ffffff" />
+				<text class="rowText" x="62" y="27">Connection Status</text>
 			</g>
-			<rect x="24" y="430" width="214" height="30" rx="15" fill="#0b1220" stroke="#334155" />
-			<text class="small" x="42" y="450">Live state from getDetails</text>
+			<g transform="translate(20 150)">
+				<rect x="0" y="0" width="264" height="42" rx="8" fill="#0b1220" />
+				<path d="M29 10a7 7 0 0 1 7 7v6a7 7 0 0 1-14 0v-6a7 7 0 0 1 7-7Zm-12 13h4a8 8 0 0 0 16 0h4a12 12 0 0 1-10 12v6h-4v-6a12 12 0 0 1-10-12Z" fill="#ffffff" />
+				<text class="rowText" x="62" y="27">Local Control</text>
+			</g>
+			<g transform="translate(20 204)">
+				<rect x="0" y="0" width="264" height="42" rx="8" fill="#172554" stroke="#38bdf8" />
+				<path d="M29 10a8 8 0 1 1 0 16 8 8 0 0 1 0-16ZM14 39c1-8 7-12 15-12s14 4 15 12H14Z" fill="#ffffff" />
+				<text class="rowText" x="62" y="27">Guest Command</text>
+			</g>
+			<g transform="translate(20 258)">
+				<rect x="0" y="0" width="264" height="42" rx="8" fill="#0b1220" />
+				<path d="M18 11h5v28h-5V11Zm-7 10h19v5H11v-5Zm25-10h5v28h-5V11Zm-7 18h19v5H29v-5Z" fill="#ffffff" />
+				<text class="rowText" x="62" y="27">Mixer Control</text>
+			</g>
+			<g transform="translate(20 312)">
+				<rect x="0" y="0" width="264" height="42" rx="8" fill="#0b1220" />
+				<path d="m29 8 7 9H22l7-9Zm0 34-7-9h14l-7 9ZM8 25l9-7v14l-9-7Zm42 0-9 7V18l9 7Z" fill="#ffffff" />
+				<text class="rowText" x="62" y="27">PTZ Dial</text>
+			</g>
+			<g transform="translate(20 366)">
+				<rect x="0" y="0" width="264" height="42" rx="8" fill="#0b1220" />
+				<path d="M13 14h34v5H13v-5Zm0 13h34v5H13v-5Zm12-20h5v19h-5V7Zm12 18h5v19h-5V25Z" fill="#ffffff" />
+				<text class="rowText" x="62" y="27">Value Dial</text>
+			</g>
+			<g transform="translate(20 440)">
+				<rect x="0" y="0" width="264" height="48" rx="10" fill="#052e1a" stroke="#166534" />
+				<circle cx="25" cy="24" r="7" fill="#35d07f" />
+				<text class="text" x="46" y="30" font-size="15" font-weight="700">Connected to VDO.Ninja</text>
+			</g>
+		</g>
+
+		<g transform="translate(452 138)">
+			<rect x="0" y="0" width="632" height="526" rx="16" fill="#111827" stroke="#243244" />
+			<rect x="24" y="26" width="584" height="48" rx="10" fill="#052e1a" stroke="#166534" />
+			<circle cx="48" cy="50" r="8" fill="#35d07f" />
+			<text class="value" x="68" y="56">VDO.Ninja page answered.</text>
+
+			<rect x="24" y="94" width="584" height="42" rx="8" fill="#0b1220" stroke="#263449" />
+			<path d="M47 112 L55 120 L47 128" fill="none" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+			<text class="text" x="76" y="121" font-size="16" font-weight="800">VDO.Ninja connection setup</text>
+			<text class="hint" x="368" y="121">collapsed for configured actions</text>
+
+			<text class="heading text" x="24" y="180">Guest Command</text>
+
+			<g transform="translate(24 210)">
+				<text class="label" x="0" y="0">Command</text>
+				<rect x="0" y="14" width="274" height="40" rx="8" fill="#020617" stroke="#334155" />
+				<text class="value" x="16" y="40">Activate Guest</text>
+				<path d="M246 29 L254 37 L262 29" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" />
+
+				<text class="label" x="310" y="0">Target</text>
+				<rect x="310" y="14" width="274" height="40" rx="8" fill="#020617" stroke="#334155" />
+				<text class="value" x="326" y="40">Stream ID</text>
+				<path d="M556 29 L564 37 L572 29" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" />
+			</g>
+
+			<g transform="translate(24 296)">
+				<text class="label" x="0" y="0">Stream</text>
+				<rect x="0" y="14" width="584" height="40" rx="8" fill="#020617" stroke="#334155" />
+				<text class="value" x="16" y="40">G2 - Jordan - held</text>
+				<path d="M556 29 L564 37 L572 29" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" />
+
+				<rect x="0" y="70" width="144" height="36" rx="8" fill="#1d4ed8" />
+				<text class="button" x="72" y="94">Refresh Targets</text>
+				<rect x="158" y="70" width="112" height="36" rx="8" fill="#263449" />
+				<text class="button" x="214" y="94">Manual ID</text>
+				<text class="hint" x="292" y="93">A dropdown pick clears any saved manual ID.</text>
+			</g>
+
+			<g transform="translate(24 440)">
+				<text class="label" x="0" y="0">Title template</text>
+				<rect x="0" y="14" width="360" height="40" rx="8" fill="#020617" stroke="#334155" />
+				<text class="code" x="16" y="40">{slot} {label} {command}</text>
+
+				<rect x="394" y="21" width="20" height="20" rx="4" fill="#35d07f" />
+				<path d="M399 31 L405 37 L419 23" stroke="#052e1a" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+				<text class="value" x="426" y="38">Double-press dangerous actions</text>
+			</g>
 		</g>
 	</g>
 </svg>

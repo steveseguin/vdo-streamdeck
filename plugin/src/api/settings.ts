@@ -67,9 +67,13 @@ export function normalizeSelectGuestSettings(settings: Partial<SelectGuestSettin
 }
 
 export function normalizePtzKeySettings(settings: Partial<PtzKeySettings> | undefined): PtzKeySettings {
-	const control = normalizePtzControl(settings?.control);
+	const scope = settings?.scope === "guest" ? "guest" : "local";
+	let control = normalizePtzControl(settings?.control);
+	if ((scope === "guest" && control === "exposure") || (scope === "local" && control === "autofocus")) {
+		control = "zoom";
+	}
 	return {
-		scope: settings?.scope === "guest" ? "guest" : "local",
+		scope,
 		targetMode: normalizeTargetMode(settings?.targetMode),
 		target: stringOrEmpty(settings?.target),
 		control,
@@ -82,16 +86,25 @@ export function normalizePtzKeySettings(settings: Partial<PtzKeySettings> | unde
 }
 
 export function normalizePtzDialSettings(settings: Partial<PtzDialSettings> | undefined): PtzDialSettings {
+	const scope = settings?.scope === "guest" ? "guest" : "local";
+	let control = normalizePtzDialControl(settings?.control);
+	if (scope === "guest" && control === "exposure") {
+		control = "zoom";
+	}
+	let pushAction = normalizePtzDialPushAction(settings?.pushAction);
+	if (scope !== "guest" && (pushAction === "autofocusOn" || pushAction === "autofocusOff")) {
+		pushAction = "none";
+	}
 	return {
-		scope: settings?.scope === "guest" ? "guest" : "local",
+		scope,
 		targetMode: normalizeTargetMode(settings?.targetMode),
 		target: stringOrEmpty(settings?.target),
-		control: normalizePtzDialControl(settings?.control),
+		control,
 		step: normalizePositiveString(settings?.step, "0.05"),
 		intervalMs: positiveNumber(settings?.intervalMs, 80),
 		acceleration: settings?.acceleration === true,
 		invert: settings?.invert === true,
-		pushAction: normalizePtzDialPushAction(settings?.pushAction),
+		pushAction,
 		disableAutofocus: settings?.disableAutofocus === true,
 		title: stringOrEmpty(settings?.title)
 	};

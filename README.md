@@ -5,7 +5,7 @@
 [![SDK](https://img.shields.io/badge/SDK-v2-38bdf8)](https://docs.elgato.com/streamdeck/sdk/)
 [![Node](https://img.shields.io/badge/runtime-Node%2020-22c55e)](#requirements)
 [![VDO.Ninja](https://img.shields.io/badge/VDO.Ninja-%26api-35d07f)](https://vdo.ninja/)
-[![Tests](https://img.shields.io/badge/tests-76%20passing-22c55e)](#testing)
+[![Tests](https://img.shields.io/badge/tests-87%20passing-22c55e)](#testing)
 
 A native Elgato Stream Deck plugin for controlling VDO.Ninja pages through the existing VDO.Ninja `&api` remote-control system.
 
@@ -15,7 +15,7 @@ The goal is simple: open a VDO.Ninja director, guest, mixer, or camera page with
 
 ## Preview
 
-These preview images are representative mockups of the plugin experience and action set.
+These preview images reflect the current plugin experience and action set.
 
 ![Stream Deck key preview](docs/assets/streamdeck-preview.svg)
 
@@ -30,7 +30,15 @@ These preview images are representative mockups of the plugin experience and act
 - Uses live VDO.Ninja state from `getDetails`, partial `details` updates, and guest list ordering.
 - Tracks API transport health, including messages per second and WebSocket backlog.
 - Rate-limits or skips high-rate no-wait incremental controls when the API socket is overloaded.
-- Keeps VDO.Ninja behavior backward compatible by sending existing API commands.
+- Preserves established VDO.Ninja API shapes, with legacy-safe scene and mute-all behavior.
+
+## Quick Setup
+
+1. Add the `Connection Status` action to a key and open its property inspector.
+2. Generate a private API key, choose the VDO.Ninja page you want to control, and click `Open`.
+3. Keep that VDO.Ninja page open, click `Test connection`, then add the control actions you need.
+
+The setup panel collapses after configuration so each action's own settings stay easy to reach. VDO.Ninja requires no account, and the generated key is stored in Stream Deck's local plugin settings.
 
 ## Supported Actions
 
@@ -41,11 +49,22 @@ These preview images are representative mockups of the plugin experience and act
 | Select Guest | Fixed guest, next, previous, first held, clear selected guest | Selected target state/title |
 | Guest Command | Guest mic, camera, speaker, display, volume, group, transfer, activate held guest, hangup, solo modes, chat overlays, refresh/recover/keyframe | Target-aware titles and known guest states |
 | Guest Scene | Toggle or force guest into any scene ID/name | Scene membership feedback |
-| Mixer Control | Layout selection, assign guest to mixer slot, unset slot, mute/unmute all guests, guarded transfer-all | Mixer key states, slot feedback, all-muted feedback |
+| Mixer Control | Layout selection, assign guest to mixer slot, unset slot, legacy-safe mute/unmute all guests, guarded transfer-all | Mixer key states, slot feedback, all-muted feedback |
 | PTZ Key | Local zoom/pan/tilt/focus/exposure; guest zoom/pan/tilt/focus/autofocus | Target-aware PTZ titles |
 | PTZ Dial | Stream Deck + relative PTZ control with inversion, acceleration, rate limiting, and press actions | Current control/status title |
 | Value Dial | Local volume, panning, bitrate, buffer delay, guest volume | Clamped value feedback |
 | Custom Command | Any VDO.Ninja `{ action, target, value, value2 }` payload | OK/alert result feedback |
+
+## VDO.Ninja Version Compatibility
+
+The command registry was checked directly against the last pre-v30.1 source (`v29.4`) and the current `v30.2` source. Existing API names and value semantics are not redefined.
+
+- Local, guest, mixer layout/slot, PTZ, value-dial, and custom controls keep their established command shapes.
+- `Guest Scene` uses the legacy `addScene` / `addScene2`–`addScene8` paths. Named-scene force-on/off uses live scene state plus the old toggle command, so it does not require the newer `value2` scene extension.
+- `Mute all guests` fans out the long-standing targeted `mic` command and excludes directors and screen-share pseudo-guests; it does not require the newer `muteAllGuests` wrapper.
+- `Activate Guest` is the one current-only control. It requires VDO.Ninja v30.2+ because older pages have no native `&api` queue-activation handler. An older page rejects it and the plugin shows an alert without changing any legacy behavior.
+
+Very old builds can only support commands that existed in those builds; the plugin does not emulate missing browser features or PTZ handlers.
 
 ## Common Workflows
 
@@ -140,6 +159,7 @@ docs/
 - The plugin does not replace VDO.Ninja UI state; it extends the existing API paths.
 - Keep API keys private. Anyone with the key can control the matching VDO.Ninja page.
 - Commands that require `value2`, such as absolute PTZ or all-stream buffer updates, use the WebSocket payload path so secondary values are preserved.
+- See [the compatibility audit](docs/vdo-version-compatibility.md) for the source comparison and fallback details.
 - Discrete awaited commands are not skipped. Only high-rate no-wait incremental controls, such as relative PTZ and value dials, may be skipped if the API socket is overloaded.
 
 ## More Documentation

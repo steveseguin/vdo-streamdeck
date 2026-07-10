@@ -44,7 +44,7 @@ Responsibilities:
 - Reconnect with backoff after disconnect/timeout.
 - Send JSON commands with optional `target`, `value`, `value2`, and request IDs.
 - Match callbacks to pending commands when possible.
-- Provide HTTP POST fallback for one-shot commands when WebSocket is disconnected.
+- Use the relay's legacy-compatible HTTP request routes for awaited simple commands and raw WebSocket payloads for realtime or `value2` commands.
 - Avoid logging the API key.
 
 ### Command Registry

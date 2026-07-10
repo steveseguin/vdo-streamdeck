@@ -69,6 +69,23 @@ describe("VdoClient", () => {
 		expect(fetchMock).toHaveBeenCalledWith("https://api.example/key/camera/toggle");
 	});
 
+	it("sends awaited commands without a callback ID in WebSocket-only mode", async () => {
+		const client = new VdoClient() as VdoClientHarness;
+		const send = vi.fn();
+		client.settings = { apiKey: "key", apiHost: "api.example", useTls: true, httpFallback: false };
+		client.socket = { readyState: 1, send };
+
+		await expect(client.sendCommand({ action: "camera", value: "toggle" })).resolves.toMatchObject({
+			action: "camera",
+			value: "toggle"
+		});
+		expect(JSON.parse(send.mock.calls[0][0])).toEqual({
+			action: "camera",
+			value: "toggle"
+		});
+		expect(client.connectionState).not.toBe("connected");
+	});
+
 	it("keeps value2 commands on the raw WebSocket path without request IDs", async () => {
 		const client = new VdoClient() as VdoClientHarness;
 		const send = vi.fn();

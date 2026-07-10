@@ -141,7 +141,6 @@ export class VdoClient {
 		if (!awaitCallback) {
 			if (this.isRealtimeIncremental(request) && this.shouldSkipRealtimeCommand()) {
 				this.skippedRealtimeCommands += 1;
-				this.setState("connected");
 				return request as VdoCallback;
 			}
 			if (this.isSocketOpen()) {
@@ -172,11 +171,20 @@ export class VdoClient {
 			const rawRequest = { ...request };
 			delete rawRequest.get;
 			this.sendRaw(rawRequest);
-			this.setState("connected");
 			return rawRequest as VdoCallback;
 		}
 
 		if (this.isSocketOpen()) {
+			if (this.settings.httpFallback === false) {
+				// The reference API relay consumes callbacks carrying `get` IDs for its
+				// HTTP request and does not forward them to WebSocket peers. In explicit
+				// WebSocket-only mode, send a fire-and-forget command instead of waiting
+				// for a callback that the plugin cannot receive.
+				const rawRequest = { ...request };
+				delete rawRequest.get;
+				this.sendRaw(rawRequest);
+				return rawRequest as VdoCallback;
+			}
 			const promise = new Promise<VdoCallback>((resolve, reject) => {
 				const timer = setTimeout(() => {
 					this.pending.delete(requestId);

@@ -5,7 +5,7 @@
   "Author": "VDO.Ninja",
   "URL": "https://vdo.ninja",
   "Description": "Control VDO.Ninja from Stream Deck keys and dials: mic, camera, guests, scenes, mixer layouts, PTZ, volume, and custom API commands on any VDO.Ninja page opened with &api=KEY.",
-  "Version": "0.1.0.0",
+  "Version": "0.1.1.0",
   "SDKVersion": 2,
   "Software": {
     "MinimumVersion": "6.8"

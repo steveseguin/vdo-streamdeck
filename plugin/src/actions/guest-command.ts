@@ -50,7 +50,10 @@ export class GuestCommandAction extends SingletonAction<GuestCommandSettings> {
 
 		try {
 			const payload = buildGuestCommandPayload(settings, target);
-			await vdoClient.sendCommand(payload);
+			const callback = await vdoClient.sendCommand(payload, { awaitCallback: definition.awaitCallback !== false });
+			if (definition.falseMeansFailure && callback.result === false) {
+				throw new Error(`${definition.label} was rejected by VDO.Ninja`);
+			}
 			await ev.action.showOk();
 		} catch {
 			await ev.action.showAlert();

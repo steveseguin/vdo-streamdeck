@@ -75,6 +75,13 @@ describe("settings normalization", () => {
 		);
 	});
 
+	it("replaces unsupported PTZ scope and control combinations", () => {
+		expect(normalizePtzKeySettings({ scope: "guest", control: "exposure" }).control).toBe("zoom");
+		expect(normalizePtzKeySettings({ scope: "local", control: "autofocus" }).control).toBe("zoom");
+		expect(normalizePtzDialSettings({ scope: "guest", control: "exposure" }).control).toBe("zoom");
+		expect(normalizePtzDialSettings({ scope: "local", pushAction: "autofocusOn" }).pushAction).toBe("none");
+	});
+
 	it("normalizes PTZ dial settings with conservative defaults", () => {
 		expect(normalizePtzDialSettings(undefined)).toEqual({
 			scope: "local",

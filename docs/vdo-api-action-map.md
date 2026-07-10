@@ -134,6 +134,8 @@ Targets can be a guest slot/position or a stream ID. Stream IDs are more stable;
 | Set Height | `setHeight` | integer |
 | Set Aspect Ratio | `setAspectRatio` | decimal |
 
+Plugin compatibility note: the current runtime exposes the scene-state extension above, but the Stream Deck plugin uses legacy scene aliases and state-aware `addScene` toggles so pre-v30.1 pages do not depend on it. Its mute-all action similarly fans out the established targeted `mic` command instead of requiring the newer wrapper.
+
 ## PTZ Mapping
 
 ### Local Camera PTZ
