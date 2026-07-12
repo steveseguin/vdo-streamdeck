@@ -129,7 +129,7 @@ Provide a link builder instead of making users edit URLs manually:
 Example outputs:
 
 ```text
-https://vdo.ninja/mixer?room=ROOM&api=KEY
+https://vdo.ninja/mixer?director=ROOM&api=KEY
 https://vdo.ninja/?push=STREAMID&api=KEY
 https://vdo.ninja/?view=STREAMID&api=KEY
 https://vdo.ninja/?room=ROOM&scene=custom-scene&api=KEY
@@ -250,7 +250,7 @@ VDO.Ninja is free, browser-based, and does not require a login. This plugin cont
 API key help:
 
 ```text
-Use the same private key in Stream Deck and in your VDO.Ninja URL. Example: https://vdo.ninja/mixer?room=myshow&api=abc123
+Use the same private key in Stream Deck and in your VDO.Ninja URL. Example: https://vdo.ninja/mixer?director=myshow&api=abc123
 ```
 
 Waiting state:

@@ -48,9 +48,13 @@ describe("property inspector contract", () => {
 	});
 
 	it("keeps first-run setup focused and advanced transport controls collapsed", () => {
-		expect(inspector).toContain("Choose a private key");
+		expect(inspector).toContain("Create a secure connection key");
 		expect(inspector).toContain("Build the page link");
 		expect(inspector).toContain("Confirm it answers");
+		expect(inspector).toContain('<details id="setupDetails" open>');
+		expect(inspector).toContain('role="status" aria-live="polite"');
+		expect(inspector).toContain("Guest position (G1, G2...)");
+		expect(inspector).not.toContain(">Guest slot<");
 		expect(inspector).toContain("Advanced and self-hosted setup");
 		expect(inspector).toContain('id="apiProtocol"');
 		expect(inspector).toContain('id="commandTransport"');
@@ -73,9 +77,22 @@ describe("property inspector contract", () => {
 				}
 			})
 		});
-		expect(harness.elements.get("generatedUrl")?.value).toContain("/mixer?room=test-room&api=test-key");
+		expect(harness.elements.get("generatedUrl")?.value).toContain("/mixer?director=test-room&api=test-key");
 
 		const pageType = harness.elements.get("pageType");
+		const roomName = harness.elements.get("roomName");
+		const sceneId = harness.elements.get("sceneId");
+		pageType!.value = "scene";
+		pageType!.onchange?.();
+		roomName!.value = "test-room";
+		roomName!.oninput?.();
+		sceneId!.value = "2";
+		sceneId!.oninput?.();
+		const sceneUrl = new URL(harness.elements.get("generatedUrl")?.value || "");
+		expect(sceneUrl.searchParams.get("room")).toBe("test-room");
+		expect(sceneUrl.searchParams.get("scene")).toBe("2");
+		expect(sceneUrl.searchParams.has("director")).toBe(false);
+
 		const customUrl = harness.elements.get("customUrl");
 		pageType!.value = "custom";
 		pageType!.onchange?.();

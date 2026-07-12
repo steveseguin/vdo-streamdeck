@@ -15,11 +15,11 @@ The goal is simple: open a VDO.Ninja director, guest, mixer, or camera page with
 
 ## Preview
 
-These preview images reflect the current plugin experience and action set.
+The key layout is an illustrative production profile. The property-inspector image reflects the current interface; labels may vary with the selected action.
 
 ![Stream Deck key preview](docs/assets/streamdeck-preview.svg)
 
-![Property inspector preview](docs/assets/property-inspector-preview.svg)
+![First-run VDO.Ninja connection setup in the Stream Deck property inspector](docs/assets/property-inspector-setup.png)
 
 ## Highlights
 
@@ -34,11 +34,12 @@ These preview images reflect the current plugin experience and action set.
 
 ## Quick Setup
 
-1. Add the `Connection Status` action to a key and open its property inspector.
-2. Generate a private API key, choose the VDO.Ninja page you want to control, and click `Open`.
-3. Keep that VDO.Ninja page open, click `Test connection`, then add the control actions you need.
+1. In Stream Deck, drag `Connection Status` onto any key.
+2. In the panel on the right, click `Generate secure key`, enter your VDO.Ninja room name, then click `Open VDO.Ninja`.
+3. Keep that browser tab open and click `Test connection`. A green status means it is ready.
+4. Drag the controls you want onto other keys or dials. For guest controls, `guest position` means the G1, G2, and G3 order shown by the VDO.Ninja director; it is not a mixer destination slot.
 
-The setup panel collapses after configuration so each action's own settings stay easy to reach. VDO.Ninja requires no account, and the generated key is stored in Stream Deck's local plugin settings.
+The setup panel collapses after configuration so each action's settings stay easy to reach. VDO.Ninja requires no account. Treat the generated connection key like a password, and use a different key for every page you want to control separately.
 
 ## Supported Actions
 

@@ -279,22 +279,22 @@
 </head>
 <body>
   <section>
-    <div id="statusBox" class="status">
+    <div id="statusBox" class="status" role="status" aria-live="polite">
       <div class="dot"></div>
       <div id="statusText" class="status-text">Configure an API key to begin.</div>
     </div>
     <div id="capabilityHint" class="hint hidden"></div>
 
-    <details id="setupDetails">
-      <summary class="setup-summary">VDO.Ninja connection setup</summary>
-      <p class="intro">No account is needed. Use one private key in both Stream Deck and the VDO.Ninja page you want to control.</p>
+    <details id="setupDetails" open>
+      <summary class="setup-summary">Connect VDO.Ninja (3 steps)</summary>
+      <p class="intro">No account is needed. The connection key works like a private remote-control password. Stream Deck and the VDO.Ninja page must use the same key.</p>
 
       <div class="setup-step">
-        <div class="setup-step-title"><span class="step-badge">1</span> Choose a private key</div>
-        <label for="apiKey">API key</label>
-        <input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Generate a key or paste your existing &api value">
+        <div class="setup-step-title"><span class="step-badge">1</span> Create a secure connection key</div>
+        <label for="apiKey">Connection key (API key)</label>
+        <input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Generate a key or paste an existing &api value">
         <div class="button-row">
-          <button id="generateKey" type="button" class="primary">Generate key</button>
+          <button id="generateKey" type="button" class="primary">Generate secure key</button>
           <button id="copyKey" type="button">Copy key</button>
           <button id="hideKey" type="button">Show key</button>
         </div>
@@ -304,7 +304,7 @@
         <div class="setup-step-title"><span class="step-badge">2</span> Build the page link</div>
         <label for="pageType">Page to control</label>
         <select id="pageType">
-          <option value="director">Director / mixer room</option>
+          <option value="director">Director mixer room (recommended)</option>
           <option value="push">Push camera</option>
           <option value="view">View stream</option>
           <option value="scene">Scene / clean output</option>
@@ -334,11 +334,11 @@
         <label for="generatedUrl">Ready-to-open URL</label>
         <input id="generatedUrl" type="text" readonly aria-describedby="linkHelp">
         <div class="button-row">
-          <button id="openUrl" type="button" class="primary">Open</button>
+          <button id="openUrl" type="button" class="primary">Open VDO.Ninja</button>
           <button id="copyUrl" type="button">Copy link</button>
           <button id="showQr" type="button">Show QR</button>
         </div>
-        <div id="linkHelp" class="hint">Open this URL and keep the VDO.Ninja page open while using Stream Deck.</div>
+        <div id="linkHelp" class="hint">Open this URL and keep the VDO.Ninja page open while using Stream Deck. Use a different connection key for each page you want to control separately.</div>
       </div>
 
       <div class="setup-step">
@@ -445,15 +445,16 @@
 
     <label for="guestTargetMode">Target</label>
     <select id="guestTargetMode">
-      <option value="slot">Guest slot</option>
+      <option value="slot">Guest position (G1, G2...)</option>
       <option value="streamId">Stream ID</option>
       <option value="firstHeld">First held guest</option>
       <option value="selected">Selected guest</option>
     </select>
 
     <div id="guestSlotGroup">
-      <label for="guestSlot">Slot number</label>
+      <label for="guestSlot">Guest position</label>
       <input id="guestSlot" type="number" min="1" step="1" placeholder="1">
+      <div class="hint">Use the guest number shown in the VDO.Ninja director, such as G1 or G2.</div>
     </div>
 
     <div id="guestStreamGroup" class="hidden">
@@ -507,14 +508,15 @@
     <div id="selectFixedGroup">
       <label for="selectTargetMode">Target</label>
       <select id="selectTargetMode">
-        <option value="slot">Guest slot</option>
+        <option value="slot">Guest position (G1, G2...)</option>
         <option value="streamId">Stream ID</option>
         <option value="firstHeld">First held guest</option>
       </select>
 
       <div id="selectSlotGroup">
-        <label for="selectSlot">Slot number</label>
+        <label for="selectSlot">Guest position</label>
         <input id="selectSlot" type="number" min="1" step="1" placeholder="1">
+        <div class="hint">Use the guest number shown in the VDO.Ninja director, such as G1 or G2.</div>
       </div>
 
       <div id="selectStreamGroup" class="hidden">
@@ -540,15 +542,16 @@
     <h2>Guest Scene</h2>
     <label for="sceneTargetMode">Target</label>
     <select id="sceneTargetMode">
-      <option value="slot">Guest slot</option>
+      <option value="slot">Guest position (G1, G2...)</option>
       <option value="streamId">Stream ID</option>
       <option value="firstHeld">First held guest</option>
       <option value="selected">Selected guest</option>
     </select>
 
     <div id="sceneSlotGroup">
-      <label for="sceneSlot">Slot number</label>
+      <label for="sceneSlot">Guest position</label>
       <input id="sceneSlot" type="number" min="1" step="1" placeholder="1">
+      <div class="hint">Use the guest number shown in the VDO.Ninja director, such as G1 or G2.</div>
     </div>
 
     <div id="sceneStreamGroup" class="hidden">
@@ -660,15 +663,16 @@
     <div id="ptzTargetGroup" class="hidden">
       <label for="ptzTargetMode">Guest target</label>
       <select id="ptzTargetMode">
-        <option value="slot">Guest slot</option>
+        <option value="slot">Guest position (G1, G2...)</option>
         <option value="streamId">Stream ID</option>
         <option value="selected">Selected guest</option>
         <option value="firstHeld">First held guest</option>
       </select>
 
       <div id="ptzSlotGroup">
-        <label for="ptzSlot">Slot number</label>
+        <label for="ptzSlot">Guest position</label>
         <input id="ptzSlot" type="number" min="1" step="1" placeholder="1">
+        <div class="hint">Use the guest number shown in the VDO.Ninja director, such as G1 or G2.</div>
       </div>
 
       <div id="ptzStreamGroup" class="hidden">
@@ -732,15 +736,16 @@
     <div id="ptzDialTargetGroup" class="hidden">
       <label for="ptzDialTargetMode">Guest target</label>
       <select id="ptzDialTargetMode">
-        <option value="slot">Guest slot</option>
+        <option value="slot">Guest position (G1, G2...)</option>
         <option value="streamId">Stream ID</option>
         <option value="selected">Selected guest</option>
         <option value="firstHeld">First held guest</option>
       </select>
 
       <div id="ptzDialSlotGroup">
-        <label for="ptzDialSlot">Slot number</label>
+        <label for="ptzDialSlot">Guest position</label>
         <input id="ptzDialSlot" type="number" min="1" step="1" placeholder="1">
+        <div class="hint">Use the guest number shown in the VDO.Ninja director, such as G1 or G2.</div>
       </div>
 
       <div id="ptzDialStreamGroup" class="hidden">
@@ -808,15 +813,16 @@
     <div id="valueDialTargetGroup" class="hidden">
       <label for="valueDialTargetMode">Guest target</label>
       <select id="valueDialTargetMode">
-        <option value="slot">Guest slot</option>
+        <option value="slot">Guest position (G1, G2...)</option>
         <option value="streamId">Stream ID</option>
         <option value="selected">Selected guest</option>
         <option value="firstHeld">First held guest</option>
       </select>
 
       <div id="valueDialSlotGroup">
-        <label for="valueDialSlot">Slot number</label>
+        <label for="valueDialSlot">Guest position</label>
         <input id="valueDialSlot" type="number" min="1" step="1" placeholder="1">
+        <div class="hint">Use the guest number shown in the VDO.Ninja director, such as G1 or G2.</div>
       </div>
 
       <div id="valueDialStreamGroup" class="hidden">
@@ -1637,7 +1643,7 @@
       byId("showQr").disabled = !ready;
       byId("testConnection").disabled = !hasKey;
       byId("linkHelp").textContent = ready
-        ? "Open this URL and keep the VDO.Ninja page open while using Stream Deck."
+        ? "Open this URL and keep the VDO.Ninja page open while using Stream Deck. Use a different connection key for each separately controlled page."
         : missingLinkMessage();
       if (qrVisible) {
         if (ready) {
@@ -1947,7 +1953,7 @@
 
         const url = new URL(type === "director" ? "/mixer" : "/", base);
         if (type === "director") {
-          url.searchParams.set("room", byId("roomName").value.trim() || "ROOM");
+          url.searchParams.set("director", byId("roomName").value.trim() || "ROOM");
         } else if (type === "push") {
           url.searchParams.set("push", byId("streamId").value.trim() || "STREAM_ID");
         } else if (type === "view") {
