@@ -41,7 +41,8 @@ export class ConnectionStatusAction extends SingletonAction<ConnectionStatusSett
 
 		if (state === "connected") {
 			await actionContext.setState(1);
-			await actionContext.setTitle(count ? `VDO\n${count} stream${count === 1 ? "" : "s"}` : "VDO\nReady");
+			const header = pageIdentity() || "VDO";
+			await actionContext.setTitle(count ? `${header}\n${count} stream${count === 1 ? "" : "s"}` : `${header}\nReady`);
 			return;
 		}
 
@@ -60,4 +61,20 @@ export class ConnectionStatusAction extends SingletonAction<ConnectionStatusSett
 			await actionContext.setTitle("VDO\nOffline");
 		}
 	}
+}
+
+function pageIdentity(): string {
+	const local = sessionStore.getLocalStream();
+	if (!local) {
+		return "";
+	}
+	// The API reports no room name; the page label, director role, or an
+	// explicit push stream ID are the best identity the wire format offers.
+	const label = typeof local.label === "string" ? local.label.trim() : "";
+	const identity = label || (local.director === true ? "Director" : local.streamID || "");
+	return identity ? shortLabel(identity) : "";
+}
+
+function shortLabel(value: string): string {
+	return value.length > 12 ? `${value.slice(0, 11)}...` : value;
 }

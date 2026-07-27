@@ -532,11 +532,18 @@ export function clampValueDialNumber(value: number, settings: ValueDialSettings)
 	if (settings.control === "bitrate" && value === -1) {
 		return -1;
 	}
-	const defaults = valueDialNumericDefaults(settings.control || "volume");
+	const control = settings.control || "volume";
+	const defaults = valueDialNumericDefaults(control, settings.scope);
 	const min = finiteNumber(settings.min, defaults.min);
 	const max = finiteNumber(settings.max, defaults.max);
-	const low = Math.min(min, max);
-	const high = Math.max(min, max);
+	let low = Math.min(min, max);
+	let high = Math.max(min, max);
+	if (control === "volume" && settings.scope !== "guest") {
+		// Local volume sets videoElement.volume, which browsers reject above 1.0,
+		// so the page silently ignores anything past 100 percent.
+		high = Math.min(high, 100);
+		low = Math.min(low, high);
+	}
 	const rounded = roundValueDialNumber(value, settings.control);
 	return clamp(rounded, low, high);
 }
@@ -558,10 +565,15 @@ function behaviorToValue(behavior: LocalControlSettings["behavior"], definition:
 }
 
 function guestValueToPayload(settings: GuestCommandSettings, definition: GuestCommandDefinition): JsonValue | undefined {
-	if (definition.pressOnly || definition.valueKind === "none" || settings.behavior === "press") {
+	if (definition.pressOnly || definition.valueKind === "none") {
 		return undefined;
 	}
 	if (definition.valueKind === "toggle") {
+		// "press" can linger in saved settings after switching commands; it only
+		// applies to toggle commands, so value commands must keep their value.
+		if (settings.behavior === "press") {
+			return undefined;
+		}
 		return behaviorToToggleValue(settings.behavior || "toggle");
 	}
 
@@ -701,7 +713,7 @@ function finiteNumber(value: unknown, fallback: number): number {
 	return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function valueDialNumericDefaults(control: ValueDialSettings["control"]): { min: number; max: number } {
+function valueDialNumericDefaults(control: ValueDialSettings["control"], scope: ValueDialSettings["scope"]): { min: number; max: number } {
 	if (control === "panning") {
 		return { min: 0, max: 180 };
 	}
@@ -711,7 +723,7 @@ function valueDialNumericDefaults(control: ValueDialSettings["control"]): { min:
 	if (control === "bufferDelay") {
 		return { min: 0, max: 5000 };
 	}
-	return { min: 0, max: 200 };
+	return { min: 0, max: scope === "guest" ? 200 : 100 };
 }
 
 function autofocusValue(value: unknown): boolean {

@@ -1,0 +1,85 @@
+name: Plugin build
+
+on:
+    push:
+        branches:
+            - main
+        tags:
+            - "v*"
+    pull_request:
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+jobs:
+    build:
+        name: Test and package
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        defaults:
+            run:
+                working-directory: plugin
+
+        steps:
+            - name: Check out repository
+              uses: actions/checkout@v4
+
+            - name: Use Node.js 20
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: npm
+                  cache-dependency-path: plugin/package-lock.json
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Audit dependencies
+              run: npm audit --audit-level=high
+
+            - name: Run tests
+              run: npm test
+
+            - name: Check TypeScript
+              run: npm run check
+
+            - name: Build plugin
+              run: npm run build
+
+            - name: Validate plugin
+              run: npx --yes @elgato/cli@1.7.4 validate ninja.vdo.streamdeck.sdPlugin --no-update-check
+
+            - name: Package plugin
+              run: npx --yes @elgato/cli@1.7.4 pack ninja.vdo.streamdeck.sdPlugin --no-update-check
+
+            - name: Upload installable plugin
+              uses: actions/upload-artifact@v4
+              with:
+                  name: vdo-ninja-streamdeck-${{ github.sha }}
+                  path: plugin/ninja.vdo.streamdeck.streamDeckPlugin
+                  if-no-files-found: error
+
+    release:
+        name: Publish tagged release
+        if: startsWith(github.ref, 'refs/tags/v')
+        needs: build
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+
+        steps:
+            - name: Download packaged plugin
+              uses: actions/download-artifact@v4
+              with:
+                  name: vdo-ninja-streamdeck-${{ github.sha }}
+                  path: dist
+
+            - name: Create or update GitHub release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  GH_REPO: ${{ github.repository }}
+              run: |
+                  gh release view "$GITHUB_REF_NAME" --repo "$GH_REPO" >/dev/null 2>&1 ||
+                    gh release create "$GITHUB_REF_NAME" --repo "$GH_REPO" --verify-tag --generate-notes --title "$GITHUB_REF_NAME"
+                  gh release upload "$GITHUB_REF_NAME" dist/ninja.vdo.streamdeck.streamDeckPlugin --repo "$GH_REPO" --clobber

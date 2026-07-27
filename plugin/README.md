@@ -1,6 +1,6 @@
 # VDO.Ninja Stream Deck Plugin
 
-This is the native Stream Deck plugin implementation workspace. For the visitor-facing overview, screenshots, supported-action matrix, and install notes, start with the [repo README](../README.md).
+This is the native Stream Deck plugin implementation workspace. For everyday setup, start with the [plain-language guide](../docs/getting-started.md). For screenshots, the supported-action matrix, and install notes, see the [repo README](../README.md).
 
 Current positioning: early native prototype/MVP. It is not yet a full replacement for the Bitfocus Companion VDO.Ninja module because presets, named connections, and broader dynamic feedback are still in progress.
 
@@ -53,8 +53,8 @@ No-hardware checks:
 npm test
 npm run check
 npm run build
-npx @elgato/cli@latest validate ninja.vdo.streamdeck.sdPlugin --no-update-check
-npx @elgato/cli@latest pack ninja.vdo.streamdeck.sdPlugin --dry-run --no-update-check
+npx @elgato/cli@1.7.4 validate ninja.vdo.streamdeck.sdPlugin --no-update-check
+npx @elgato/cli@1.7.4 pack ninja.vdo.streamdeck.sdPlugin --dry-run --no-update-check
 ```
 
 These verify command payloads, TypeScript, generated plugin layout, manifest rules, and package contents without a physical Stream Deck. Interactive button/dial testing still requires the Stream Deck app with either hardware or Stream Deck Mobile.

@@ -61,6 +61,25 @@ describe("property inspector contract", () => {
 		expect(inspector).not.toContain('id="httpFallback"');
 	});
 
+	it("uses the property-inspector UUID for settings and plugin messages", () => {
+		const harness = createInspectorHarness();
+		harness.connect();
+		harness.socket.onopen();
+
+		const messages = harness.socket.sent.map(message => JSON.parse(message) as Record<string, unknown>);
+		expect(messages).toContainEqual({
+			event: "getSettings",
+			context: "plugin-uuid"
+		});
+		expect(messages).toContainEqual({
+			event: "sendToPlugin",
+			action: "ninja.vdo.streamdeck.connection",
+			context: "plugin-uuid",
+			payload: { type: "requestStatus" }
+		});
+		expect(messages.some(message => message.context === "action-context")).toBe(false);
+	});
+
 	it("executes every inspector button handler from a configured setup", async () => {
 		const harness = createInspectorHarness();
 		harness.connect();
@@ -71,13 +90,14 @@ describe("property inspector contract", () => {
 				payload: {
 					settings: {
 						apiKey: "test-key",
+						setupBaseUrl: "https://vdo.ninja/alpha/",
 						setupPageType: "director",
 						setupRoom: "test-room"
 					}
 				}
 			})
 		});
-		expect(harness.elements.get("generatedUrl")?.value).toContain("/mixer?director=test-room&api=test-key");
+		expect(harness.elements.get("generatedUrl")?.value).toContain("/alpha/mixer?director=test-room&api=test-key");
 
 		const pageType = harness.elements.get("pageType");
 		const roomName = harness.elements.get("roomName");

@@ -22,9 +22,18 @@ type PendingValue = {
 	sending?: boolean;
 };
 
+type PendingPersist = {
+	action: DialAction<ValueDialSettings>;
+	value: number;
+	timer: NodeJS.Timeout;
+};
+
+const PERSIST_DELAY_MS = 500;
+
 @action({ UUID: "ninja.vdo.streamdeck.value-dial" })
 export class ValueDialAction extends SingletonAction<ValueDialSettings> {
 	private readonly pending = new Map<string, PendingValue>();
+	private readonly pendingPersist = new Map<string, PendingPersist>();
 
 	constructor() {
 		super();
@@ -44,6 +53,11 @@ export class ValueDialAction extends SingletonAction<ValueDialSettings> {
 
 	override onWillDisappear(ev: WillDisappearEvent<ValueDialSettings>): void {
 		this.clearPending(ev.action.id);
+		if (this.pendingPersist.has(ev.action.id)) {
+			// Flush through the normal path so any inspector edit made during
+			// the debounce window is merged instead of overwritten.
+			void this.persistValue(ev.action.id);
+		}
 	}
 
 	override async onDialRotate(ev: DialRotateEvent<ValueDialSettings>): Promise<void> {
@@ -123,13 +137,16 @@ export class ValueDialAction extends SingletonAction<ValueDialSettings> {
 	private async handlePush(actionContext: DialAction<ValueDialSettings>, rawSettings?: ValueDialSettings): Promise<void> {
 		const settings = normalizeValueDialSettings(rawSettings || (await actionContext.getSettings<ValueDialSettings>()));
 		if (settings.pushAction === "cycleControl") {
+			// A queued value from the previous control must not be written over
+			// the new control's defaults after the swap.
+			this.clearPersist(actionContext.id);
 			const control = nextControl(settings);
 			const nextSettings = normalizeValueDialSettings({
 				...settings,
 				control,
 				value: defaultValue(control),
 				min: defaultMin(control),
-				max: defaultMax(control),
+				max: defaultMax(control, settings.scope),
 				step: defaultStep(control),
 				resetValue: defaultResetValue(control)
 			});
@@ -158,15 +175,46 @@ export class ValueDialAction extends SingletonAction<ValueDialSettings> {
 		try {
 			const payload = buildValueDialPayload(settings, value, target);
 			await vdoClient.sendCommand(payload, { awaitCallback: false });
-			const persisted = {
-				...settings,
-				value: String(value)
-			};
-			await actionContext.setSettings(persisted);
-			await this.render(actionContext, persisted, value);
+			this.schedulePersist(actionContext, value);
+			await this.render(actionContext, settings, value);
 		} catch {
 			await actionContext.showAlert();
 			await this.render(actionContext, settings);
+		}
+	}
+
+	private schedulePersist(actionContext: DialAction<ValueDialSettings>, value: number): void {
+		const existing = this.pendingPersist.get(actionContext.id);
+		if (existing) {
+			clearTimeout(existing.timer);
+		}
+		const timer = setTimeout(() => {
+			void this.persistValue(actionContext.id);
+		}, PERSIST_DELAY_MS);
+		this.pendingPersist.set(actionContext.id, { action: actionContext, value, timer });
+	}
+
+	private async persistValue(actionId: string): Promise<void> {
+		const entry = this.pendingPersist.get(actionId);
+		if (!entry) {
+			return;
+		}
+		this.clearPersist(actionId);
+		try {
+			// Merge into the latest saved settings so a property-inspector edit
+			// made during the debounce window is not clobbered.
+			const settings = await entry.action.getSettings<ValueDialSettings>();
+			await entry.action.setSettings({ ...settings, value: String(entry.value) });
+		} catch {
+			// The dial may have been removed before the write completed.
+		}
+	}
+
+	private clearPersist(actionId: string): void {
+		const entry = this.pendingPersist.get(actionId);
+		if (entry) {
+			clearTimeout(entry.timer);
+			this.pendingPersist.delete(actionId);
 		}
 	}
 
@@ -215,6 +263,11 @@ export class ValueDialAction extends SingletonAction<ValueDialSettings> {
 		const pending = this.pending.get(actionId);
 		if (pending) {
 			return clampValueDialNumber(pending.value, settings);
+		}
+
+		const unpersisted = this.pendingPersist.get(actionId);
+		if (unpersisted) {
+			return clampValueDialNumber(unpersisted.value, settings);
 		}
 
 		const observed = observedValue(settings);
@@ -328,7 +381,7 @@ function defaultMin(control: ValueDialSettings["control"]): string {
 	return "0";
 }
 
-function defaultMax(control: ValueDialSettings["control"]): string {
+function defaultMax(control: ValueDialSettings["control"], scope: ValueDialSettings["scope"]): string {
 	if (control === "panning") {
 		return "180";
 	}
@@ -338,7 +391,7 @@ function defaultMax(control: ValueDialSettings["control"]): string {
 	if (control === "bufferDelay") {
 		return "5000";
 	}
-	return "200";
+	return scope === "guest" ? "200" : "100";
 }
 
 function defaultStep(control: ValueDialSettings["control"]): string {

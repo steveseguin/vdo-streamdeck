@@ -16,7 +16,6 @@ export interface GlobalSettings extends JsonObject {
 	httpFallback?: boolean;
 	requestTimeoutMs?: number;
 	detailsPollMs?: number;
-	statsPollMs?: number;
 	setupBaseUrl?: string;
 	setupPageType?: "director" | "push" | "view" | "scene" | "custom";
 	setupRoom?: string;

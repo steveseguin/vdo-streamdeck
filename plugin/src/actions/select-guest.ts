@@ -68,18 +68,24 @@ function resolveNextSelection(settings: SelectGuestSettings): string | null | un
 		return choices.find(choice => choice.held)?.streamID;
 	}
 	if (settings.mode === "next" || settings.mode === "previous") {
-		return cycleSelection(choices, settings.mode);
+		return cycleGuestSelection(choices, settings.mode, selectedTargetStore.getSelectedStreamID());
 	}
 
 	const choice = resolveGuestTargetChoice(settings);
 	return choice?.streamID;
 }
 
-function cycleSelection(choices: StreamChoice[], direction: "next" | "previous"): string | undefined {
+export function cycleGuestSelection(
+	allChoices: StreamChoice[],
+	direction: "next" | "previous",
+	selectedID: string | null
+): string | undefined {
+	// Co-directors are control surfaces, not content; skip them when hopping
+	// guests. They can still be targeted directly by slot or stream ID.
+	const choices = allChoices.filter(choice => !choice.director);
 	if (!choices.length) {
 		return undefined;
 	}
-	const selectedID = selectedTargetStore.getSelectedStreamID();
 	const currentIndex = selectedID ? choices.findIndex(choice => choice.streamID === selectedID) : -1;
 	if (direction === "previous") {
 		const previousIndex = currentIndex <= 0 ? choices.length - 1 : currentIndex - 1;

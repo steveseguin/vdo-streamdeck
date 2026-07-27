@@ -21,8 +21,7 @@ export function normalizeGlobalSettings(settings: Partial<GlobalSettings> | unde
 		useTls: settings?.useTls !== false,
 		httpFallback: settings?.httpFallback !== false,
 		requestTimeoutMs: positiveNumber(settings?.requestTimeoutMs, 5000),
-		detailsPollMs: positiveNumber(settings?.detailsPollMs, 2000),
-		statsPollMs: positiveNumber(settings?.statsPollMs, 5000)
+		detailsPollMs: positiveNumber(settings?.detailsPollMs, 5000)
 	};
 }
 
@@ -125,10 +124,11 @@ export function normalizeMixerControlSettings(settings: Partial<MixerControlSett
 }
 
 export function normalizeValueDialSettings(settings: Partial<ValueDialSettings> | undefined): ValueDialSettings {
+	const scope = settings?.scope === "guest" ? "guest" : "local";
 	const control = normalizeValueDialControl(settings?.control);
-	const defaults = valueDialDefaults(control);
+	const defaults = valueDialDefaults(control, scope);
 	return {
-		scope: settings?.scope === "guest" ? "guest" : "local",
+		scope,
 		targetMode: normalizeTargetMode(settings?.targetMode),
 		target: stringOrEmpty(settings?.target),
 		control,
@@ -255,7 +255,7 @@ function normalizeValueDialPushAction(value: unknown): ValueDialSettings["pushAc
 	return "reset";
 }
 
-function valueDialDefaults(control: ValueDialSettings["control"]): { value: string; min: string; max: string; step: string; resetValue: string } {
+function valueDialDefaults(control: ValueDialSettings["control"], scope: ValueDialSettings["scope"]): { value: string; min: string; max: string; step: string; resetValue: string } {
 	if (control === "panning") {
 		return { value: "90", min: "0", max: "180", step: "5", resetValue: "90" };
 	}
@@ -265,7 +265,7 @@ function valueDialDefaults(control: ValueDialSettings["control"]): { value: stri
 	if (control === "bufferDelay") {
 		return { value: "0", min: "0", max: "5000", step: "100", resetValue: "0" };
 	}
-	return { value: "100", min: "0", max: "200", step: "5", resetValue: "100" };
+	return { value: "100", min: "0", max: scope === "guest" ? "200" : "100", step: "5", resetValue: "100" };
 }
 
 function normalizeSceneMode(value: unknown): GuestSceneSettings["mode"] {

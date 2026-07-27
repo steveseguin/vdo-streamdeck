@@ -5,21 +5,12 @@ import type { ConnectionStateName, GlobalSettings, VdoCallback, VdoClientMessage
 
 type Listener<T> = (payload: T) => void;
 
-type PendingRequest = {
-	resolve: (callback: VdoCallback) => void;
-	reject: (error: Error) => void;
-	timer: NodeJS.Timeout;
-	action: string;
-};
-
 export class VdoClient {
 	private settings: GlobalSettings = normalizeGlobalSettings(undefined);
 	private socket: WebSocket | null = null;
 	private state: ConnectionStateName = "missing-key";
 	private reconnectTimer: NodeJS.Timeout | null = null;
 	private reconnectAttempt = 0;
-	private requestCounter = 0;
-	private pending = new Map<string, PendingRequest>();
 	private sentTimestamps: number[] = [];
 	private skippedRealtimeCommands = 0;
 	private listeners = {
@@ -42,7 +33,6 @@ export class VdoClient {
 		return {
 			messagesPerSecond: this.sentTimestamps.length,
 			bufferedAmount: this.socket?.bufferedAmount || 0,
-			pendingCallbacks: this.pending.size,
 			skippedRealtimeCommands: this.skippedRealtimeCommands
 		};
 	}
@@ -115,7 +105,6 @@ export class VdoClient {
 		});
 
 		this.socket.on("close", () => {
-			this.rejectPending(new Error("VDO.Ninja API WebSocket closed"));
 			if (this.settings.apiKey) {
 				this.setState("disconnected");
 				this.scheduleReconnect();
@@ -130,7 +119,6 @@ export class VdoClient {
 	disconnect(state: ConnectionStateName = "disconnected"): void {
 		this.clearReconnect();
 		this.closeSocket();
-		this.rejectPending(new Error("VDO.Ninja API client disconnected"));
 		this.setState(state);
 	}
 
@@ -155,66 +143,20 @@ export class VdoClient {
 			throw new Error("VDO.Ninja API WebSocket is not connected");
 		}
 
-		const requestId = this.nextRequestId();
-		request.get = requestId;
-
 		if (this.shouldUseHttp(request)) {
 			const callback = await this.sendHttp(request);
 			this.handleCallback(callback);
 			return callback;
 		}
 
-		if (this.settings.httpFallback && this.requiresRawWebSocket(request)) {
-			if (!this.isSocketOpen()) {
-				throw new Error("VDO.Ninja API WebSocket is not connected");
-			}
-			const rawRequest = { ...request };
-			delete rawRequest.get;
-			this.sendRaw(rawRequest);
-			return rawRequest as VdoCallback;
+		// Raw WebSocket sends are fire-and-forget: the reference API relay owns
+		// `get` callback correlation for its HTTP route and does not forward
+		// request-scoped callbacks to WebSocket peers.
+		if (!this.isSocketOpen()) {
+			throw new Error("VDO.Ninja API WebSocket is not connected");
 		}
-
-		if (this.isSocketOpen()) {
-			if (this.settings.httpFallback === false) {
-				// The reference API relay consumes callbacks carrying `get` IDs for its
-				// HTTP request and does not forward them to WebSocket peers. In explicit
-				// WebSocket-only mode, send a fire-and-forget command instead of waiting
-				// for a callback that the plugin cannot receive.
-				const rawRequest = { ...request };
-				delete rawRequest.get;
-				this.sendRaw(rawRequest);
-				return rawRequest as VdoCallback;
-			}
-			const promise = new Promise<VdoCallback>((resolve, reject) => {
-				const timer = setTimeout(() => {
-					this.pending.delete(requestId);
-					if (request.action === "getDetails") {
-						this.setState("no-page");
-					} else {
-						this.setState("timeout");
-					}
-					reject(new Error(`Timed out waiting for ${request.action} callback`));
-				}, this.settings.requestTimeoutMs || 5000);
-
-				this.pending.set(requestId, {
-					resolve,
-					reject,
-					timer,
-					action: request.action
-				});
-			});
-
-			this.sendRaw(request);
-			return promise;
-		}
-
-		if (this.shouldUseHttp(request)) {
-			const callback = await this.sendHttp(request);
-			this.handleCallback(callback);
-			return callback;
-		}
-
-		throw new Error("VDO.Ninja API WebSocket is not connected");
+		this.sendRaw(request);
+		return request as VdoCallback;
 	}
 
 	private async sendHttp(payload: VdoCommandPayload): Promise<VdoCallback> {
@@ -222,8 +164,23 @@ export class VdoClient {
 			throw new Error("Missing VDO.Ninja API key");
 		}
 		const protocol = this.settings.useTls === false ? "http" : "https";
-		const response = await fetch(this.buildHttpUrl(protocol, payload));
-		const text = await response.text();
+		const controller = new AbortController();
+		const timeout = setTimeout(() => controller.abort(), this.settings.requestTimeoutMs || 5000);
+		let response: Response;
+		let text: string;
+		try {
+			response = await fetch(this.buildHttpUrl(protocol, payload), { signal: controller.signal });
+			text = await response.text();
+		} catch (error) {
+			if (controller.signal.aborted) {
+				this.setState("timeout");
+				throw new Error(`Timed out waiting for ${payload.action} HTTP response`);
+			}
+			this.setState("error");
+			throw error;
+		} finally {
+			clearTimeout(timeout);
+		}
 		const trimmed = text.trim();
 		if (!response.ok) {
 			this.setState("error");
@@ -320,17 +277,6 @@ export class VdoClient {
 
 	private handleCallback(callback: VdoCallback): void {
 		this.setState("connected");
-		if (typeof callback.get === "string") {
-			const pending = this.pending.get(callback.get);
-			if (pending) {
-				clearTimeout(pending.timer);
-				this.pending.delete(callback.get);
-				pending.resolve(callback);
-			}
-		}
-		if (callback.action === "getDetails" && callback.result && typeof callback.result === "object") {
-			this.setState("connected");
-		}
 		this.emit("callback", callback);
 	}
 
@@ -374,19 +320,6 @@ export class VdoClient {
 			clearTimeout(this.reconnectTimer);
 			this.reconnectTimer = null;
 		}
-	}
-
-	private rejectPending(error: Error): void {
-		for (const [id, pending] of this.pending) {
-			clearTimeout(pending.timer);
-			pending.reject(error);
-			this.pending.delete(id);
-		}
-	}
-
-	private nextRequestId(): string {
-		this.requestCounter += 1;
-		return `sd-${Date.now()}-${this.requestCounter}`;
 	}
 
 	private buildEndpoint(protocol: "ws" | "wss" | "http" | "https", defaultPort?: string): string {

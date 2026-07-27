@@ -5,13 +5,16 @@
 [![SDK](https://img.shields.io/badge/SDK-v2-38bdf8)](https://docs.elgato.com/streamdeck/sdk/)
 [![Node](https://img.shields.io/badge/runtime-Node%2020-22c55e)](#requirements)
 [![VDO.Ninja](https://img.shields.io/badge/VDO.Ninja-%26api-35d07f)](https://vdo.ninja/)
-[![Tests](https://img.shields.io/badge/tests-87%20passing-22c55e)](#testing)
+[![Tests](https://img.shields.io/badge/tests-96%20passing-22c55e)](#testing)
+[![Plugin build](https://github.com/steveseguin/vdo-streamdeck/actions/workflows/plugin-build.yml/badge.svg)](https://github.com/steveseguin/vdo-streamdeck/actions/workflows/plugin-build.yml)
 
 A native Elgato Stream Deck plugin for controlling VDO.Ninja pages through the existing VDO.Ninja `&api` remote-control system.
 
 The goal is simple: open a VDO.Ninja director, guest, mixer, or camera page with a private API key, then use Stream Deck keys and dials for production controls such as mic/camera toggles, guest targeting, scene membership, mixer layouts, slots, PTZ, volume, bitrate, and custom API commands.
 
-> Status: beta/development. The plugin is usable for testing, but it has not been marketplace-released yet.
+Status: beta/development. The plugin is usable for testing, but it has not been marketplace-released yet.
+
+New to Stream Deck or VDO.Ninja? Start with the [plain-language setup guide](docs/getting-started.md).
 
 ## Preview
 
@@ -33,6 +36,8 @@ The key layout is an illustrative production profile. The property-inspector ima
 - Preserves established VDO.Ninja API shapes, with legacy-safe scene and mute-all behavior.
 
 ## Quick Setup
+
+For a slower, screenshot-free walkthrough with troubleshooting, see [Set Up VDO.Ninja on Stream Deck](docs/getting-started.md).
 
 1. In Stream Deck, drag `Connection Status` onto any key.
 2. In the panel on the right, click `Generate secure key`, enter your VDO.Ninja room name, then click `Open VDO.Ninja`.
@@ -114,8 +119,8 @@ Guest PTZ is sent from a director or mixer page, but the guest publisher must be
 cd plugin
 npm install
 npm run build
-npx @elgato/cli@latest link ninja.vdo.streamdeck.sdPlugin
-npx @elgato/cli@latest restart ninja.vdo.streamdeck
+npx @elgato/cli@1.7.4 link ninja.vdo.streamdeck.sdPlugin
+npx @elgato/cli@1.7.4 restart ninja.vdo.streamdeck
 ```
 
 The generated plugin bundle lives at:
@@ -133,13 +138,15 @@ cd plugin
 npm test
 npm run check
 npm run build
-npx @elgato/cli@latest validate ninja.vdo.streamdeck.sdPlugin --no-update-check
-npx @elgato/cli@latest pack ninja.vdo.streamdeck.sdPlugin --dry-run --no-update-check
+npx @elgato/cli@1.7.4 validate ninja.vdo.streamdeck.sdPlugin --no-update-check
+npx @elgato/cli@1.7.4 pack ninja.vdo.streamdeck.sdPlugin --dry-run --no-update-check
 ```
 
 Current automated coverage includes command payload generation, settings normalization, custom value parsing, session-state handling, selected guest targeting, and VDO API transport behavior.
 
 Interactive testing still requires the Stream Deck desktop app with hardware or Stream Deck Mobile.
+
+Every push to `main` runs the same checks on Node.js 20 and uploads an installable `.streamDeckPlugin` build. Tags beginning with `v` also publish that package to the matching GitHub release.
 
 ## Project Layout
 
@@ -165,6 +172,7 @@ docs/
 
 ## More Documentation
 
+- [Plain-language setup guide](docs/getting-started.md)
 - [Plugin technical README](plugin/README.md)
 - [Plugin architecture](docs/plugin-architecture.md)
 - [VDO API action map](docs/vdo-api-action-map.md)

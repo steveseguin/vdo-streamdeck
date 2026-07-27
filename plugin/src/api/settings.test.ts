@@ -149,7 +149,7 @@ describe("settings normalization", () => {
 			control: "volume",
 			value: "100",
 			min: "0",
-			max: "200",
+			max: "100",
 			step: "5",
 			resetValue: "100",
 			intervalMs: 100,
@@ -159,6 +159,16 @@ describe("settings normalization", () => {
 			bufferApply: "all",
 			title: ""
 		});
+	});
+
+	it("defaults guest value dial volume to the director's 200 percent range", () => {
+		expect(normalizeValueDialSettings({ scope: "guest" })).toEqual(
+			expect.objectContaining({
+				scope: "guest",
+				control: "volume",
+				max: "200"
+			})
+		);
 	});
 
 	it("normalizes value dial bitrate defaults", () => {

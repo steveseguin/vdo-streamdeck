@@ -66,7 +66,70 @@ describe("VdoClient", () => {
 			value: "toggle",
 			result: false
 		});
-		expect(fetchMock).toHaveBeenCalledWith("https://api.example/key/camera/toggle");
+		expect(fetchMock).toHaveBeenCalledWith(
+			"https://api.example/key/camera/toggle",
+			expect.objectContaining({ signal: expect.any(AbortSignal) })
+		);
+	});
+
+	it("times out an HTTP request that never answers", async () => {
+		const client = new VdoClient() as VdoClientHarness;
+		client.settings = {
+			apiKey: "key",
+			apiHost: "api.example",
+			useTls: true,
+			requestTimeoutMs: 20
+		};
+		vi.stubGlobal(
+			"fetch",
+			vi.fn((_url: string, options?: RequestInit) => {
+				return new Promise<Response>((_resolve, reject) => {
+					options?.signal?.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")));
+				});
+			})
+		);
+
+		await expect(client.sendHttp({ action: "getDetails" })).rejects.toThrow(
+			"Timed out waiting for getDetails HTTP response"
+		);
+		expect(client.connectionState).toBe("timeout");
+	});
+
+	it("keeps the HTTP timeout active while reading the response body", async () => {
+		const client = new VdoClient() as VdoClientHarness;
+		client.settings = {
+			apiKey: "key",
+			apiHost: "api.example",
+			useTls: true,
+			requestTimeoutMs: 20
+		};
+		vi.stubGlobal(
+			"fetch",
+			vi.fn((_url: string, options?: RequestInit) => {
+				const body = new ReadableStream({
+					start(controller) {
+						options?.signal?.addEventListener("abort", () => {
+							controller.error(new DOMException("Aborted", "AbortError"));
+						});
+					}
+				});
+				return Promise.resolve(new Response(body, { status: 200 }));
+			})
+		);
+
+		await expect(client.sendHttp({ action: "getDetails" })).rejects.toThrow(
+			"Timed out waiting for getDetails HTTP response"
+		);
+		expect(client.connectionState).toBe("timeout");
+	});
+
+	it("reports non-timeout fetch failures as connection errors", async () => {
+		const client = new VdoClient() as VdoClientHarness;
+		client.settings = { apiKey: "key", apiHost: "api.example", useTls: true };
+		vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Network unavailable")));
+
+		await expect(client.sendHttp({ action: "getDetails" })).rejects.toThrow("Network unavailable");
+		expect(client.connectionState).toBe("error");
 	});
 
 	it("sends awaited commands without a callback ID in WebSocket-only mode", async () => {

@@ -9,6 +9,7 @@ import {
 	buildPtzDialPushPayloads,
 	buildPtzKeyPayloads,
 	buildValueDialPayload,
+	clampValueDialNumber,
 	GUEST_COMMANDS,
 	LOCAL_CONTROLS,
 	nextValueDialValue,
@@ -101,6 +102,18 @@ describe("command registry", () => {
 	it("builds queued guest activation payloads", () => {
 		expect(buildGuestCommandPayload({ command: "activateQueuedGuest" }, "guest123")).toEqual({
 			action: "activateQueuedGuest",
+			target: "guest123"
+		});
+	});
+
+	it("keeps values for guest value commands when a stale press behavior is saved", () => {
+		expect(buildGuestCommandPayload({ command: "volume", behavior: "press", value: "80" }, "guest123")).toEqual({
+			action: "volume",
+			target: "guest123",
+			value: 80
+		});
+		expect(buildGuestCommandPayload({ command: "mic", behavior: "press" }, "guest123")).toEqual({
+			action: "mic",
 			target: "guest123"
 		});
 	});
@@ -317,10 +330,18 @@ describe("command registry", () => {
 	});
 
 	it("builds local value dial volume payloads", () => {
+		expect(buildValueDialPayload({ scope: "local", control: "volume" }, 75)).toEqual({
+			action: "volume",
+			value: 75
+		});
+	});
+
+	it("caps local volume at 100 even when a saved range allows more", () => {
 		expect(buildValueDialPayload({ scope: "local", control: "volume", min: "0", max: "200" }, 125)).toEqual({
 			action: "volume",
-			value: 125
+			value: 100
 		});
+		expect(clampValueDialNumber(150, { scope: "guest", control: "volume" })).toBe(150);
 	});
 
 	it("builds guest value dial volume payloads", () => {

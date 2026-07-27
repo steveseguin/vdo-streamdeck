@@ -71,15 +71,19 @@ async function testConnectionFromInspector(): Promise<void> {
 
 	try {
 		vdoClient.configure(settings);
+		if (isVdoConnected()) {
+			await sendInspectorStatus("connectionTestResult", true, "VDO.Ninja page answered.");
+			return;
+		}
 		try {
 			await vdoClient.sendCommand({ action: "getDetails" });
-			if (settings.httpFallback === false && vdoClient.connectionState !== "connected") {
+			if (settings.httpFallback === false && !isVdoConnected()) {
 				await waitForConnectionResult((settings.requestTimeoutMs || 5000) + 1500, true);
 			}
 		} catch {
 			await waitForConnectionResult((settings.requestTimeoutMs || 5000) + 1500);
 		}
-		const ok = vdoClient.connectionState === "connected";
+		const ok = isVdoConnected();
 		await sendInspectorStatus(
 			"connectionTestResult",
 			ok,
@@ -92,6 +96,10 @@ async function testConnectionFromInspector(): Promise<void> {
 			error instanceof Error ? error.message : "Connection test failed."
 		);
 	}
+}
+
+function isVdoConnected(): boolean {
+	return vdoClient.connectionState === "connected";
 }
 
 async function openUrlFromInspector(payload: JsonObject): Promise<void> {
@@ -254,5 +262,5 @@ function startDetailsPolling(settings: GlobalSettings): void {
 			.finally(() => {
 				pollInFlight = false;
 			});
-	}, settings.detailsPollMs || 2000);
+	}, settings.detailsPollMs || 5000);
 }

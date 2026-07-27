@@ -378,7 +378,7 @@
           </div>
           <div>
             <label for="detailsPoll">State refresh ms</label>
-            <input id="detailsPoll" type="number" min="500" step="500" value="2000">
+            <input id="detailsPoll" type="number" min="500" step="500" value="5000">
           </div>
         </div>
         <div class="hint">Use a different API key for each page you want to control separately. Insecure relay mode is for local self-hosted testing. WebSocket-only commands are fire-and-forget because the reference relay does not return peer callbacks.</div>
@@ -894,7 +894,7 @@
 
     <label for="valueDialTitle">Title template</label>
     <input id="valueDialTitle" type="text" placeholder="{slot} {label} {control} {value}{unit}">
-    <div class="hint">Volume is percent, panning is 0-180, bitrate is kbps, and buffer delay is milliseconds. Buffer delay uses VDO.Ninja's <code>value2</code> target path, so this first pass supports default or all-stream local buffer control.</div>
+    <div class="hint">Local volume is 0-100 percent; guest volume can boost up to 200 percent. Panning is 0-180, bitrate is kbps, and buffer delay is milliseconds. Buffer delay uses VDO.Ninja's <code>value2</code> target path, so this first pass supports default or all-stream local buffer control.</div>
   </section>
 
   <section id="customSettings" class="hidden">
@@ -936,9 +936,9 @@
 
     window.connectElgatoStreamDeckSocket = function(port, uuid, registerEvent, info, actionInfo) {
       pluginUuid = uuid;
+      actionContext = uuid;
       try {
         const parsed = JSON.parse(actionInfo);
-        actionContext = parsed.context;
         actionUuid = parsed.action || "";
         actionSettings = parsed.payload && parsed.payload.settings ? parsed.payload.settings : {};
       } catch (error) {
@@ -982,7 +982,7 @@
       byId("apiProtocol").value = globalSettings.useTls === false ? "insecure" : "secure";
       byId("commandTransport").value = globalSettings.httpFallback === false ? "websocket" : "auto";
       byId("timeout").value = globalSettings.requestTimeoutMs || 5000;
-      byId("detailsPoll").value = globalSettings.detailsPollMs || 2000;
+      byId("detailsPoll").value = globalSettings.detailsPollMs || 5000;
       byId("baseUrl").value = globalSettings.setupBaseUrl || DEFAULT_BASE_URL;
       byId("pageType").value = globalSettings.setupPageType || "director";
       byId("roomName").value = globalSettings.setupRoom || "";
@@ -1129,7 +1129,7 @@
         sendToPlugin({ type: "requestTargets" });
       } else if (actionUuid === "ninja.vdo.streamdeck.value-dial") {
         const control = actionSettings.control || "volume";
-        const defaults = valueDialDefaults(control);
+        const defaults = valueDialDefaults(control, actionSettings.scope === "guest" ? "guest" : "local");
         byId("valueDialScope").value = actionSettings.scope || "local";
         byId("valueDialTargetMode").value = actionSettings.targetMode || "slot";
         byId("valueDialControl").value = control;
@@ -1437,7 +1437,7 @@
         apiHost: byId("apiHost").value.trim() || "api.vdo.ninja",
         useTls: byId("apiProtocol").value !== "insecure",
         requestTimeoutMs: numberValue("timeout", 5000),
-        detailsPollMs: numberValue("detailsPoll", 2000),
+        detailsPollMs: numberValue("detailsPoll", 5000),
         httpFallback: byId("commandTransport").value !== "websocket",
         setupBaseUrl: byId("baseUrl").value.trim() || DEFAULT_BASE_URL,
         setupPageType: byId("pageType").value,
@@ -1577,13 +1577,14 @@
         const targetMode = byId("valueDialTargetMode").value;
         const manualStream = byId("manualValueDialStreamId").value.trim();
         const previousControl = actionSettings.control || "volume";
+        const previousScope = actionSettings.scope === "guest" ? "guest" : "local";
         let control = byId("valueDialControl").value;
         if (scope === "guest") {
           control = "volume";
           byId("valueDialControl").value = "volume";
         }
-        if (control !== previousControl) {
-          const defaults = valueDialDefaults(control);
+        if (control !== previousControl || scope !== previousScope) {
+          const defaults = valueDialDefaults(control, scope);
           byId("valueDialValue").value = defaults.value;
           byId("valueDialMin").value = defaults.min;
           byId("valueDialMax").value = defaults.max;
@@ -1805,7 +1806,7 @@
         const option = byId("valueDialControl").querySelector("option[value='" + value + "']");
         if (option) option.disabled = scope === "guest";
       });
-      const defaults = valueDialDefaults(control);
+      const defaults = valueDialDefaults(control, scope);
       byId("valueDialValue").placeholder = defaults.value;
       byId("valueDialMin").placeholder = defaults.min;
       byId("valueDialMax").placeholder = defaults.max;
@@ -1837,6 +1838,8 @@
         const parts = [];
         if (typeof choice.position === "number") parts.push("G" + choice.position);
         parts.push(choice.label || choice.streamID || "Guest");
+        if (choice.director) parts.push("director");
+        if ((choice.streamID || "").endsWith(":s") || (choice.UUID || "").includes("_screen")) parts.push("screen");
         if (choice.held) parts.push("held");
         if (choice.handRaised) parts.push("hand");
         option.textContent = parts.join(" - ");
@@ -1926,7 +1929,7 @@
       return "0 to 1";
     }
 
-    function valueDialDefaults(control) {
+    function valueDialDefaults(control, scope) {
       if (control === "panning") {
         return { value: "90", min: "0", max: "180", step: "5", resetValue: "90" };
       }
@@ -1936,7 +1939,7 @@
       if (control === "bufferDelay") {
         return { value: "0", min: "0", max: "5000", step: "100", resetValue: "0" };
       }
-      return { value: "100", min: "0", max: "200", step: "5", resetValue: "100" };
+      return { value: "100", min: "0", max: scope === "guest" ? "200" : "100", step: "5", resetValue: "100" };
     }
 
     function buildGeneratedUrl() {
@@ -1951,7 +1954,7 @@
           return withApi(custom, apiKey);
         }
 
-        const url = new URL(type === "director" ? "/mixer" : "/", base);
+        const url = new URL(type === "director" ? "mixer" : "", base);
         if (type === "director") {
           url.searchParams.set("director", byId("roomName").value.trim() || "ROOM");
         } else if (type === "push") {
@@ -1979,10 +1982,14 @@
     }
 
     function normalizeBaseUrl(raw) {
-      if (/^https?:\/\//i.test(raw)) {
-        return raw;
+      const value = /^https?:\/\//i.test(raw) ? raw : "https://" + raw;
+      const url = new URL(value);
+      if (!url.pathname.endsWith("/")) {
+        url.pathname += "/";
       }
-      return "https://" + raw;
+      url.search = "";
+      url.hash = "";
+      return url.toString();
     }
 
     function generateApiKey() {
