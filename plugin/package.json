@@ -5,7 +5,7 @@
   "description": "Native Elgato Stream Deck plugin for controlling VDO.Ninja via &api.",
   "type": "module",
   "scripts": {
-    "assets": "node scripts/generate-png-assets.mjs",
+    "assets": "node scripts/generate-icons.mjs",
     "build": "npm run assets && tsc -p tsconfig.json && node scripts/copy-assets.mjs",
     "check": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",

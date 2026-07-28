@@ -49,11 +49,16 @@ Choose **Dials** near the top-right of the Stream Deck app, then drag an action 
 
 PTZ camera movement needs extra browser permission. Open the controlled camera page with PTZ enabled and approve the camera-control request. If you do not use a movable camera, you can ignore PTZ.
 
-## What the Colours Mean
+## What the Keys Tell You
 
-- **Green check:** connected and ready, or the selected setting is on.
-- **Red X:** the page or guest is unavailable, or the selected setting is off.
-- **Set API Key:** finish the connection steps above.
+Each key is a solid colour with a small round badge in the top corner. The colour tells you the state from across the room; the badge confirms it up close. The key's own label stays readable in the middle.
+
+- **Green key, check badge:** connected and ready, or the selected setting is on.
+- **Dark red key, X badge:** the page or guest is unavailable, or the selected setting is off.
+- **Dark grey key, dots badge:** still waiting for the VDO.Ninja page to answer.
+- **Amber lightning badge:** a Custom Command key, which is always ready to send.
+
+If a key says **Set API Key**, finish the connection steps above.
 
 A guest control can be red while the main connection key is green. This usually means the guest has not joined yet or that no guest is selected.
 

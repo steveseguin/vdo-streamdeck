@@ -34,3 +34,4 @@ Build a native Elgato Stream Deck plugin for VDO.Ninja that exposes the practica
 - Before proposing plugin architecture changes, inspect the current docs in this folder and the local API references above.
 - When adding plugin code later, keep generated/build output ignored unless it is required for marketplace packaging.
 - Record SDK/API source URLs in docs when research affects implementation decisions.
+- Icons are generated. Edit `plugin/scripts/icon-set.mjs` and run `npm run assets`; never hand-edit anything under `plugin/imgs/`, because the next build overwrites it. `plugin/src/manifest-assets.test.ts` enforces that the manifest and the generated files stay in sync.

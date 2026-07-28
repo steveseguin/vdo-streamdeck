@@ -1,3 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-  <path fill="#fff" d="M4 2h2v16H4V2ZM2 7h6v2H2V7Zm7-5h2v16H9V2Zm-2 10h6v2H7v-2Zm7-10h2v16h-2V2Zm-2 2h6v2h-6V4Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <line x1="2.6" y1="6.6" x2="21.4" y2="6.6" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="2.6" y1="12" x2="21.4" y2="12" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="2.6" y1="17.4" x2="21.4" y2="17.4" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round"/>
+  <rect x="14.6" y="3.8" width="3.4" height="5.6" rx="1.5" fill="#ffffff"/>
+  <rect x="6.2" y="9.2" width="3.4" height="5.6" rx="1.5" fill="#ffffff"/>
+  <rect x="12.4" y="14.6" width="3.4" height="5.6" rx="1.5" fill="#ffffff"/>
 </svg>

@@ -272,7 +272,7 @@
       "States": [
         {
           "Name": "Ready",
-          "Image": "imgs/state-neutral",
+          "Image": "imgs/custom",
           "Title": "Command",
           "ShowTitle": true
         }

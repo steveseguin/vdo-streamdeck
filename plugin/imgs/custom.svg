@@ -1,3 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-  <path fill="#fff" d="M3 4h14v12H3V4Zm2 2v8h10V6H5Zm1.5 2h4v1.5h-4V8Zm0 2.5h7V12h-7v-1.5Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 144">
+  <rect x="0" y="0" width="144" height="144" fill="#252d3d"/>
+  <circle cx="108" cy="33" r="23" fill="#fbbf24"/>
+  <polygon points="111.5,20 99.5,34.5 106.5,34.5 104.5,46 116.5,31.5 109.5,31.5" fill="#3a2606"/>
 </svg>
