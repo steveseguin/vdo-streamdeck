@@ -236,7 +236,8 @@
       width: 19px;
       height: 19px;
       border-radius: 50%;
-      background: #2f7fca;
+      /* Dark enough for the 11px numeral to clear AA against white. */
+      background: #2b74ba;
       color: #fff;
       font-size: 11px;
       font-weight: 700;
@@ -602,7 +603,7 @@
 
     <label for="guestTitle">Title template</label>
     <input id="guestTitle" type="text" placeholder="{slot} {label} {command} {state}">
-    <div class="hint">Tokens: <code>{slot}</code>, <code>{label}</code>, <code>{streamID}</code>, <code>{command}</code>, <code>{state}</code>.</div>
+    <div class="hint">Tokens: <code>{slot}</code> <code>{label}</code> <code>{streamID}</code> <code>{command}</code> <code>{state}</code></div>
 
     <div id="guestCompatibilityHint" class="hint hidden"></div>
 
@@ -653,7 +654,7 @@
 
     <label for="selectTitle">Title template</label>
     <input id="selectTitle" type="text" placeholder="{slot} {label} {streamID} {state}">
-    <div class="hint">Guest Command and Guest Scene actions can use target mode <code>Selected guest</code>. Tokens: <code>{slot}</code>, <code>{label}</code>, <code>{streamID}</code>, <code>{mode}</code>, <code>{state}</code>.</div>
+    <div class="hint">Guest Command and Guest Scene actions can use target mode <code>Selected guest</code>. Tokens: <code>{slot}</code> <code>{label}</code> <code>{streamID}</code> <code>{mode}</code> <code>{state}</code></div>
   </section>
 
   <section id="guestSceneSettings" class="hidden">
@@ -696,7 +697,7 @@
 
     <label for="sceneTitle">Title template</label>
     <input id="sceneTitle" type="text" placeholder="{slot} {label} Scene {scene} {state}">
-    <div class="hint">Tokens: <code>{slot}</code>, <code>{label}</code>, <code>{streamID}</code>, <code>{scene}</code>, <code>{state}</code>.</div>
+    <div class="hint">Tokens: <code>{slot}</code> <code>{label}</code> <code>{streamID}</code> <code>{scene}</code> <code>{state}</code></div>
   </section>
 
   <section id="mixerSettings" class="hidden">
@@ -762,7 +763,7 @@
 
     <label for="mixerTitle">Title template</label>
     <input id="mixerTitle" type="text" placeholder="{slot} {label} {destinationSlot}">
-    <div class="hint">Slot assignment tokens: <code>{slot}</code>, <code>{label}</code>, <code>{streamID}</code>, <code>{destinationSlot}</code>.</div>
+    <div class="hint">Slot assignment tokens: <code>{slot}</code> <code>{label}</code> <code>{streamID}</code> <code>{destinationSlot}</code></div>
 
     <label class="inline" for="mixerDangerousConfirm">
       <input id="mixerDangerousConfirm" type="checkbox" checked>
