@@ -18,7 +18,7 @@ New to Stream Deck or VDO.Ninja? Start with the [plain-language setup guide](doc
 
 ## Preview
 
-The key layout is an illustrative production profile. The property-inspector image reflects the current interface; labels may vary with the selected action.
+The key layout is an illustrative production profile, but the key colours and badges are the ones the plugin actually renders: a green field with a check for on or ready, dark red with a cross for off or unavailable, grey for inactive, and amber for a custom command. The property-inspector image reflects the current interface; labels may vary with the selected action.
 
 ![Stream Deck key preview](docs/assets/streamdeck-preview.svg)
 
