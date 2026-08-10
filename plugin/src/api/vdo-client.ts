@@ -127,6 +127,15 @@ export class VdoClient {
 		const request = { ...payload };
 
 		if (!awaitCallback) {
+			// Prefer the request/response HTTP route whenever the command fits it.
+			// The hosted WebSocket relay can remain open while silently failing to
+			// forward controller messages to the VDO page; an open socket therefore
+			// is not sufficient proof that a realtime dial command was delivered.
+			if (this.shouldUseHttp(request)) {
+				const callback = await this.sendHttp(request);
+				this.handleCallback(callback);
+				return callback;
+			}
 			if (this.isRealtimeIncremental(request) && this.shouldSkipRealtimeCommand()) {
 				this.skippedRealtimeCommands += 1;
 				return request as VdoCallback;
@@ -134,11 +143,6 @@ export class VdoClient {
 			if (this.isSocketOpen()) {
 				this.sendRaw(request);
 				return request as VdoCallback;
-			}
-			if (this.shouldUseHttp(request)) {
-				const callback = await this.sendHttp(request);
-				this.handleCallback(callback);
-				return callback;
 			}
 			throw new Error("VDO.Ninja API WebSocket is not connected");
 		}

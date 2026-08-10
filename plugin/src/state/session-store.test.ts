@@ -178,6 +178,22 @@ describe("SessionStore", () => {
 		expect(store.getStream("guest123")?.directorVideoHide).toBe(false);
 	});
 
+	it("normalizes director mute state exposed through detail controls", () => {
+		const store = new SessionStore();
+		store.applyCallback({
+			action: "getDetails",
+			result: {
+				guest123: {
+					streamID: "guest123",
+					others: { "mute-guest": "1", "hide-guest": "0" }
+				}
+			}
+		});
+
+		expect(store.getStream("guest123")?.directorMuted).toBe(true);
+		expect(store.getStream("guest123")?.directorVideoHide).toBe(false);
+	});
+
 	it("preserves codirector update state on the local stream", () => {
 		const store = new SessionStore();
 		store.applyCallback({
@@ -249,6 +265,41 @@ describe("SessionStore", () => {
 		expect(store.getStreamChoices()).toEqual([
 			expect.objectContaining({ streamID: "guestA", label: "First", position: 1, slot: false, held: true, handRaised: true }),
 			expect.objectContaining({ streamID: "guestB", label: "Second", position: 2, slot: 2, held: false })
+		]);
+	});
+
+	it("numbers remote guests independently of a publishing director in the DOM order", () => {
+		const store = new SessionStore();
+		store.applyCallback({
+			action: "getDetails",
+			result: {
+				director123: {
+					streamID: "director123",
+					localStream: true,
+					director: true,
+					position: 1,
+					slot: 2
+				},
+				guest123: {
+					streamID: "guest123",
+					label: "Guest",
+					localStream: false,
+					director: false,
+					position: 2,
+					slot: 1
+				}
+			}
+		});
+		store.applyCallback({
+			action: "getGuestList",
+			result: {
+				"1": { streamID: "director123", label: "" },
+				"2": { streamID: "guest123", label: "Guest" }
+			}
+		});
+
+		expect(store.getStreamChoices()).toEqual([
+			expect.objectContaining({ streamID: "guest123", position: 1, slot: 1 })
 		]);
 	});
 

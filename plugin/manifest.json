@@ -5,7 +5,7 @@
   "Author": "VDO.Ninja",
   "URL": "https://vdo.ninja",
   "Description": "Control VDO.Ninja from Stream Deck keys and dials: mic, camera, guests, scenes, mixer layouts, PTZ, volume, and custom API commands on any VDO.Ninja page opened with &api=KEY.",
-  "Version": "0.1.4.0",
+  "Version": "0.1.12.0",
   "SDKVersion": 2,
   "Software": {
     "MinimumVersion": "6.8"
@@ -41,13 +41,13 @@
       "States": [
         {
           "Name": "Waiting",
-          "Image": "imgs/state-neutral",
+          "Image": "imgs/connection-neutral",
           "Title": "VDO",
           "ShowTitle": true
         },
         {
           "Name": "Connected",
-          "Image": "imgs/state-on",
+          "Image": "imgs/connection-on",
           "Title": "VDO",
           "ShowTitle": true
         }
@@ -66,13 +66,13 @@
       "States": [
         {
           "Name": "Inactive",
-          "Image": "imgs/state-off",
+          "Image": "imgs/local-off",
           "Title": "Local",
           "ShowTitle": true
         },
         {
           "Name": "Active",
-          "Image": "imgs/state-on",
+          "Image": "imgs/local-on",
           "Title": "Local",
           "ShowTitle": true
         }
@@ -91,13 +91,13 @@
       "States": [
         {
           "Name": "No Target",
-          "Image": "imgs/state-off",
+          "Image": "imgs/select-off",
           "Title": "Select",
           "ShowTitle": true
         },
         {
           "Name": "Target Selected",
-          "Image": "imgs/state-on",
+          "Image": "imgs/select-on",
           "Title": "Target",
           "ShowTitle": true
         }
@@ -116,13 +116,13 @@
       "States": [
         {
           "Name": "Inactive",
-          "Image": "imgs/state-off",
+          "Image": "imgs/guest-off",
           "Title": "Guest",
           "ShowTitle": true
         },
         {
           "Name": "Active",
-          "Image": "imgs/state-on",
+          "Image": "imgs/guest-on",
           "Title": "Guest",
           "ShowTitle": true
         }
@@ -141,13 +141,13 @@
       "States": [
         {
           "Name": "Not In Scene",
-          "Image": "imgs/state-off",
+          "Image": "imgs/scene-off",
           "Title": "Scene",
           "ShowTitle": true
         },
         {
           "Name": "In Scene",
-          "Image": "imgs/state-on",
+          "Image": "imgs/scene-on",
           "Title": "Scene",
           "ShowTitle": true
         }
@@ -166,13 +166,13 @@
       "States": [
         {
           "Name": "Inactive",
-          "Image": "imgs/mixer-off",
+          "Image": "imgs/mixer-key-off",
           "Title": "Mixer",
           "ShowTitle": true
         },
         {
           "Name": "Active",
-          "Image": "imgs/mixer-on",
+          "Image": "imgs/mixer-key-on",
           "Title": "Mixer",
           "ShowTitle": true
         }
@@ -191,13 +191,13 @@
       "States": [
         {
           "Name": "Unavailable",
-          "Image": "imgs/state-off",
+          "Image": "imgs/ptz-off",
           "Title": "PTZ",
           "ShowTitle": true
         },
         {
           "Name": "Ready",
-          "Image": "imgs/state-on",
+          "Image": "imgs/ptz-on",
           "Title": "PTZ",
           "ShowTitle": true
         }
@@ -215,7 +215,7 @@
       "Encoder": {
         "Icon": "imgs/ptz",
         "StackColor": "#38bdf8",
-        "layout": "$X1",
+        "layout": "$A1",
         "TriggerDescription": {
           "Rotate": "Adjust PTZ",
           "Push": "Configured PTZ push action",
@@ -243,7 +243,7 @@
       "Encoder": {
         "Icon": "imgs/value",
         "StackColor": "#22c55e",
-        "layout": "$X1",
+        "layout": "$A1",
         "TriggerDescription": {
           "Rotate": "Adjust value",
           "Push": "Reset or cycle value control",
@@ -272,7 +272,7 @@
       "States": [
         {
           "Name": "Ready",
-          "Image": "imgs/custom",
+          "Image": "imgs/custom-key",
           "Title": "Command",
           "ShowTitle": true
         }

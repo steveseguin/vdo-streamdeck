@@ -14,7 +14,8 @@ import {
 	LOCAL_CONTROLS,
 	nextValueDialValue,
 	getGuestCommandDefinition,
-	getLocalControlDefinition
+	getLocalControlDefinition,
+	getLocalControlTrackField
 } from "./command-registry.js";
 
 describe("command registry", () => {
@@ -34,6 +35,12 @@ describe("command registry", () => {
 
 	it("defaults to mic for unknown local controls", () => {
 		expect(getLocalControlDefinition("missing").action).toBe("mic");
+	});
+
+	it("maps local media controls to their track availability fields", () => {
+		expect(getLocalControlTrackField("mic")).toBe("audioTrack");
+		expect(getLocalControlTrackField("camera")).toBe("videoTrack");
+		expect(getLocalControlTrackField("speaker")).toBeUndefined();
 	});
 
 	it("builds toggle payloads for normal controls", () => {

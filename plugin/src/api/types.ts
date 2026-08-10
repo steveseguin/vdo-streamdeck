@@ -66,6 +66,8 @@ export interface StreamState extends JsonObject {
 	seeding?: boolean;
 	muted?: boolean;
 	videoMuted?: boolean;
+	audioTrack?: boolean;
+	videoTrack?: boolean;
 	directorMuted?: boolean;
 	directorVideoHide?: boolean;
 	speakerMuted?: boolean;

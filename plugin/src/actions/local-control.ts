@@ -1,5 +1,11 @@
 import { action, type KeyAction, type KeyDownEvent, type KeyUpEvent, SingletonAction, type WillAppearEvent } from "@elgato/streamdeck";
-import { buildLocalControlPayload, buildLocalMomentaryPayload, getLocalControlDefinition, isMomentaryLocalBehavior } from "../api/command-registry.js";
+import {
+	buildLocalControlPayload,
+	buildLocalMomentaryPayload,
+	getLocalControlDefinition,
+	getLocalControlTrackField,
+	isMomentaryLocalBehavior
+} from "../api/command-registry.js";
 import { normalizeLocalControlSettings } from "../api/settings.js";
 import type { LocalControlSettings } from "../api/types.js";
 import { sessionStore, vdoClient } from "../services.js";
@@ -26,6 +32,11 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 	override async onKeyDown(ev: KeyDownEvent<LocalControlSettings>): Promise<void> {
 		const settings = normalizeLocalControlSettings(ev.payload.settings);
 		const definition = getLocalControlDefinition(settings.command);
+		if (this.isTrackInactive(definition)) {
+			await ev.action.showAlert();
+			await this.render(ev.action, settings);
+			return;
+		}
 
 		if (isMomentaryLocalBehavior(settings.behavior)) {
 			await this.sendMomentary(ev.action, settings, "down");
@@ -58,6 +69,11 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 
 	override async onKeyUp(ev: KeyUpEvent<LocalControlSettings>): Promise<void> {
 		const settings = normalizeLocalControlSettings(ev.payload.settings);
+		const definition = getLocalControlDefinition(settings.command);
+		if (this.isTrackInactive(definition)) {
+			await this.render(ev.action, settings);
+			return;
+		}
 		if (isMomentaryLocalBehavior(settings.behavior)) {
 			await this.sendMomentary(ev.action, settings, "up");
 		}
@@ -75,14 +91,18 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 	private async render(actionContext: KeyAction<LocalControlSettings>, rawSettings?: LocalControlSettings): Promise<void> {
 		const settings = normalizeLocalControlSettings(rawSettings || (await actionContext.getSettings<LocalControlSettings>()));
 		const definition = getLocalControlDefinition(settings.command);
+		const label = settings.title || definition.label;
+		if (this.isTrackInactive(definition)) {
+			await actionContext.setState(0);
+			await actionContext.setTitle(`${label}\nInactive`);
+			return;
+		}
 		if (isMomentaryLocalBehavior(settings.behavior)) {
 			await this.renderMomentary(actionContext, settings);
 			return;
 		}
 
 		const active = this.resolveActive(definition);
-		const label = settings.title || definition.label;
-
 		if (active === true) {
 			await actionContext.setState(1);
 			await actionContext.setTitle(`${label}\nOn`);
@@ -143,6 +163,11 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 			return undefined;
 		}
 		return definition.invertState ? !value : value;
+	}
+
+	private isTrackInactive(definition: ReturnType<typeof getLocalControlDefinition>): boolean {
+		const trackField = getLocalControlTrackField(definition.id);
+		return !!trackField && sessionStore.getLocalBoolean(trackField) === false;
 	}
 
 	private arm(actionId: string): void {

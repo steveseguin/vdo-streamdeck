@@ -5,7 +5,7 @@
 [![SDK](https://img.shields.io/badge/SDK-v2-38bdf8)](https://docs.elgato.com/streamdeck/sdk/)
 [![Node](https://img.shields.io/badge/runtime-Node%2020-22c55e)](#requirements)
 [![VDO.Ninja](https://img.shields.io/badge/VDO.Ninja-%26api-35d07f)](https://vdo.ninja/)
-[![Tests](https://img.shields.io/badge/tests-99%20passing-22c55e)](#testing)
+[![Tests](https://img.shields.io/badge/tests-107%20passing-22c55e)](#testing)
 [![Plugin build](https://github.com/steveseguin/vdo-streamdeck/actions/workflows/plugin-build.yml/badge.svg)](https://github.com/steveseguin/vdo-streamdeck/actions/workflows/plugin-build.yml)
 
 A native Elgato Stream Deck plugin for controlling VDO.Ninja pages through the existing VDO.Ninja `&api` remote-control system.
@@ -145,7 +145,7 @@ npx @elgato/cli@1.7.4 pack ninja.vdo.streamdeck.sdPlugin --dry-run -f --no-updat
 
 `pack` refuses to run when a `.streamDeckPlugin` file from an earlier build is already there, so `-f` keeps the dry run repeatable.
 
-Current automated coverage includes command payload generation, settings normalization, custom value parsing, session-state handling, selected guest targeting, manifest image wiring, and VDO API transport behavior.
+Current automated coverage includes command payload generation, settings normalization, custom value parsing, session-state handling, selected guest targeting, manifest image wiring, VDO API transport behavior, and bundled-plugin Stream Deck SDK events for every action type.
 
 Interactive testing still requires the Stream Deck desktop app with hardware or Stream Deck Mobile.
 

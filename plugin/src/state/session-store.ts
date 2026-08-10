@@ -82,7 +82,7 @@ export class SessionStore {
 				return choice;
 			});
 
-		return choices.sort((left, right) => {
+		choices.sort((left, right) => {
 			if (typeof left.position === "number" && typeof right.position === "number") {
 				return left.position - right.position;
 			}
@@ -93,6 +93,21 @@ export class SessionStore {
 				return 1;
 			}
 			return left.label.localeCompare(right.label);
+		});
+
+		// VDO's detailed `position` and getGuestList keys are DOM positions and
+		// can include the local director. Numeric guest API targets, however, are
+		// zero-based over remote guest controls after VDO subtracts one from the
+		// user-facing G1/G2 value. Normalize the displayed/selected position to
+		// that remote-guest order so a director in the first DOM slot does not
+		// turn the first guest into an unreachable G2.
+		let guestPosition = 0;
+		return choices.map(choice => {
+			if (choice.director) {
+				return { ...choice, position: undefined };
+			}
+			guestPosition += 1;
+			return { ...choice, position: guestPosition };
 		});
 	}
 
@@ -170,7 +185,7 @@ export class SessionStore {
 			if (!value || typeof value !== "object" || Array.isArray(value)) {
 				continue;
 			}
-			const stream = unwrapDetailsEntry(streamId, value as JsonObject);
+			const stream = normalizeDirectorState(unwrapDetailsEntry(streamId, value as JsonObject));
 			const resolvedStreamId = typeof stream.streamID === "string" ? stream.streamID : streamId;
 			const current = mode === "merge" ? this.details.get(resolvedStreamId) || {} : preserveUpdateOnlyState(previousDetails.get(resolvedStreamId), stream);
 			const normalized: StreamState = {
@@ -272,6 +287,21 @@ function preserveUpdateOnlyState(previous: StreamState | undefined, incoming: St
 		}
 	}
 	return preserved;
+}
+
+function normalizeDirectorState(stream: StreamState): StreamState {
+	const others = stream.others;
+	if (!others) {
+		return stream;
+	}
+	const normalized = { ...stream };
+	if (typeof normalized.directorMuted === "undefined" && typeof others["mute-guest"] !== "undefined") {
+		normalized.directorMuted = toBoolean(others["mute-guest"]);
+	}
+	if (typeof normalized.directorVideoHide === "undefined" && typeof others["hide-guest"] !== "undefined") {
+		normalized.directorVideoHide = toBoolean(others["hide-guest"]);
+	}
+	return normalized;
 }
 
 function toBoolean(value: unknown): boolean {

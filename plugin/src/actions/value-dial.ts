@@ -10,7 +10,7 @@ import {
 } from "@elgato/streamdeck";
 import { buildValueDialPayload, clampValueDialNumber, nextValueDialValue } from "../api/command-registry.js";
 import { normalizeValueDialSettings } from "../api/settings.js";
-import type { ValueDialSettings } from "../api/types.js";
+import type { StreamState, ValueDialSettings } from "../api/types.js";
 import { selectedTargetStore, sessionStore, vdoClient } from "../services.js";
 import { renderGuestTitle, resolveGuestTargetChoice, resolveGuestTargetValue } from "./guest-targeting.js";
 
@@ -242,7 +242,7 @@ export class ValueDialAction extends SingletonAction<ValueDialSettings> {
 				unit: unitLabel(settings.control || "volume"),
 				status: valueText
 			});
-			await this.setDialTitle(actionContext, title);
+			await this.setDialTitle(actionContext, title, valueText);
 			await actionContext.setTriggerDescription({
 				rotate: `Adjust guest ${control.toLowerCase()}`,
 				push: pushDescription(settings),
@@ -251,7 +251,7 @@ export class ValueDialAction extends SingletonAction<ValueDialSettings> {
 			return;
 		}
 
-		await this.setDialTitle(actionContext, settings.title || `Local\n${defaultLabel}`);
+		await this.setDialTitle(actionContext, settings.title || `Local\n${defaultLabel}`, valueText);
 		await actionContext.setTriggerDescription({
 			rotate: `Adjust local ${control.toLowerCase()}`,
 			push: pushDescription(settings),
@@ -277,10 +277,11 @@ export class ValueDialAction extends SingletonAction<ValueDialSettings> {
 		return clampValueDialNumber(finiteNumber(settings.value, finiteNumber(defaultValue(settings.control || "volume"), 0)), settings);
 	}
 
-	private async setDialTitle(actionContext: DialAction<ValueDialSettings>, title: string): Promise<void> {
-		await actionContext.setTitle(title);
+	private async setDialTitle(actionContext: DialAction<ValueDialSettings>, title: string, value: string): Promise<void> {
+		const displayTitle = encoderTitle(title, value);
+		await actionContext.setTitle(displayTitle);
 		try {
-			await actionContext.setFeedback({ title });
+			await actionContext.setFeedback({ title: displayTitle, value });
 		} catch {
 			// Older Stream Deck app builds may ignore feedback updates for built-in layouts.
 		}
@@ -295,13 +296,33 @@ export class ValueDialAction extends SingletonAction<ValueDialSettings> {
 	}
 }
 
+function encoderTitle(title: string, value: string): string {
+	const lines = title
+		.split(/\r?\n/)
+		.map(line => line.trim())
+		.filter(Boolean);
+	if (lines.length > 1 && lines[lines.length - 1] === value) {
+		lines.pop();
+	}
+	return lines.join(" ") || value;
+}
+
 function observedValue(settings: ValueDialSettings): number | undefined {
 	if (settings.scope === "guest" && (settings.control || "volume") === "volume") {
 		const choice = resolveGuestTargetChoice(settings);
 		const stream = choice ? sessionStore.getStream(choice.streamID) : undefined;
-		if (typeof stream?.videoVolume === "number") {
-			return stream.videoVolume * 100;
-		}
+		return guestVolumeFromStream(stream);
+	}
+	return undefined;
+}
+
+export function guestVolumeFromStream(stream: StreamState | undefined): number | undefined {
+	const controlledVolume = finiteNumber(stream?.others?.volume, Number.NaN);
+	if (Number.isFinite(controlledVolume)) {
+		return controlledVolume;
+	}
+	if (typeof stream?.videoVolume === "number") {
+		return stream.videoVolume * 100;
 	}
 	return undefined;
 }

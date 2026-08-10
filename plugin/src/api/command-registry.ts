@@ -12,6 +12,7 @@ import type {
 } from "./types.js";
 
 export type LocalControlStateField = "muted" | "videoMuted" | "speakerMuted" | "seeding";
+export type LocalControlTrackField = "audioTrack" | "videoTrack";
 
 export type LocalControlDefinition = {
 	id: string;
@@ -245,6 +246,16 @@ export function getLocalControlDefinition(command: string | undefined): LocalCon
 		return LOCAL_CONTROLS[command];
 	}
 	return LOCAL_CONTROLS.mic;
+}
+
+export function getLocalControlTrackField(command: string | undefined): LocalControlTrackField | undefined {
+	if (command === "mic") {
+		return "audioTrack";
+	}
+	if (command === "camera") {
+		return "videoTrack";
+	}
+	return undefined;
 }
 
 export function getGuestCommandDefinition(command: string | undefined): GuestCommandDefinition {

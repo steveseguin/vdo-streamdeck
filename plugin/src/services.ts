@@ -251,16 +251,22 @@ function startDetailsPolling(settings: GlobalSettings): void {
 	if (!settings.apiKey) {
 		return;
 	}
-	pollTimer = setInterval(() => {
+	const poll = () => {
 		if (pollInFlight) {
 			return;
 		}
 		pollInFlight = true;
-		vdoClient
-			.sendCommand({ action: "getDetails" })
+		refreshState(true)
 			.catch(() => undefined)
 			.finally(() => {
 				pollInFlight = false;
 			});
-	}, settings.detailsPollMs || 5000);
+	};
+
+	// Fetch both streams and numbered guest positions immediately. VDO's API
+	// relay can occasionally miss a live connection update, so relying on that
+	// event alone leaves fixed-slot actions unable to resolve an otherwise
+	// visible guest until another position event happens.
+	poll();
+	pollTimer = setInterval(poll, settings.detailsPollMs || 5000);
 }

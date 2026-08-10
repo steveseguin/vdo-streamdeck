@@ -192,7 +192,7 @@ export class PtzDialAction extends SingletonAction<PtzDialSettings> {
 				step: settings.step || "0.05",
 				status
 			});
-			await this.setDialTitle(actionContext, title);
+			await this.setDialTitle(actionContext, title, status || control);
 			await actionContext.setTriggerDescription({
 				rotate: `Adjust guest ${control.toLowerCase()}`,
 				push: pushDescription(settings),
@@ -202,7 +202,7 @@ export class PtzDialAction extends SingletonAction<PtzDialSettings> {
 		}
 
 		const title = settings.title || `Local\n${label}`;
-		await this.setDialTitle(actionContext, title);
+		await this.setDialTitle(actionContext, title, status || control);
 		await actionContext.setTriggerDescription({
 			rotate: `Adjust local ${control.toLowerCase()}`,
 			push: pushDescription(settings),
@@ -210,10 +210,11 @@ export class PtzDialAction extends SingletonAction<PtzDialSettings> {
 		});
 	}
 
-	private async setDialTitle(actionContext: DialAction<PtzDialSettings>, title: string): Promise<void> {
-		await actionContext.setTitle(title);
+	private async setDialTitle(actionContext: DialAction<PtzDialSettings>, title: string, value: string): Promise<void> {
+		const displayTitle = encoderTitle(title, value);
+		await actionContext.setTitle(displayTitle);
 		try {
-			await actionContext.setFeedback({ title });
+			await actionContext.setFeedback({ title: displayTitle, value });
 		} catch {
 			// Older Stream Deck app builds may ignore feedback updates for built-in layouts.
 		}
@@ -226,6 +227,17 @@ export class PtzDialAction extends SingletonAction<PtzDialSettings> {
 		}
 		this.pending.delete(actionId);
 	}
+}
+
+function encoderTitle(title: string, value: string): string {
+	const lines = title
+		.split(/\r?\n/)
+		.map(line => line.trim())
+		.filter(Boolean);
+	if (lines.length > 1 && lines[lines.length - 1] === value) {
+		lines.pop();
+	}
+	return lines.join(" ") || value;
 }
 
 function nextControl(settings: PtzDialSettings): PtzDialSettings["control"] {

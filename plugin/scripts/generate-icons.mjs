@@ -23,12 +23,43 @@ const DEG = Math.PI / 180;
 const imageDir = join(process.cwd(), "imgs");
 const actionIconDir = join(imageDir, "actions");
 let written = 0;
+const compositedOnlyKeyIcons = new Set(["state-on", "state-off", "state-neutral", "mixer-on", "mixer-off", "custom"]);
+
+const keyBackgroundVariants = {
+	connection: [{ name: "connection-neutral", base: "state-neutral" }, { name: "connection-on", base: "state-on" }],
+	local: [{ name: "local-off", base: "state-off" }, { name: "local-on", base: "state-on" }],
+	select: [{ name: "select-off", base: "state-off" }, { name: "select-on", base: "state-on" }],
+	guest: [{ name: "guest-off", base: "state-off" }, { name: "guest-on", base: "state-on" }],
+	scene: [{ name: "scene-off", base: "state-off" }, { name: "scene-on", base: "state-on" }],
+	mixer: [{ name: "mixer-key-off", base: "mixer-off" }, { name: "mixer-key-on", base: "mixer-on" }],
+	ptz: [{ name: "ptz-off", base: "state-off" }, { name: "ptz-on", base: "state-on" }],
+	custom: [{ name: "custom-key", base: "custom" }]
+};
 
 for (const [name, icon] of Object.entries(KEY_ICONS)) {
+	if (compositedOnlyKeyIcons.has(name)) {
+		continue;
+	}
 	await write(join(imageDir, `${name}.svg`), renderSvg(icon));
 	for (const [index, width] of icon.raster.entries()) {
 		const suffix = index === 0 ? "" : `@${index + 1}x`;
 		await write(join(imageDir, `${name}${suffix}.png`), renderPng(icon, width));
+	}
+}
+
+for (const [actionName, variants] of Object.entries(keyBackgroundVariants)) {
+	for (const variant of variants) {
+		const base = KEY_ICONS[variant.base];
+		const [field, ...foreground] = base.shapes;
+		const icon = {
+			...base,
+			shapes: [field, ...backgroundGlyph(ACTION_ICONS[actionName], base.size), ...foreground]
+		};
+		await write(join(imageDir, `${variant.name}.svg`), renderSvg(icon));
+		for (const [index, width] of icon.raster.entries()) {
+			const suffix = index === 0 ? "" : `@${index + 1}x`;
+			await write(join(imageDir, `${variant.name}${suffix}.png`), renderPng(icon, width));
+		}
 	}
 }
 
@@ -53,28 +84,29 @@ function renderSvg(icon) {
 
 function svgShape(shape) {
 	const fill = `fill="${shape.fill}"`;
+	const opacity = typeof shape.opacity === "number" ? ` opacity="${num(shape.opacity)}"` : "";
 	switch (shape.type) {
 		case "rect": {
 			const radius = shape.r ? ` rx="${num(shape.r)}"` : "";
-			return `<rect x="${num(shape.x)}" y="${num(shape.y)}" width="${num(shape.w)}" height="${num(shape.h)}"${radius} ${fill}/>`;
+			return `<rect x="${num(shape.x)}" y="${num(shape.y)}" width="${num(shape.w)}" height="${num(shape.h)}"${radius} ${fill}${opacity}/>`;
 		}
 		case "circle":
-			return `<circle cx="${num(shape.cx)}" cy="${num(shape.cy)}" r="${num(shape.r)}" ${fill}/>`;
+			return `<circle cx="${num(shape.cx)}" cy="${num(shape.cy)}" r="${num(shape.r)}" ${fill}${opacity}/>`;
 		case "ring":
-			return `<circle cx="${num(shape.cx)}" cy="${num(shape.cy)}" r="${num(shape.r)}" fill="none" stroke="${shape.fill}" stroke-width="${num(shape.width)}"/>`;
+			return `<circle cx="${num(shape.cx)}" cy="${num(shape.cy)}" r="${num(shape.r)}" fill="none" stroke="${shape.fill}" stroke-width="${num(shape.width)}"${opacity}/>`;
 		case "arc": {
 			const [x1, y1] = polar(shape.cx, shape.cy, shape.r, shape.from);
 			const [x2, y2] = polar(shape.cx, shape.cy, shape.r, shape.to);
 			const largeArc = shape.to - shape.from > 180 ? 1 : 0;
 			const cap = shape.cap === "round" ? ` stroke-linecap="round"` : "";
 			const d = `M ${num(x1)} ${num(y1)} A ${num(shape.r)} ${num(shape.r)} 0 ${largeArc} 1 ${num(x2)} ${num(y2)}`;
-			return `<path d="${d}" fill="none" stroke="${shape.fill}" stroke-width="${num(shape.width)}"${cap}/>`;
+			return `<path d="${d}" fill="none" stroke="${shape.fill}" stroke-width="${num(shape.width)}"${cap}${opacity}/>`;
 		}
 		case "polygon":
-			return `<polygon points="${shape.points.map(([x, y]) => `${num(x)},${num(y)}`).join(" ")}" ${fill}/>`;
+			return `<polygon points="${shape.points.map(([x, y]) => `${num(x)},${num(y)}`).join(" ")}" ${fill}${opacity}/>`;
 		case "line": {
 			const cap = shape.cap === "round" ? ` stroke-linecap="round"` : "";
-			return `<line x1="${num(shape.x1)}" y1="${num(shape.y1)}" x2="${num(shape.x2)}" y2="${num(shape.y2)}" stroke="${shape.fill}" stroke-width="${num(shape.width)}"${cap}/>`;
+			return `<line x1="${num(shape.x1)}" y1="${num(shape.y1)}" x2="${num(shape.x2)}" y2="${num(shape.y2)}" stroke="${shape.fill}" stroke-width="${num(shape.width)}"${cap}${opacity}/>`;
 		}
 		default:
 			throw new Error(`Unsupported shape type: ${shape.type}`);
@@ -101,7 +133,7 @@ function renderPng(icon, size) {
 		const [minX, minY, maxX, maxY] = pixelBounds(shape, scale, size);
 		for (let y = minY; y < maxY; y += 1) {
 			for (let x = minX; x < maxX; x += 1) {
-				const alpha = coverage(shape, x, y, scale);
+				const alpha = coverage(shape, x, y, scale) * (typeof shape.opacity === "number" ? shape.opacity : 1);
 				if (alpha > 0) {
 					blend(canvas, (y * size + x) * 4, color, alpha);
 				}
@@ -114,6 +146,31 @@ function renderPng(icon, size) {
 		pixels[i] = Math.round(Math.min(1, Math.max(0, canvas[i])) * 255);
 	}
 	return encodePng(pixels, size, size);
+}
+
+function backgroundGlyph(icon, keySize) {
+	const size = 90;
+	const scale = size / icon.size;
+	const offsetX = (keySize - size) / 2;
+	const offsetY = 30;
+	return icon.shapes.map(shape => transformShape(shape, scale, offsetX, offsetY));
+}
+
+function transformShape(shape, scale, offsetX, offsetY) {
+	const transformed = { ...shape, fill: "#0b1118", opacity: 0.24 };
+	for (const key of ["x", "x1", "x2", "cx"]) {
+		if (typeof shape[key] === "number") transformed[key] = shape[key] * scale + offsetX;
+	}
+	for (const key of ["y", "y1", "y2", "cy"]) {
+		if (typeof shape[key] === "number") transformed[key] = shape[key] * scale + offsetY;
+	}
+	for (const key of ["w", "h", "r", "width"]) {
+		if (typeof shape[key] === "number") transformed[key] = shape[key] * scale;
+	}
+	if (shape.points) {
+		transformed.points = shape.points.map(([x, y]) => [x * scale + offsetX, y * scale + offsetY]);
+	}
+	return transformed;
 }
 
 function blend(canvas, offset, color, alpha) {

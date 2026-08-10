@@ -45,6 +45,29 @@ describe("VdoClient", () => {
 		});
 	});
 
+	it("prefers HTTP fallback for no-wait commands even when WebSocket is open", async () => {
+		const client = new VdoClient() as VdoClientHarness;
+		const send = vi.fn();
+		client.settings = { apiKey: "key", apiHost: "api.example", useTls: true, httpFallback: true };
+		client.socket = { readyState: 1, send };
+		const fetchMock = vi.fn().mockResolvedValue(new Response("160", { status: 200 }));
+		vi.stubGlobal("fetch", fetchMock);
+
+		await expect(
+			client.sendCommand({ action: "volume", target: 1, value: 160 }, { awaitCallback: false })
+		).resolves.toMatchObject({
+			action: "volume",
+			target: 1,
+			value: 160,
+			result: 160
+		});
+		expect(fetchMock).toHaveBeenCalledWith(
+			"https://api.example/key/volume/1/160",
+			expect.objectContaining({ signal: expect.any(AbortSignal) })
+		);
+		expect(send).not.toHaveBeenCalled();
+	});
+
 	it("encodes simple commands with the existing HTTP GET route shape", async () => {
 		const client = new VdoClient() as VdoClientHarness;
 		client.settings = { apiKey: "key value", apiHost: "api.example", useTls: true, httpFallback: true };
@@ -152,7 +175,7 @@ describe("VdoClient", () => {
 	it("keeps value2 commands on the raw WebSocket path without request IDs", async () => {
 		const client = new VdoClient() as VdoClientHarness;
 		const send = vi.fn();
-		client.settings = { apiKey: "key", apiHost: "api.example", useTls: true, httpFallback: true };
+		client.settings = { apiKey: "key", apiHost: "api.example", useTls: true, httpFallback: false };
 		client.socket = { readyState: 1, send };
 
 		await expect(client.sendCommand({ action: "zoom", value: 0.5, value2: "abs" })).resolves.toMatchObject({
@@ -170,7 +193,7 @@ describe("VdoClient", () => {
 	it("skips overloaded no-wait realtime commands without dropping discrete commands", async () => {
 		const client = new VdoClient() as VdoClientHarness;
 		const send = vi.fn();
-		client.settings = { apiKey: "key", apiHost: "api.example", useTls: true, httpFallback: true };
+		client.settings = { apiKey: "key", apiHost: "api.example", useTls: true, httpFallback: false };
 		client.socket = { readyState: 1, bufferedAmount: 262145, send };
 
 		await expect(client.sendCommand({ action: "ptzZoom", target: "guest1", value: 0.1 }, { awaitCallback: false })).resolves.toMatchObject({
