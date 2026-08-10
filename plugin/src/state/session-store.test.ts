@@ -141,6 +141,43 @@ describe("SessionStore", () => {
 		expect(guest?.position).toBe(3);
 	});
 
+	it("preserves director-only mute state across incomplete detail polls", () => {
+		const store = new SessionStore();
+		store.applyCallback({
+			action: "getDetails",
+			result: {
+				guest123: { streamID: "guest123", label: "Guest", muted: false, videoMuted: false }
+			}
+		});
+
+		store.applyUpdate({ action: "directorMuted", streamID: "guest123", value: true });
+		store.applyUpdate({ action: "directorVideoHide", streamID: "guest123", value: true });
+		store.applyCallback({
+			action: "getDetails",
+			result: {
+				guest123: { streamID: "guest123", label: "Guest", muted: false, videoMuted: false }
+			}
+		});
+
+		expect(store.getStream("guest123")?.directorMuted).toBe(true);
+		expect(store.getStream("guest123")?.directorVideoHide).toBe(true);
+
+		store.applyCallback({
+			action: "getDetails",
+			result: {
+				guest123: {
+					streamID: "guest123",
+					label: "Guest",
+					directorMuted: false,
+					directorVideoHide: false
+				}
+			}
+		});
+
+		expect(store.getStream("guest123")?.directorMuted).toBe(false);
+		expect(store.getStream("guest123")?.directorVideoHide).toBe(false);
+	});
+
 	it("preserves codirector update state on the local stream", () => {
 		const store = new SessionStore();
 		store.applyCallback({

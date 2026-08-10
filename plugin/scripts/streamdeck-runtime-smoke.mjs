@@ -46,7 +46,7 @@ const child = spawn(
 			colors: {},
 			devicePixelRatio: 2,
 			devices: [],
-			plugin: { uuid: "ninja.vdo.streamdeck", version: "0.1.3.0" },
+			plugin: { uuid: "ninja.vdo.streamdeck", version: "0.1.4.0" },
 		}),
 	],
 	{

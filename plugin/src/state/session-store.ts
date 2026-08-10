@@ -160,6 +160,7 @@ export class SessionStore {
 	}
 
 	private applyDetails(raw: JsonObject, mode: DetailsMode): void {
+		const previousDetails = mode === "replace" ? new Map(this.details) : this.details;
 		if (mode === "replace") {
 			this.details.clear();
 			this.localStreamId = null;
@@ -171,7 +172,7 @@ export class SessionStore {
 			}
 			const stream = unwrapDetailsEntry(streamId, value as JsonObject);
 			const resolvedStreamId = typeof stream.streamID === "string" ? stream.streamID : streamId;
-			const current = mode === "merge" ? this.details.get(resolvedStreamId) || {} : {};
+			const current = mode === "merge" ? this.details.get(resolvedStreamId) || {} : preserveUpdateOnlyState(previousDetails.get(resolvedStreamId), stream);
 			const normalized: StreamState = {
 				...current,
 				...stream,
@@ -258,6 +259,19 @@ export class SessionStore {
 			listener();
 		}
 	}
+}
+
+function preserveUpdateOnlyState(previous: StreamState | undefined, incoming: StreamState): Partial<StreamState> {
+	if (!previous) {
+		return {};
+	}
+	const preserved: Partial<StreamState> = {};
+	for (const field of ["directorMuted", "directorVideoHide"] as const) {
+		if (typeof incoming[field] === "undefined" && typeof previous[field] === "boolean") {
+			preserved[field] = previous[field];
+		}
+	}
+	return preserved;
 }
 
 function toBoolean(value: unknown): boolean {
