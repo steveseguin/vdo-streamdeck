@@ -1037,7 +1037,7 @@
   <script>
     const DEFAULT_BASE_URL = "https://vdo.ninja";
     let websocket = null;
-    let pluginUuid = null;
+    let propertyInspectorContext = null;
     let actionContext = null;
     let actionUuid = "";
     let globalSettings = {};
@@ -1054,10 +1054,11 @@
     let lastConnectionKey = null;
 
     window.connectElgatoStreamDeckSocket = function(port, uuid, registerEvent, info, actionInfo) {
-      pluginUuid = uuid;
-      actionContext = uuid;
+      propertyInspectorContext = uuid;
+      actionContext = null;
       try {
         const parsed = JSON.parse(actionInfo);
+        actionContext = parsed.context || null;
         actionUuid = parsed.action || "";
         actionSettings = parsed.payload && parsed.payload.settings ? parsed.payload.settings : {};
       } catch (error) {
@@ -1066,10 +1067,10 @@
 
       websocket = new WebSocket("ws://127.0.0.1:" + port);
       websocket.onopen = function() {
-        websocket.send(JSON.stringify({ event: registerEvent, uuid: pluginUuid }));
-        websocket.send(JSON.stringify({ event: "getGlobalSettings", context: pluginUuid }));
+        websocket.send(JSON.stringify({ event: registerEvent, uuid: propertyInspectorContext }));
+        websocket.send(JSON.stringify({ event: "getGlobalSettings", context: propertyInspectorContext }));
         if (actionContext) {
-          websocket.send(JSON.stringify({ event: "getSettings", context: actionContext }));
+          websocket.send(JSON.stringify({ event: "getSettings", action: actionUuid, context: propertyInspectorContext }));
         }
         bind();
         render();
@@ -1565,7 +1566,7 @@
         setupScene: byId("sceneId").value.trim(),
         setupCustomUrl: byId("customUrl").value.trim()
       };
-      send({ event: "setGlobalSettings", context: pluginUuid, payload: globalSettings });
+      send({ event: "setGlobalSettings", context: propertyInspectorContext, payload: globalSettings });
       updateStatusIfConnectionChanged();
     }
 
@@ -1741,7 +1742,7 @@
         return;
       }
       renderCapabilityHint();
-      send({ event: "setSettings", context: actionContext, payload: actionSettings });
+      send({ event: "setSettings", action: actionUuid, context: propertyInspectorContext, payload: actionSettings });
     }
 
     function renderLinkBuilder() {
@@ -2295,8 +2296,8 @@
     }
 
     function sendToPlugin(payload) {
-      if (!actionContext) return;
-      send({ event: "sendToPlugin", action: actionUuid, context: actionContext, payload });
+      if (!propertyInspectorContext) return;
+      send({ event: "sendToPlugin", action: actionUuid, context: propertyInspectorContext, payload });
     }
 
     function send(payload) {

@@ -61,7 +61,7 @@ describe("property inspector contract", () => {
 		expect(inspector).not.toContain('id="httpFallback"');
 	});
 
-	it("uses the property-inspector UUID for settings and plugin messages", () => {
+	it("uses the property-inspector UUID for inspector commands", () => {
 		const harness = createInspectorHarness();
 		harness.connect();
 		harness.socket.onopen();
@@ -69,6 +69,7 @@ describe("property inspector contract", () => {
 		const messages = harness.socket.sent.map(message => JSON.parse(message) as Record<string, unknown>);
 		expect(messages).toContainEqual({
 			event: "getSettings",
+			action: "ninja.vdo.streamdeck.connection",
 			context: "plugin-uuid"
 		});
 		expect(messages).toContainEqual({
