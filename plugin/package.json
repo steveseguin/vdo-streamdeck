@@ -1,14 +1,15 @@
 {
   "name": "vdo-ninja-streamdeck-plugin",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "description": "Native Elgato Stream Deck plugin for controlling VDO.Ninja via &api.",
   "type": "module",
   "scripts": {
     "assets": "node scripts/generate-icons.mjs",
-    "build": "npm run assets && tsc -p tsconfig.json && node scripts/copy-assets.mjs",
+    "build": "npm run assets && node scripts/clean-build.mjs && tsc -p tsconfig.json --noEmit && node scripts/build-plugin.mjs && node scripts/copy-assets.mjs",
     "check": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
+    "test:runtime": "node scripts/streamdeck-runtime-smoke.mjs",
     "dev": "tsc -p tsconfig.json --watch"
   },
   "dependencies": {
@@ -19,6 +20,7 @@
   "devDependencies": {
     "@types/node": "^20.19.43",
     "@types/ws": "^8.18.1",
+    "esbuild": "^0.28.1",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
   },

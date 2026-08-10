@@ -138,6 +138,7 @@ cd plugin
 npm test
 npm run check
 npm run build
+npm run test:runtime
 npx @elgato/cli@1.7.4 validate ninja.vdo.streamdeck.sdPlugin --no-update-check
 npx @elgato/cli@1.7.4 pack ninja.vdo.streamdeck.sdPlugin --dry-run -f --no-update-check
 ```

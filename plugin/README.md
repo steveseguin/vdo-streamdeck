@@ -55,13 +55,14 @@ The manifest targets the Node 20 runtime bundled with Stream Deck 6.8+; newer lo
 npm test
 npm run check
 npm run build
+npm run test:runtime
 npx @elgato/cli@1.7.4 validate ninja.vdo.streamdeck.sdPlugin --no-update-check
 npx @elgato/cli@1.7.4 pack ninja.vdo.streamdeck.sdPlugin --dry-run -f --no-update-check
 ```
 
 `pack` refuses to run when a `.streamDeckPlugin` file from an earlier build is already there, so `-f` keeps the dry run repeatable.
 
-These verify command payloads, TypeScript, generated plugin layout, manifest rules, and package contents. Tests cover every exposed command choice, property-inspector buttons and registry alignment, manifest image wiring, custom value parsing, transport behavior, and state normalization. Interactive button/dial testing still requires the Stream Deck app with either hardware or Stream Deck Mobile.
+These verify command payloads, TypeScript, generated plugin layout, manifest rules, package contents, and startup from an isolated copy with no development `node_modules` available. Tests cover every exposed command choice, property-inspector buttons and registry alignment, manifest image wiring, custom value parsing, transport behavior, and state normalization. Interactive button/dial testing still requires the Stream Deck app with either hardware or Stream Deck Mobile.
 
 ## Icons
 
