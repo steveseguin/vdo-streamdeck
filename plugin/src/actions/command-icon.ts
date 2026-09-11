@@ -5,7 +5,9 @@ import type { JsonObject } from "@elgato/utils";
 const rendered = new WeakMap<object, string>();
 
 export const PTZ_ICONS: Record<string, string> = {
-	zoom: "zoom", pan: "pan", tilt: "tilt", focus: "focus", autofocus: "focus", exposure: "exposure"
+	zoom: "zoom", pan: "pan", tilt: "tilt", focus: "focus", autofocus: "focus", exposure: "exposure",
+	"pan-left": "pan-left", "pan-right": "pan-right", "tilt-up": "tilt-up", "tilt-down": "tilt-down",
+	"zoom-out": "zoom-out", "zoom-absolute": "zoom-absolute"
 };
 export const MIXER_ICONS: Record<string, string> = {
 	layout: "layout", setGuestSlot: "slot", muteAllGuests: "mic", transferAllGuests: "transfer"

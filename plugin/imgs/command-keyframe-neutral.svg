@@ -1,12 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 144">
   <rect x="0" y="0" width="144" height="144" fill="#1e2532"/>
-  <line x1="17.75" y1="17.667" x2="52.25" y2="17.667" stroke="#ffffff" stroke-width="3.833" stroke-linecap="round"/>
-  <line x1="17.75" y1="17.667" x2="17.75" y2="48.333" stroke="#ffffff" stroke-width="3.833" stroke-linecap="round"/>
-  <line x1="52.25" y1="17.667" x2="52.25" y2="48.333" stroke="#ffffff" stroke-width="3.833" stroke-linecap="round"/>
-  <line x1="17.75" y1="48.333" x2="52.25" y2="48.333" stroke="#ffffff" stroke-width="3.833" stroke-linecap="round"/>
-  <polygon points="29.25,23.417 44.583,33 29.25,42.583" fill="#ffffff"/>
-  <circle cx="108" cy="33" r="23" fill="#94a3b8"/>
-  <circle cx="99" cy="33" r="3.4" fill="#141a24"/>
-  <circle cx="108" cy="33" r="3.4" fill="#141a24"/>
-  <circle cx="117" cy="33" r="3.4" fill="#141a24"/>
+  <line x1="19.5" y1="12" x2="64.5" y2="12" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+  <line x1="19.5" y1="12" x2="19.5" y2="52" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+  <line x1="64.5" y1="12" x2="64.5" y2="52" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+  <line x1="19.5" y1="52" x2="64.5" y2="52" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+  <polygon points="34.5,19.5 54.5,32 34.5,44.5" fill="#ffffff"/>
 </svg>

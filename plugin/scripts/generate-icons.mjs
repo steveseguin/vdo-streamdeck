@@ -14,7 +14,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { deflateSync } from "node:zlib";
-import { ACTION_ICONS, COMMAND_ICONS, KEY_ICONS } from "./icon-set.mjs";
+import { ACTION_ICONS, COMMAND_ICONS, OFF_COMMAND_ICONS, KEY_ICONS } from "./icon-set.mjs";
 
 /** Sub-samples per axis for pixels that straddle a shape edge. */
 const SAMPLES = 8;
@@ -71,7 +71,9 @@ for (const [name, glyph] of Object.entries(COMMAND_ICONS)) {
 	for (const state of ["on", "off", "neutral"]) {
 		const base = KEY_ICONS[`state-${state}`];
 		const [field, ...foreground] = base.shapes;
-		const icon = { ...base, shapes: [field, ...backgroundGlyph(glyph, base.size), ...foreground] };
+		// Neutral command keys are ready, not waiting for a connection.
+		const commandGlyph = state === "off" ? OFF_COMMAND_ICONS[name] || glyph : glyph;
+		const icon = { ...base, shapes: [field, ...backgroundGlyph(commandGlyph, base.size), ...(state === "neutral" ? [] : foreground)] };
 		await write(join(imageDir, `command-${name}-${state}.svg`), renderSvg(icon));
 		for (const [index, width] of icon.raster.entries()) {
 			await write(join(imageDir, `command-${name}-${state}${index ? "@2x" : ""}.png`), renderPng(icon, width));
@@ -161,10 +163,10 @@ function renderPng(icon, size) {
 }
 
 function backgroundGlyph(icon, keySize) {
-	const size = 46;
+	const size = 60;
 	const scale = size / icon.size;
 	const offsetX = 12;
-	const offsetY = 10;
+	const offsetY = 2;
 	return icon.shapes.map(shape => transformShape(shape, scale, offsetX, offsetY));
 }
 

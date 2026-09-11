@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 144">
   <rect x="0" y="0" width="144" height="144" fill="#1e2532"/>
-  <line x1="16.983" y1="22.65" x2="53.017" y2="22.65" stroke="#ffffff" stroke-width="3.45" stroke-linecap="round"/>
-  <line x1="16.983" y1="33" x2="53.017" y2="33" stroke="#ffffff" stroke-width="3.45" stroke-linecap="round"/>
-  <line x1="16.983" y1="43.35" x2="53.017" y2="43.35" stroke="#ffffff" stroke-width="3.45" stroke-linecap="round"/>
-  <rect x="39.983" y="17.283" width="6.517" height="10.733" rx="2.875" fill="#ffffff"/>
-  <rect x="23.883" y="27.633" width="6.517" height="10.733" rx="2.875" fill="#ffffff"/>
-  <rect x="35.767" y="37.983" width="6.517" height="10.733" rx="2.875" fill="#ffffff"/>
-  <circle cx="108" cy="33" r="23" fill="#94a3b8"/>
-  <rect x="96.6" y="21.6" width="8.6" height="8.6" rx="2.4" fill="#141a24"/>
-  <rect x="110.8" y="21.6" width="8.6" height="8.6" rx="2.4" fill="#141a24"/>
-  <rect x="96.6" y="35.8" width="8.6" height="8.6" rx="2.4" fill="#141a24"/>
-  <rect x="110.8" y="35.8" width="8.6" height="8.6" rx="2.4" fill="#141a24"/>
+  <line x1="18.5" y1="18.5" x2="65.5" y2="18.5" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="18.5" y1="32" x2="65.5" y2="32" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="18.5" y1="45.5" x2="65.5" y2="45.5" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round"/>
+  <rect x="48.5" y="11.5" width="8.5" height="14" rx="3.75" fill="#ffffff"/>
+  <rect x="27.5" y="25" width="8.5" height="14" rx="3.75" fill="#ffffff"/>
+  <rect x="43" y="38.5" width="8.5" height="14" rx="3.75" fill="#ffffff"/>
+  <circle cx="108" cy="33" r="16" fill="#94a3b8"/>
+  <rect x="100" y="25" width="6" height="6" rx="2.4" fill="#141a24"/>
+  <rect x="110" y="25" width="6" height="6" rx="2.4" fill="#141a24"/>
+  <rect x="100" y="35" width="6" height="6" rx="2.4" fill="#141a24"/>
+  <rect x="110" y="35" width="6" height="6" rx="2.4" fill="#141a24"/>
 </svg>

@@ -1,11 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 144">
   <rect x="0" y="0" width="144" height="144" fill="#1e2532"/>
-  <circle cx="31.167" cy="29.167" r="11.5" fill="none" stroke="#ffffff" stroke-width="3.833"/>
-  <line x1="40.75" y1="38.75" x2="54.167" y2="52.167" stroke="#ffffff" stroke-width="3.833" stroke-linecap="round"/>
-  <line x1="25.417" y1="29.167" x2="36.917" y2="29.167" stroke="#ffffff" stroke-width="3.833" stroke-linecap="round"/>
-  <line x1="31.167" y1="23.417" x2="31.167" y2="34.917" stroke="#ffffff" stroke-width="3.833" stroke-linecap="round"/>
-  <circle cx="108" cy="33" r="23" fill="#94a3b8"/>
-  <circle cx="99" cy="33" r="3.4" fill="#141a24"/>
-  <circle cx="108" cy="33" r="3.4" fill="#141a24"/>
-  <circle cx="117" cy="33" r="3.4" fill="#141a24"/>
+  <circle cx="37" cy="27" r="15" fill="none" stroke="#ffffff" stroke-width="5"/>
+  <line x1="49.5" y1="39.5" x2="67" y2="57" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+  <line x1="29.5" y1="27" x2="44.5" y2="27" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+  <line x1="37" y1="19.5" x2="37" y2="34.5" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
 </svg>

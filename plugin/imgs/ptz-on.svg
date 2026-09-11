@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 144">
   <rect x="0" y="0" width="144" height="144" fill="#0f6b41"/>
-  <rect x="32.7" y="19.583" width="4.6" height="26.833" fill="#ffffff"/>
-  <rect x="21.583" y="30.7" width="26.833" height="4.6" fill="#ffffff"/>
-  <polygon points="35,14.408 27.908,23.992 42.092,23.992" fill="#ffffff"/>
-  <polygon points="35,51.592 27.908,42.008 42.092,42.008" fill="#ffffff"/>
-  <polygon points="16.408,33 25.992,25.908 25.992,40.092" fill="#ffffff"/>
-  <polygon points="53.592,33 44.008,25.908 44.008,40.092" fill="#ffffff"/>
-  <circle cx="108" cy="33" r="23" fill="#35d07f"/>
-  <line x1="97.5" y1="33.5" x2="104.5" y2="40.5" stroke="#06301d" stroke-width="6.5" stroke-linecap="round"/>
-  <line x1="104.5" y1="40.5" x2="119" y2="25.5" stroke="#06301d" stroke-width="6.5" stroke-linecap="round"/>
+  <rect x="39" y="14.5" width="6" height="35" fill="#ffffff"/>
+  <rect x="24.5" y="29" width="35" height="6" fill="#ffffff"/>
+  <polygon points="42,7.75 32.75,20.25 51.25,20.25" fill="#ffffff"/>
+  <polygon points="42,56.25 32.75,43.75 51.25,43.75" fill="#ffffff"/>
+  <polygon points="17.75,32 30.25,22.75 30.25,41.25" fill="#ffffff"/>
+  <polygon points="66.25,32 53.75,22.75 53.75,41.25" fill="#ffffff"/>
+  <circle cx="108" cy="33" r="16" fill="#35d07f"/>
+  <line x1="100.65" y1="33.35" x2="105.55" y2="38.25" stroke="#06301d" stroke-width="4.55" stroke-linecap="round"/>
+  <line x1="105.55" y1="38.25" x2="115.7" y2="27.75" stroke="#06301d" stroke-width="4.55" stroke-linecap="round"/>
 </svg>

@@ -8,8 +8,8 @@ ITEMS = [
     ("record", "Record", "Ready"), ("speaker", "Speaker", "Off"),
     ("share", "Share", "Ready"), ("hand", "Hand", "Ready"),
     ("transfer", "G1 Transfer", "Ready"), ("activate", "G1 Activate", "Ready"),
-    ("zoom", "Zoom +", "Ready"), ("pan", "Pan left", "Ready"),
-    ("tilt", "Tilt up", "Ready"), ("focus", "Focus", "Ready"),
+    ("zoom", "Zoom +", "Ready"), ("pan-left", "Pan left", "Ready"),
+    ("tilt-up", "Tilt up", "Ready"), ("focus", "Focus", "Ready"),
     ("layout", "Layout 2", "Ready"), ("slot", "G1 Slot 2", "Ready"),
     ("overlay", "Overlay", "Ready"), ("hangup", "Hang Up", "Ready")
 ]

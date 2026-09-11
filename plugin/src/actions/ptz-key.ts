@@ -67,7 +67,7 @@ export class PtzKeyAction extends SingletonAction<PtzKeySettings> {
 
 	private async render(actionContext: KeyAction<PtzKeySettings>, rawSettings?: PtzKeySettings): Promise<void> {
 		const settings = normalizePtzKeySettings(rawSettings || (await actionContext.getSettings<PtzKeySettings>()));
-		await setCommandIcon(actionContext, PTZ_ICONS[settings.control || "zoom"] || "zoom", true);
+		await setCommandIcon(actionContext, ptzIcon(settings), true);
 		const label = ptzLabel(settings);
 		if (settings.scope === "guest") {
 			const choice = resolveGuestTargetChoice(settings);
@@ -85,6 +85,16 @@ export class PtzKeyAction extends SingletonAction<PtzKeySettings> {
 		await actionContext.setState(1);
 		await actionContext.setTitle(settings.title || `Local\n${label}`);
 	}
+}
+
+function ptzIcon(settings: PtzKeySettings): string {
+	const control = settings.control || "zoom";
+	if (settings.mode === "absolute") return control === "zoom" ? PTZ_ICONS["zoom-absolute"] : PTZ_ICONS[control] || "zoom";
+	const negative = settings.direction === "negative";
+	if (control === "pan") return PTZ_ICONS[negative ? "pan-left" : "pan-right"];
+	if (control === "tilt") return PTZ_ICONS[negative ? "tilt-down" : "tilt-up"];
+	if (control === "zoom" && negative) return PTZ_ICONS["zoom-out"];
+	return PTZ_ICONS[control] || "zoom";
 }
 
 function ptzLabel(settings: PtzKeySettings): string {

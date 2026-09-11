@@ -48,7 +48,7 @@ const colors = {
 const KEY = 144;
 
 /** Every keypad state image places its badge here, clear of the two-line title. */
-const badge = { cx: 108, cy: 33, r: 23 };
+const badge = { cx: 108, cy: 33, r: 16 };
 
 function field(fill) {
 	return { type: "rect", x: 0, y: 0, w: KEY, h: KEY, fill };
@@ -58,27 +58,38 @@ function badgeDisc(fill) {
 	return { type: "circle", cx: badge.cx, cy: badge.cy, r: badge.r, fill };
 }
 
+function smallBadgeGlyph(shapes) {
+	return shapes.map(shape => {
+		const result = { ...shape };
+		for (const key of ["x1", "x2"]) if (key in shape) result[key] = badge.cx + (shape[key] - badge.cx) * 0.7;
+		for (const key of ["y1", "y2"]) if (key in shape) result[key] = badge.cy + (shape[key] - badge.cy) * 0.7;
+		if (shape.width) result.width = shape.width * 0.7;
+		if (shape.points) result.points = shape.points.map(([x, y]) => [badge.cx + (x - badge.cx) * 0.7, badge.cy + (y - badge.cy) * 0.7]);
+		return result;
+	});
+}
+
 function checkGlyph(fill) {
-	return [
+	return smallBadgeGlyph([
 		{ type: "line", x1: 97.5, y1: 33.5, x2: 104.5, y2: 40.5, width: 6.5, cap: "round", fill },
 		{ type: "line", x1: 104.5, y1: 40.5, x2: 119, y2: 25.5, width: 6.5, cap: "round", fill }
-	];
+	]);
 }
 
 function crossGlyph(fill) {
-	return [
+	return smallBadgeGlyph([
 		{ type: "line", x1: 99, y1: 24, x2: 117, y2: 42, width: 6.5, cap: "round", fill },
 		{ type: "line", x1: 117, y1: 24, x2: 99, y2: 42, width: 6.5, cap: "round", fill }
-	];
+	]);
 }
 
 function ellipsisGlyph(fill) {
-	return [-9, 0, 9].map(offset => ({ type: "circle", cx: badge.cx + offset, cy: badge.cy, r: 3.4, fill }));
+	return [-6, 0, 6].map(offset => ({ type: "circle", cx: badge.cx + offset, cy: badge.cy, r: 2.4, fill }));
 }
 
 function gridGlyph(fill) {
-	const tile = 8.6;
-	const gap = 5.6;
+	const tile = 6;
+	const gap = 4;
 	const origin = badge.cx - (tile * 2 + gap) / 2;
 	const top = badge.cy - (tile * 2 + gap) / 2;
 	return [0, 1].flatMap(row =>
@@ -95,7 +106,7 @@ function gridGlyph(fill) {
 }
 
 function boltGlyph(fill) {
-	return [
+	return smallBadgeGlyph([
 		{
 			type: "polygon",
 			points: [
@@ -108,7 +119,7 @@ function boltGlyph(fill) {
 			],
 			fill
 		}
-	];
+	]);
 }
 
 /**
@@ -259,22 +270,10 @@ export const ACTION_ICONS = {
 		]
 	},
 
-	// Stacked layers: scene membership.
+	// Four-pane scene grid, matching VDO.Ninja's scene controls.
 	scene: {
 		size: 24,
-		shapes: [
-			{ type: "polygon", points: [[12, 1.92], [21.6, 7.32], [12, 12.72], [2.4, 7.32]], fill: glyph },
-			{
-				type: "polygon",
-				points: [[4.92, 9.96], [12, 13.92], [19.08, 9.96], [21.6, 11.4], [12, 16.8], [2.4, 11.4]],
-				fill: glyph
-			},
-			{
-				type: "polygon",
-				points: [[4.92, 14.76], [12, 18.72], [19.08, 14.76], [21.6, 16.2], [12, 21.6], [2.4, 16.2]],
-				fill: glyph
-			}
-		]
+		shapes: [3, 14].flatMap(x => [3, 14].map(y => ({ type: "rect", x, y, w: 7, h: 7, r: 1, fill: glyph })))
 	},
 
 	// Console faders: layouts and slot assignment.
@@ -339,7 +338,7 @@ export const COMMAND_ICONS = {
 		{ type: "arc", cx: 11, cy: 12, r: 10, width: 2, from: 315, to: 405, fill: glyph }),
 	record: icon(ring(12,12,9), { type: "circle", cx: 12, cy: 12, r: 5, fill: glyph }),
 	display: icon(line(3,4,21,4),line(3,4,3,17),line(21,4,21,17),line(3,17,21,17),line(12,17,12,21),line(8,21,16,21)),
-	share: icon(line(3,7,3,19),line(3,19,21,19),line(21,19,21,7),line(12,14,12,3),polygon([[7,8],[12,2],[17,8]])),
+	share: icon(line(3,4,12,4),line(3,4,3,17),line(3,17,21,17),line(21,11,21,17),line(12,17,12,21),line(8,21,16,21),line(12,11,21,2),line(15,2,21,2),line(21,2,21,8)),
 	hand: icon(rect(7,9,12,12,5),rect(7,4,2.5,11),rect(10.3,2,2.5,12),rect(13.6,3,2.5,11),rect(17,6,2,10),line(8,17,3,11)),
 	keyframe: icon(line(3,4,21,4),line(3,4,3,20),line(21,4,21,20),line(3,20,21,20),polygon([[9,7],[17,12],[9,17]])),
 	reload: icon({type:"arc",cx:12,cy:12,r:8,width:2.4,from:30,to:315,fill:glyph},polygon([[19,3],[21,11],[13,8]])),
@@ -349,14 +348,27 @@ export const COMMAND_ICONS = {
 	activate: icon({type:"circle",cx:8,cy:7,r:3.5,fill:glyph},rect(2,13,11,9,4),line(14,12,17,15),line(17,15,22,8)),
 	solo: icon(line(2,3,8,3),line(2,3,2,9),line(16,3,22,3),line(22,3,22,9),line(2,15,2,21),line(2,21,8,21),line(16,21,22,21),line(22,15,22,21),{type:"circle",cx:12,cy:9,r:3,fill:glyph},rect(7,14,10,5,2)),
 	talk: icon(line(3,4,21,4),line(3,4,3,16),line(21,4,21,16),line(8,16,21,16),line(3,21,8,16),line(3,16,3,21),line(7,9,17,9)),
-	overlay: icon(rect(2,5,20,14,2),{type:"rect",x:4,y:7,w:16,h:7,fill:colors.slateGlyph}),
+	overlay: icon(line(2,3,16,3),line(2,3,2,15),line(2,15,6,15),line(16,3,16,6),line(8,8,22,8),line(8,8,8,21),line(22,8,22,21),line(8,21,22,21)),
 	pin: icon(rect(7,2,10,3),polygon([[9,5],[15,5],[16,12],[19,15],[5,15],[8,12]]),line(12,15,12,22)),
 	zoom: icon(ring(10,10,6),line(15,15,22,22),line(7,10,13,10),line(10,7,10,13)),
+	"pan-left": icon(line(3,12,21,12),line(3,12,10,5),line(3,12,10,19)),
+	"pan-right": icon(line(3,12,21,12),line(21,12,14,5),line(21,12,14,19)),
+	"tilt-up": icon(line(12,3,12,21),line(12,3,5,10),line(12,3,19,10)),
+	"tilt-down": icon(line(12,3,12,21),line(12,21,5,14),line(12,21,19,14)),
+	"zoom-out": icon(ring(10,10,6),line(15,15,22,22),line(7,10,13,10)),
+	"zoom-absolute": icon(ring(10,10,6),line(15,15,22,22)),
 	pan: icon(line(2,12,22,12),line(2,12,7,7),line(2,12,7,17),line(22,12,17,7),line(22,12,17,17)),
 	tilt: icon(line(12,2,12,22),line(12,2,7,7),line(12,2,17,7),line(12,22,7,17),line(12,22,17,17)),
 	focus: icon(ring(12,12,6),line(2,3,7,3),line(2,3,2,8),line(17,3,22,3),line(22,3,22,8),line(2,16,2,21),line(2,21,7,21),line(17,21,22,21),line(22,16,22,21)),
 	exposure: icon(ring(12,12,5),...Array.from({length:8},(_,i)=>{const a=i*Math.PI/4;return line(12+8*Math.cos(a),12+8*Math.sin(a),12+10*Math.cos(a),12+10*Math.sin(a));})),
 	layout: ACTION_ICONS.scene,
-	slot: icon(...[3,14].flatMap(x=>[3,14].map(y=>rect(x,y,7,7)))),
+	slot: icon(line(3,3,21,3),line(3,3,3,21),line(21,3,21,21),line(3,21,21,21),line(12,3,12,21),line(3,12,21,12),rect(14,14,5,5,0)),
 	volume: ACTION_ICONS.mixer
 };
+
+// The field-colored clearance keeps the mute slash readable across solid glyphs.
+export const OFF_COMMAND_ICONS = Object.fromEntries(["mic", "camera", "speaker"].map(name => [name, icon(
+	...COMMAND_ICONS[name].shapes,
+	{ ...line(3, 3, 21, 21), width: 4.5, fill: colors.redField },
+	line(3, 3, 21, 21)
+)]));

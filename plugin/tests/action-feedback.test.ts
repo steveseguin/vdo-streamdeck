@@ -22,7 +22,14 @@ describe("immediate command feedback", () => {
 
 	it.each([
 		[GuestCommandAction, { command: "forward", target: "1" }, "transfer"],
-		[PtzKeyAction, { control: "pan", scope: "local" }, "pan"],
+		[PtzKeyAction, { control: "pan", scope: "local" }, "pan-right"],
+		[PtzKeyAction, { control: "pan", direction: "negative" }, "pan-left"],
+		[PtzKeyAction, { control: "tilt", direction: "positive" }, "tilt-up"],
+		[PtzKeyAction, { control: "tilt", direction: "negative" }, "tilt-down"],
+		[PtzKeyAction, { control: "pan", mode: "absolute", direction: "negative" }, "pan"],
+		[PtzKeyAction, { control: "tilt", mode: "absolute" }, "tilt"],
+		[PtzKeyAction, { control: "zoom", direction: "negative" }, "zoom-out"],
+		[PtzKeyAction, { control: "zoom", mode: "absolute" }, "zoom-absolute"],
 		[MixerControlAction, { command: "setGuestSlot", target: "1" }, "slot"]
 	] as const)("selects artwork for %s", async (Action, settings, icon) => {
 		const action = key();
