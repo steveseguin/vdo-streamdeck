@@ -15,6 +15,7 @@ Every action targets a VDO.Ninja page opened with `&api=KEY`.
 | Select Guest | Key | Selects a fixed slot/stream, the next or previous guest, the first held guest, or clears the selection. |
 | Guest Command | Key | Guest control targeted by slot, stream ID, selected guest, or first held guest. |
 | Guest Scene | Key | Arbitrary scene ID/name toggles, fixed-scene force on/off, and scene membership feedback. |
+| Guests List | Key | Displays connected guests or the members of one scene, with automatic text sizing and rotation for long lists. |
 | Mixer Control | Key | Layout selection, guest slot assignment, all-guest mute, and a guarded all-guest transfer. |
 | PTZ Key | Key | Local zoom/pan/tilt/focus/exposure and guest zoom/pan/tilt/focus/autofocus. |
 | PTZ Dial | Stream Deck + | Local or guest zoom/pan/tilt/focus, local exposure, and guest autofocus press actions. |
@@ -45,9 +46,15 @@ The build output is `ninja.vdo.streamdeck.sdPlugin/`.
 3. Pick the page to control and enter its room or stream ID.
 4. Open the ready-to-use URL and keep that VDO.Ninja page open.
 5. Press `Test connection`.
-6. Add `Local Control`, `Select Guest`, `Guest Command`, `Guest Scene`, `Mixer Control`, `PTZ Key`, `PTZ Dial`, `Value Dial`, or `Custom Command` actions.
+6. Add `Local Control`, `Select Guest`, `Guest Command`, `Guest Scene`, `Guests List`, `Mixer Control`, `PTZ Key`, `PTZ Dial`, `Value Dial`, or `Custom Command` actions.
 
 The manifest targets the Node 20 runtime bundled with Stream Deck 6.8+; newer local Node versions work for development.
+
+### Guests List
+
+Choose all guests (the default) or a scene ID/name. The list uses the existing API polling interval (5 seconds by default), plus live state updates. Directors, the local stream, and entries without a position in either `getDetails` or `getGuestList` are excluded.
+
+The row template defaults to `{slot} {label}` and also supports `{streamID}`. In scene mode, the header defaults to `Scene {scene}` and also supports `{count}`. Both templates accept multiple lines and preserve multiline spacing. The font shrinks from 24px to 9px based on the number of display lines; long individual lines are truncated. Lists that still exceed the key height rotate every 3 seconds. Rotation stops when the key disappears.
 
 ## No-hardware checks
 

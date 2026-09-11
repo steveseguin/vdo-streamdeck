@@ -61,8 +61,8 @@ export function normalizeGuestsListSettings(settings: Partial<GuestsListSettings
 	return {
 		scope: settings?.scope === "scene" ? "scene" : "all",
 		scene: stringOrEmpty(settings?.scene) || "1",
-		headerTitle: stringOrEmpty(settings?.headerTitle),
-		rowTitle: stringOrEmpty(settings?.rowTitle)
+		headerTitle: titleOrEmpty(settings?.headerTitle),
+		rowTitle: titleOrEmpty(settings?.rowTitle)
 	};
 }
 

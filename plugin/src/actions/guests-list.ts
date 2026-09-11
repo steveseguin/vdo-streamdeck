@@ -1,4 +1,4 @@
-import { action, type KeyAction, SingletonAction, type DidReceiveSettingsEvent, type WillAppearEvent, type WillDisappearEvent } from "@elgato/streamdeck";
+import streamDeck, { action, type KeyAction, SingletonAction, type DidReceiveSettingsEvent, type WillAppearEvent, type WillDisappearEvent } from "@elgato/streamdeck";
 import { normalizeGuestsListSettings } from "../api/settings.js";
 import type { GuestsListSettings, StreamChoice } from "../api/types.js";
 import { sessionStore } from "../services.js";
@@ -38,11 +38,7 @@ export class GuestsListAction extends SingletonAction<GuestsListSettings> {
 	}
 
 	override onWillDisappear(ev: WillDisappearEvent<GuestsListSettings>): void {
-		const timer = this.rotateTimers.get(ev.action.id);
-		if (timer) {
-			clearInterval(timer);
-			this.rotateTimers.delete(ev.action.id);
-		}
+		this.stopRotation(ev.action.id);
 		this.lastLines.delete(ev.action.id);
 	}
 
@@ -57,8 +53,13 @@ export class GuestsListAction extends SingletonAction<GuestsListSettings> {
 
 	private async render(actionContext: KeyAction<GuestsListSettings>, rawSettings?: GuestsListSettings): Promise<void> {
 		const settings = normalizeGuestsListSettings(rawSettings || (await actionContext.getSettings<GuestsListSettings>()));
-		const lines = buildGuestsListLines(settings, sessionStore.getStreamChoices({ includeLocal: false }));
 		const id = actionContext.id;
+		// A settings request can finish after a profile switch. Only the current
+		// visible instance may draw or start a rotation timer for this context.
+		if (streamDeck.actions.getActionById(id) !== actionContext) {
+			return;
+		}
+		const lines = buildGuestsListLines(settings, sessionStore.getStreamChoices({ includeLocal: false, requirePosition: true }));
 		const linesKey = lines.join("\n");
 		// State polls fire every few seconds; skip redraws when nothing changed.
 		if (this.lastLines.get(id) === linesKey) {
@@ -73,7 +74,7 @@ export class GuestsListAction extends SingletonAction<GuestsListSettings> {
 			return;
 		}
 
-		// ponytail: fixed-window page rotation; switch to smooth pixel scroll if it ever feels too coarse.
+		// Rotate windows of display lines, including any template line breaks.
 		let windowIndex = 0;
 		const drawWindow = () => {
 			const windowLines = lines.slice(windowIndex * ROTATE_WINDOW_ROWS, (windowIndex + 1) * ROTATE_WINDOW_ROWS);
@@ -97,7 +98,7 @@ export function buildGuestsListLines(settings: GuestsListSettings, choices: Stre
 	const guests = choices.filter(choice => typeof choice.position === "number" && !choice.director);
 	if (settings.scope !== "scene") {
 		const rows = guests.map(choice => applyGuestsListTemplate(settings.rowTitle || "{slot} {label}", choice));
-		return rows.length ? rows : ["No guests"];
+		return rows.length ? rows.flatMap(row => row.split(/\r\n|\r|\n/)) : ["No guests"];
 	}
 	const scene = settings.scene || "1";
 	const inScene = guests.filter(choice => isSceneMember(choice, scene));
@@ -105,7 +106,8 @@ export function buildGuestsListLines(settings: GuestsListSettings, choices: Stre
 		scene,
 		count: String(inScene.length)
 	});
-	return [header, ...inScene.map(choice => applyGuestsListTemplate(settings.rowTitle || "{slot} {label}", choice))];
+	return [header, ...inScene.map(choice => applyGuestsListTemplate(settings.rowTitle || "{slot} {label}", choice))]
+		.flatMap(row => row.split(/\r\n|\r|\n/));
 }
 
 export function fitGuestsListFont(lineCount: number): number | undefined {

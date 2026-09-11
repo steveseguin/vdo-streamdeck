@@ -24,6 +24,7 @@ await cp(builtPluginRoot, isolatedPluginRoot, { recursive: true });
 
 const apiRequests = [];
 const apiSocketMessages = [];
+let listGuests = {};
 const apiState = {
 	localMuted: false,
 	guestMuted: false,
@@ -48,6 +49,7 @@ const apiServer = createServer((request, response) => {
 	if (action === "getDetails") {
 		response.end(
 			JSON.stringify({
+				...listGuests,
 				local: {
 					streamID: "local",
 					label: "Director",
@@ -121,6 +123,8 @@ const apiPort = apiServer.address().port;
 const streamDeckMessages = [];
 const contextSettings = new Map();
 let streamDeckSocket;
+let holdListSettings = false;
+const pendingListSettings = [];
 const streamDeckServer = new WebSocketServer({ host: "127.0.0.1", port: 0 });
 await onceListening(streamDeckServer);
 streamDeckServer.on("connection", socket => {
@@ -143,6 +147,10 @@ streamDeckServer.on("connection", socket => {
 				}
 			});
 		} else if (message.event === "getSettings") {
+			if (holdListSettings && message.context === "guests-list") {
+				pendingListSettings.push(message);
+				return;
+			}
 			sendToPlugin({
 				action: message.action,
 				context: message.context,
@@ -395,6 +403,56 @@ try {
 	await waitFor(() => apiState.localMuted === false, "push-to-talk press");
 	sendToPlugin({ event: "willDisappear", action: "ninja.vdo.streamdeck.local-control", context: "local-mic", device: "runtime-device", payload: { controller: "Keypad", settings: heldSettings } });
 	await waitFor(() => apiState.localMuted === true, "push-to-talk profile-switch release");
+
+	// Exercise the list through the bundled SDK, including a delayed host
+	// settings response after willDisappear rather than only mocked handlers.
+	listGuests = Object.fromEntries(Array.from({ length: 13 }, (_, index) => [
+		`extra-${index}`, { streamID: `extra-${index}`, label: `Extra ${index}`, position: index + 3, scenes: { custom: true } }
+	]));
+	listGuests.unpositioned = { streamID: "unpositioned", label: "Unpositioned" };
+	listGuests.codirector = { streamID: "codirector", label: "Co-director", director: true, position: 50 };
+	const listUuid = "ninja.vdo.streamdeck.guests-list";
+	const listImages = () => streamDeckMessages.filter(message => message.context === "guests-list" && message.event === "setImage");
+	const listSvg = message => {
+		assert.ok(message.payload.image.startsWith("data:image/svg+xml;base64,"), "List images use SVG data URIs");
+		return Buffer.from(message.payload.image.split(",")[1], "base64").toString("utf8");
+	};
+	const listLines = message => [...listSvg(message).matchAll(/<text[^>]*>(.*?)<\/text>/g)].map(match => match[1]);
+	appear(listUuid, "guests-list", "Keypad", {}, 0);
+	await waitFor(() => listImages().some(message => listLines(message).length === 12), "long guest roster", 5000);
+	await waitFor(() => listImages().some(message => listLines(message).some(line => line.includes("Extra 12"))), "guest roster rotation", 5000);
+	const shownGuests = listImages().flatMap(listLines);
+	assert.ok(!shownGuests.some(line => /Director|Co-director|Unpositioned/.test(line)), "List excludes directors, local streams, and entries without API positions");
+	assert.ok(listSvg(listImages().at(-1)).includes('fill="#1e2532"'), "List uses the neutral slate background");
+
+	const updateList = async settings => {
+		const before = listImages().length;
+		contextSettings.set("guests-list", settings);
+		sendToPlugin({ event: "didReceiveSettings", action: listUuid, context: "guests-list", device: "runtime-device", payload: { settings } });
+		await waitFor(() => listImages().length > before, "guest list settings refresh");
+	};
+	await updateList({ scope: "scene", scene: "custom", headerTitle: "Scene {scene} ({count})" });
+	assert.equal(listLines(listImages().at(-1))[0], "Scene custom (13)", "Named scenes and header counts use current members");
+	await updateList({ scope: "scene", scene: "empty", headerTitle: "Scene\n{scene}\n{count}\n" });
+	assert.deepEqual(listLines(listImages().at(-1)), ["Scene", "empty", "0", ""], "Template newlines and trailing blank lines use separate SVG baselines");
+	const unchangedImages = listImages().length;
+	await delay(800);
+	assert.equal(listImages().length, unchangedImages, "Unchanged list polling does not resend its image");
+
+	await updateList({});
+	holdListSettings = true;
+	await waitFor(() => pendingListSettings.length > 0, "pending Guests List settings request");
+	sendToPlugin({ event: "willDisappear", action: listUuid, context: "guests-list", device: "runtime-device", payload: { controller: "Keypad", settings: {} } });
+	await delay(100);
+	const disappearedImages = listImages().length;
+	for (const request of pendingListSettings) {
+		sendToPlugin({ event: "didReceiveSettings", action: listUuid, context: request.context, device: "runtime-device", payload: { settings: {} } });
+	}
+	await delay(3250);
+	assert.equal(listImages().length, disappearedImages, "Late settings responses must not restart rotation after a key disappears");
+	holdListSettings = false;
+	appear(listUuid, "guests-list", "Keypad", { scope: "scene", scene: "empty" }, 0);
+	await waitFor(() => listImages().length > disappearedImages, "Guests List repaint after reappearing");
 	console.log("streamdeck bundled runtime integration passed: every action type, polling, keys, dials, persistence, readback, and transport");
 } catch (error) {
 	throw new Error(`${error instanceof Error ? error.message : String(error)}\nstdout:\n${stdout}\nstderr:\n${stderr}`);

@@ -53,7 +53,7 @@ export class SessionStore {
 		return this.details.get(streamId);
 	}
 
-	getStreamChoices(options: { includeLocal?: boolean } = {}): StreamChoice[] {
+	getStreamChoices(options: { includeLocal?: boolean; requirePosition?: boolean } = {}): StreamChoice[] {
 		const positions = new Map<string, number>();
 		for (const [position, entry] of this.guestList) {
 			const parsed = parseInt(position, 10);
@@ -80,7 +80,10 @@ export class SessionStore {
 					choice.UUID = stream.UUID;
 				}
 				return choice;
-			});
+			})
+			// Roster displays can require a real API position before guest numbers
+			// are normalized. Existing controls retain their fallback choices.
+			.filter(choice => !options.requirePosition || typeof choice.position === "number");
 
 		choices.sort((left, right) => {
 			if (typeof left.position === "number" && typeof right.position === "number") {
