@@ -30,7 +30,7 @@ export function normalizeLocalControlSettings(settings: Partial<LocalControlSett
 		command: stringOrEmpty(settings?.command) || "mic",
 		behavior: normalizeLocalBehavior(settings?.behavior),
 		dangerousConfirm: settings?.dangerousConfirm !== false,
-		title: stringOrEmpty(settings?.title)
+		title: titleOrEmpty(settings?.title)
 	};
 }
 
@@ -41,7 +41,7 @@ export function normalizeGuestCommandSettings(settings: Partial<GuestCommandSett
 		target: stringOrEmpty(settings?.target),
 		behavior: normalizeBehavior(settings?.behavior),
 		value: stringOrEmpty(settings?.value),
-		title: stringOrEmpty(settings?.title),
+		title: titleOrEmpty(settings?.title),
 		dangerousConfirm: settings?.dangerousConfirm !== false
 	};
 }
@@ -52,7 +52,7 @@ export function normalizeGuestSceneSettings(settings: Partial<GuestSceneSettings
 		target: stringOrEmpty(settings?.target),
 		scene: stringOrEmpty(settings?.scene) || "1",
 		mode: normalizeSceneMode(settings?.mode),
-		title: stringOrEmpty(settings?.title)
+		title: titleOrEmpty(settings?.title)
 	};
 }
 
@@ -61,7 +61,7 @@ export function normalizeSelectGuestSettings(settings: Partial<SelectGuestSettin
 		mode: normalizeSelectMode(settings?.mode),
 		targetMode: normalizeSelectionTargetMode(settings?.targetMode),
 		target: stringOrEmpty(settings?.target),
-		title: stringOrEmpty(settings?.title)
+		title: titleOrEmpty(settings?.title)
 	};
 }
 
@@ -80,7 +80,7 @@ export function normalizePtzKeySettings(settings: Partial<PtzKeySettings> | unde
 		direction: settings?.direction === "negative" ? "negative" : "positive",
 		value: stringOrEmpty(settings?.value) || defaultPtzValue(control),
 		disableAutofocus: settings?.disableAutofocus === true,
-		title: stringOrEmpty(settings?.title)
+		title: titleOrEmpty(settings?.title)
 	};
 }
 
@@ -105,7 +105,7 @@ export function normalizePtzDialSettings(settings: Partial<PtzDialSettings> | un
 		invert: settings?.invert === true,
 		pushAction,
 		disableAutofocus: settings?.disableAutofocus === true,
-		title: stringOrEmpty(settings?.title)
+		title: titleOrEmpty(settings?.title)
 	};
 }
 
@@ -118,7 +118,7 @@ export function normalizeMixerControlSettings(settings: Partial<MixerControlSett
 		slot: normalizeNumberString(settings?.slot, "1"),
 		muteBehavior: normalizeMixerMuteBehavior(settings?.muteBehavior),
 		transferRoom: stringOrEmpty(settings?.transferRoom),
-		title: stringOrEmpty(settings?.title),
+		title: titleOrEmpty(settings?.title),
 		dangerousConfirm: settings?.dangerousConfirm !== false
 	};
 }
@@ -142,7 +142,7 @@ export function normalizeValueDialSettings(settings: Partial<ValueDialSettings> 
 		invert: settings?.invert === true,
 		pushAction: normalizeValueDialPushAction(settings?.pushAction),
 		bufferApply: settings?.bufferApply === "default" ? "default" : "all",
-		title: stringOrEmpty(settings?.title)
+		title: titleOrEmpty(settings?.title)
 	};
 }
 
@@ -152,7 +152,7 @@ export function normalizeCustomCommandSettings(settings: Partial<CustomCommandSe
 		target: emptyToUndefined(settings?.target),
 		value: emptyToUndefined(settings?.value),
 		value2: emptyToUndefined(settings?.value2),
-		title: stringOrEmpty(settings?.title),
+		title: titleOrEmpty(settings?.title),
 		awaitCallback: settings?.awaitCallback !== false
 	};
 }
@@ -273,6 +273,15 @@ function normalizeSceneMode(value: unknown): GuestSceneSettings["mode"] {
 		return value;
 	}
 	return "toggle";
+}
+
+function titleOrEmpty(value: unknown): string {
+	if (typeof value !== "string") {
+		return "";
+	}
+	const trimmed = value.trim();
+	// Preserve multiline title spacing; keep existing single-line and empty-title defaults.
+	return trimmed && /[\r\n]/.test(value) ? value : trimmed;
 }
 
 function stringOrEmpty(value: unknown): string {
