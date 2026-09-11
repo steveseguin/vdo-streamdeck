@@ -531,7 +531,7 @@
       </select>
     </div>
     <label for="localTitle">Title override</label>
-    <input id="localTitle" type="text" placeholder="Optional">
+    <textarea id="localTitle" rows="4" spellcheck="false" placeholder="Optional"></textarea>
     <label id="localDangerGroup" class="inline" for="dangerousConfirm">
       <input id="dangerousConfirm" type="checkbox" checked>
       Double-press dangerous actions
@@ -602,8 +602,8 @@
     </div>
 
     <label for="guestTitle">Title template</label>
-    <input id="guestTitle" type="text" placeholder="{slot} {label} {command} {state}">
-    <div class="hint">Tokens: <code>{slot}</code> <code>{label}</code> <code>{streamID}</code> <code>{command}</code> <code>{state}</code></div>
+    <textarea id="guestTitle" rows="4" spellcheck="false" placeholder="{slot} {label} {command} {state}"></textarea>
+    <div class="hint">Tokens: <code>{slot}</code> <code>{label}</code> <code>{streamID}</code> <code>{command}</code> <code>{state}</code> Press Enter for a new line.</div>
 
     <div id="guestCompatibilityHint" class="hint hidden"></div>
 
@@ -653,8 +653,8 @@
     <input id="currentSelectedTarget" type="text" readonly>
 
     <label for="selectTitle">Title template</label>
-    <input id="selectTitle" type="text" placeholder="{slot} {label} {streamID} {state}">
-    <div class="hint">Guest Command and Guest Scene actions can use target mode <code>Selected guest</code>. Tokens: <code>{slot}</code> <code>{label}</code> <code>{streamID}</code> <code>{mode}</code> <code>{state}</code></div>
+    <textarea id="selectTitle" rows="4" spellcheck="false" placeholder="{slot} {label} {streamID} {state}"></textarea>
+    <div class="hint">Guest Command and Guest Scene actions can use target mode <code>Selected guest</code>. Tokens: <code>{slot}</code> <code>{label}</code> <code>{streamID}</code> <code>{mode}</code> <code>{state}</code> Press Enter for a new line. Newlines render as line breaks on the key.</div>
   </section>
 
   <section id="guestSceneSettings" class="hidden">
@@ -696,8 +696,8 @@
     <div class="hint">Toggle works with all supported VDO.Ninja versions. On/off uses legacy fixed-scene commands; named scenes need live scene feedback so the plugin can toggle only when required.</div>
 
     <label for="sceneTitle">Title template</label>
-    <input id="sceneTitle" type="text" placeholder="{slot} {label} Scene {scene} {state}">
-    <div class="hint">Tokens: <code>{slot}</code> <code>{label}</code> <code>{streamID}</code> <code>{scene}</code> <code>{state}</code></div>
+    <textarea id="sceneTitle" rows="4" spellcheck="false" placeholder="{slot} {label} Scene {scene} {state}"></textarea>
+    <div class="hint">Tokens: <code>{slot}</code> <code>{label}</code> <code>{streamID}</code> <code>{scene}</code> <code>{state}</code> Press Enter for a new line.</div>
   </section>
 
   <section id="mixerSettings" class="hidden">
@@ -762,8 +762,8 @@
     </div>
 
     <label for="mixerTitle">Title template</label>
-    <input id="mixerTitle" type="text" placeholder="{slot} {label} {destinationSlot}">
-    <div class="hint">Slot assignment tokens: <code>{slot}</code> <code>{label}</code> <code>{streamID}</code> <code>{destinationSlot}</code></div>
+    <textarea id="mixerTitle" rows="4" spellcheck="false" placeholder="{slot} {label} {destinationSlot}"></textarea>
+    <div class="hint">Slot assignment tokens: <code>{slot}</code> <code>{label}</code> <code>{streamID}</code> <code>{destinationSlot}</code> Press Enter for a new line.</div>
 
     <label class="inline" for="mixerDangerousConfirm">
       <input id="mixerDangerousConfirm" type="checkbox" checked>
@@ -840,8 +840,8 @@
     </label>
 
     <label for="ptzTitle">Title template</label>
-    <input id="ptzTitle" type="text" placeholder="{slot} {label} {control} {direction}">
-    <div class="hint">Relative values are signed deltas. Absolute values use <code>value2=abs</code>. Guest exposure and local autofocus are blocked because VDO.Ninja does not expose those command paths today.</div>
+    <textarea id="ptzTitle" rows="4" spellcheck="false" placeholder="{slot} {label} {control} {direction}"></textarea>
+    <div class="hint">Relative values are signed deltas. Absolute values use <code>value2=abs</code>. Guest exposure and local autofocus are blocked because VDO.Ninja does not expose those command paths today. Press Enter for a new line.</div>
   </section>
 
   <section id="ptzDialSettings" class="hidden">
@@ -917,8 +917,8 @@
     </select>
 
     <label for="ptzDialTitle">Title template</label>
-    <input id="ptzDialTitle" type="text" placeholder="{slot} {label} {control} {status}">
-    <div class="hint">Dial turns send relative PTZ deltas, accumulated and rate-limited before sending to VDO.Ninja. Guest exposure is blocked because VDO.Ninja does not expose a remote exposure command today.</div>
+    <textarea id="ptzDialTitle" rows="4" spellcheck="false" placeholder="{slot} {label} {control} {status}"></textarea>
+    <div class="hint">Dial turns send relative PTZ deltas, accumulated and rate-limited before sending to VDO.Ninja. Guest exposure is blocked because VDO.Ninja does not expose a remote exposure command today. Press Enter for a new line.</div>
   </section>
 
   <section id="valueDialSettings" class="hidden">
@@ -1012,8 +1012,8 @@
     </select>
 
     <label for="valueDialTitle">Title template</label>
-    <input id="valueDialTitle" type="text" placeholder="{slot} {label} {control} {value}{unit}">
-    <div class="hint">Local volume is 0-100 percent; guest volume can boost up to 200 percent. Panning is 0-180, bitrate is kbps, and buffer delay is milliseconds. Buffer delay uses VDO.Ninja's <code>value2</code> target path, so this first pass supports default or all-stream local buffer control.</div>
+    <textarea id="valueDialTitle" rows="4" spellcheck="false" placeholder="{slot} {label} {control} {value}{unit}"></textarea>
+    <div class="hint">Local volume is 0-100 percent; guest volume can boost up to 200 percent. Panning is 0-180, bitrate is kbps, and buffer delay is milliseconds. Buffer delay uses VDO.Ninja's <code>value2</code> target path, so this first pass supports default or all-stream local buffer control. Press Enter for a new line.</div>
   </section>
 
   <section id="customSettings" class="hidden">
@@ -1027,7 +1027,7 @@
     <label for="customValue2">Value2</label>
     <textarea id="customValue2" placeholder="Optional secondary value"></textarea>
     <label for="customTitle">Title override</label>
-    <input id="customTitle" type="text" placeholder="Optional">
+    <textarea id="customTitle" rows="4" spellcheck="false" placeholder="Optional"></textarea>
     <label class="inline" for="awaitCallback">
       <input id="awaitCallback" type="checkbox" checked>
       Wait for callback
@@ -1585,7 +1585,7 @@
         actionSettings = {
           command,
           behavior,
-          title: byId("localTitle").value.trim(),
+          title: byId("localTitle").value,
           dangerousConfirm: byId("dangerousConfirm").checked
         };
         renderLocalSettings();
@@ -1596,7 +1596,7 @@
           mode: byId("selectMode").value,
           targetMode,
           target: targetMode === "slot" ? byId("selectSlot").value.trim() || "1" : targetMode === "streamId" ? manualStream || byId("selectStreamId").value : "",
-          title: byId("selectTitle").value.trim()
+          title: byId("selectTitle").value
         };
         renderSelectGuestSettings();
       } else if (actionUuid === "ninja.vdo.streamdeck.guest-command") {
@@ -1608,7 +1608,7 @@
           target: targetMode === "slot" ? byId("guestSlot").value.trim() || "1" : targetMode === "streamId" ? manualStream || byId("guestStreamId").value : "",
           behavior: byId("guestBehavior").value,
           value: byId("guestValue").value.trim(),
-          title: byId("guestTitle").value.trim(),
+          title: byId("guestTitle").value,
           dangerousConfirm: byId("guestDangerousConfirm").checked
         };
         renderGuestSettings();
@@ -1620,7 +1620,7 @@
           target: targetMode === "slot" ? byId("sceneSlot").value.trim() || "1" : targetMode === "streamId" ? manualStream || byId("sceneStreamId").value : "",
           scene: byId("sceneName").value.trim() || "1",
           mode: byId("sceneMode").value,
-          title: byId("sceneTitle").value.trim()
+          title: byId("sceneTitle").value
         };
         renderGuestSceneSettings();
       } else if (actionUuid === "ninja.vdo.streamdeck.mixer-control") {
@@ -1635,7 +1635,7 @@
           slot: byId("mixerDestinationSlot").value.trim() || "1",
           muteBehavior: byId("mixerMuteBehavior").value,
           transferRoom: byId("mixerTransferRoom").value.trim(),
-          title: byId("mixerTitle").value.trim(),
+          title: byId("mixerTitle").value,
           dangerousConfirm: byId("mixerDangerousConfirm").checked
         };
         renderMixerSettings();
@@ -1661,7 +1661,7 @@
           direction: byId("ptzDirection").value,
           value: byId("ptzValue").value.trim(),
           disableAutofocus: byId("ptzDisableAutofocus").checked,
-          title: byId("ptzTitle").value.trim()
+          title: byId("ptzTitle").value
         };
         renderPtzKeySettings();
       } else if (actionUuid === "ninja.vdo.streamdeck.ptz-dial") {
@@ -1689,7 +1689,7 @@
           acceleration: byId("ptzDialAcceleration").checked,
           disableAutofocus: byId("ptzDialDisableAutofocus").checked,
           pushAction,
-          title: byId("ptzDialTitle").value.trim()
+          title: byId("ptzDialTitle").value
         };
         renderPtzDialSettings();
       } else if (actionUuid === "ninja.vdo.streamdeck.value-dial") {
@@ -1726,7 +1726,7 @@
           invert: byId("valueDialInvert").checked,
           acceleration: byId("valueDialAcceleration").checked,
           pushAction: byId("valueDialPushAction").value,
-          title: byId("valueDialTitle").value.trim()
+          title: byId("valueDialTitle").value
         };
         renderValueDialSettings();
       } else if (actionUuid === "ninja.vdo.streamdeck.custom-command") {
@@ -1735,7 +1735,7 @@
           target: byId("customTarget").value.trim(),
           value: byId("customValue").value.trim(),
           value2: byId("customValue2").value.trim(),
-          title: byId("customTitle").value.trim(),
+          title: byId("customTitle").value,
           awaitCallback: byId("awaitCallback").checked
         };
       } else {

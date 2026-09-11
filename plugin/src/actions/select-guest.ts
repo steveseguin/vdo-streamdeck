@@ -123,7 +123,7 @@ function choiceForStreamID(streamID: string): StreamChoice {
 	};
 }
 
-function renderSelectTitle(
+export function renderSelectTitle(
 	settings: SelectGuestSettings,
 	choice: StreamChoice | undefined,
 	selectedID: string | null,

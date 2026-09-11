@@ -36,6 +36,23 @@ describe("property inspector contract", () => {
 		}
 	});
 
+	it("renders every title template as a multi-line field", () => {
+		for (const id of [
+			"localTitle",
+			"selectTitle",
+			"guestTitle",
+			"sceneTitle",
+			"mixerTitle",
+			"ptzTitle",
+			"ptzDialTitle",
+			"valueDialTitle",
+			"customTitle"
+		]) {
+			expect(inspector, `${id} is not a textarea`).toMatch(new RegExp(`<textarea\\b[^>]*\\bid="${id}"`, "i"));
+			expect(inspector, `${id} is too short`).toMatch(new RegExp(`<textarea\\b[^>]*\\bid="${id}"[^>]*\\brows="[3-9]\\d*"`, "i"));
+		}
+	});
+
 	it("renders settings for every manifest action", () => {
 		for (const action of manifest.Actions) {
 			expect(inspector).toContain(action.UUID);
