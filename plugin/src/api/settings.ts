@@ -3,6 +3,7 @@ import type {
 	GlobalSettings,
 	GuestCommandSettings,
 	GuestSceneSettings,
+	GuestsListSettings,
 	GuestTargetMode,
 	LocalControlSettings,
 	MixerControlSettings,
@@ -53,6 +54,15 @@ export function normalizeGuestSceneSettings(settings: Partial<GuestSceneSettings
 		scene: stringOrEmpty(settings?.scene) || "1",
 		mode: normalizeSceneMode(settings?.mode),
 		title: titleOrEmpty(settings?.title)
+	};
+}
+
+export function normalizeGuestsListSettings(settings: Partial<GuestsListSettings> | undefined): GuestsListSettings {
+	return {
+		scope: settings?.scope === "scene" ? "scene" : "all",
+		scene: stringOrEmpty(settings?.scene) || "1",
+		headerTitle: stringOrEmpty(settings?.headerTitle),
+		rowTitle: stringOrEmpty(settings?.rowTitle)
 	};
 }
 

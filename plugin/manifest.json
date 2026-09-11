@@ -155,6 +155,24 @@
       "UserTitleEnabled": false
     },
     {
+      "UUID": "ninja.vdo.streamdeck.guests-list",
+      "Name": "Guests List",
+      "Tooltip": "Show the connected VDO.Ninja guests with auto-scaling text, optionally filtered to one scene.",
+      "Icon": "imgs/actions/guest",
+      "Controllers": [
+        "Keypad"
+      ],
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Name": "List",
+          "Image": "imgs/guest-off",
+          "ShowTitle": false
+        }
+      ],
+      "UserTitleEnabled": false
+    },
+    {
       "UUID": "ninja.vdo.streamdeck.mixer-control",
       "Name": "Mixer Control",
       "Tooltip": "Control VDO.Ninja mixer layouts, guest slots, all-guest mute, and all-guest transfer.",

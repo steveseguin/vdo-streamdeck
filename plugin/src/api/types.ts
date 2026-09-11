@@ -127,6 +127,13 @@ export interface GuestSceneSettings extends JsonObject {
 	title?: string;
 }
 
+export interface GuestsListSettings extends JsonObject {
+	scope?: "all" | "scene";
+	scene?: string;
+	headerTitle?: string;
+	rowTitle?: string;
+}
+
 export interface SelectGuestSettings extends JsonObject {
 	mode?: "fixed" | "next" | "previous" | "firstHeld" | "clear";
 	targetMode?: Exclude<GuestTargetMode, "selected">;

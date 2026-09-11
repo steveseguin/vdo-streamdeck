@@ -700,6 +700,28 @@
     <div class="hint">Tokens: <code>{slot}</code> <code>{label}</code> <code>{streamID}</code> <code>{scene}</code> <code>{state}</code> Press Enter for a new line.</div>
   </section>
 
+  <section id="guestsListSettings" class="hidden">
+    <h2>Guests List</h2>
+    <label for="guestsListScope">Show</label>
+    <select id="guestsListScope">
+      <option value="all">All connected guests</option>
+      <option value="scene">Scene</option>
+    </select>
+
+    <div id="guestsListSceneGroup" class="hidden">
+      <label for="guestsListScene">Scene ID or name</label>
+      <input id="guestsListScene" type="text" list="sceneChoices" placeholder="1 or custom-scene">
+    </div>
+
+    <label for="guestsListHeader">Header template</label>
+    <textarea id="guestsListHeader" rows="4" spellcheck="false" placeholder="Scene {scene}"></textarea>
+    <div class="hint">Scene mode only. Tokens: <code>{scene}</code> <code>{count}</code></div>
+
+    <label for="guestsListRow">Row template</label>
+    <textarea id="guestsListRow" rows="4" spellcheck="false" placeholder="{slot} {label}"></textarea>
+    <div class="hint">One row per guest. Tokens: <code>{slot}</code> <code>{label}</code> <code>{streamID}</code> Text auto-scales; long lists rotate.</div>
+  </section>
+
   <section id="mixerSettings" class="hidden">
     <h2>Mixer Control</h2>
     <label for="mixerCommand">Control</label>
@@ -1142,6 +1164,7 @@
       byId("selectGuestSettings").classList.toggle("hidden", actionUuid !== "ninja.vdo.streamdeck.select-guest");
       byId("guestSettings").classList.toggle("hidden", actionUuid !== "ninja.vdo.streamdeck.guest-command");
       byId("guestSceneSettings").classList.toggle("hidden", actionUuid !== "ninja.vdo.streamdeck.guest-scene");
+      byId("guestsListSettings").classList.toggle("hidden", actionUuid !== "ninja.vdo.streamdeck.guests-list");
       byId("mixerSettings").classList.toggle("hidden", actionUuid !== "ninja.vdo.streamdeck.mixer-control");
       byId("ptzKeySettings").classList.toggle("hidden", actionUuid !== "ninja.vdo.streamdeck.ptz-key");
       byId("ptzDialSettings").classList.toggle("hidden", actionUuid !== "ninja.vdo.streamdeck.ptz-dial");
@@ -1193,6 +1216,13 @@
           byId("sceneSlot").value = actionSettings.target || "1";
         }
         renderGuestSceneSettings();
+        sendToPlugin({ type: "requestTargets" });
+      } else if (actionUuid === "ninja.vdo.streamdeck.guests-list") {
+        byId("guestsListScope").value = actionSettings.scope || "all";
+        byId("guestsListScene").value = actionSettings.scene || "1";
+        byId("guestsListHeader").value = actionSettings.headerTitle || "";
+        byId("guestsListRow").value = actionSettings.rowTitle || "";
+        renderGuestsListSettings();
         sendToPlugin({ type: "requestTargets" });
       } else if (actionUuid === "ninja.vdo.streamdeck.mixer-control") {
         byId("mixerCommand").value = actionSettings.command || "layout";
@@ -1336,6 +1366,16 @@
         "sceneName",
         "sceneMode",
         "sceneTitle"
+      ].forEach(id => {
+        byId(id).oninput = saveAction;
+        byId(id).onchange = saveAction;
+      });
+
+      [
+        "guestsListScope",
+        "guestsListScene",
+        "guestsListHeader",
+        "guestsListRow"
       ].forEach(id => {
         byId(id).oninput = saveAction;
         byId(id).onchange = saveAction;
@@ -1623,6 +1663,14 @@
           title: byId("sceneTitle").value
         };
         renderGuestSceneSettings();
+      } else if (actionUuid === "ninja.vdo.streamdeck.guests-list") {
+        actionSettings = {
+          scope: byId("guestsListScope").value,
+          scene: byId("guestsListScene").value.trim() || "1",
+          headerTitle: byId("guestsListHeader").value,
+          rowTitle: byId("guestsListRow").value
+        };
+        renderGuestsListSettings();
       } else if (actionUuid === "ninja.vdo.streamdeck.mixer-control") {
         const command = byId("mixerCommand").value;
         const targetMode = byId("mixerTargetMode").value;
@@ -1849,6 +1897,11 @@
       const mode = byId("sceneTargetMode").value || "slot";
       byId("sceneSlotGroup").classList.toggle("hidden", mode !== "slot");
       byId("sceneStreamGroup").classList.toggle("hidden", mode !== "streamId");
+      renderSceneChoices();
+    }
+
+    function renderGuestsListSettings() {
+      byId("guestsListSceneGroup").classList.toggle("hidden", byId("guestsListScope").value !== "scene");
       renderSceneChoices();
     }
 
