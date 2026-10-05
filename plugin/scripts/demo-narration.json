@@ -1,0 +1,40 @@
+{
+	"voice": "af_heart",
+	"speed": 1.0,
+	"lines": [
+		{
+			"id": "intro",
+			"text": "VDO.Ninja for Stream Deck lets you run your show from Stream Deck keys and dials. No account, and no extra software.",
+			"say": "V D O Ninja for Stream Deck lets you run your show from Stream Deck keys and dials. No account, and no extra software."
+		},
+		{
+			"id": "connect",
+			"text": "Open your VDO.Ninja page with an API key, and the plugin connects to it. The status key turns green, and the guest list fills in.",
+			"say": "Open your V D O Ninja page with an A P I key, and the plugin connects to it. The status key turns green, and the guest list fills in."
+		},
+		{
+			"id": "mic",
+			"text": "Press a guest's mic key to mute them. The key turns red, and the director page updates right away. Press it again to unmute."
+		},
+		{
+			"id": "camera",
+			"text": "Camera keys work the same way. Turn Bob's video off, and back on."
+		},
+		{
+			"id": "scene",
+			"text": "Scene keys add a guest to a scene, and stay lit while they're in it."
+		},
+		{
+			"id": "select",
+			"text": "Select Guest picks who your other keys control. Choose Bob, and the Selected Guest mic key now mutes Bob."
+		},
+		{
+			"id": "hangup",
+			"text": "Risky actions, like hanging up, ask for a second press. Press again, and Bob leaves. The guest list updates on its own."
+		},
+		{
+			"id": "outro",
+			"text": "Get the free plugin from GitHub, add the Connection Status key, and click Generate secure key to start."
+		}
+	]
+}

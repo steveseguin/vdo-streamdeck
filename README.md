@@ -2,11 +2,11 @@
 
 Control VDO.Ninja microphones, cameras, guests, scenes, and audio from Stream Deck keys and dials. No VDO.Ninja account or Companion installation needed.
 
-[Download the plugin](https://github.com/steveseguin/vdo-streamdeck/releases/latest) · [Setup guide](docs/getting-started.md)
+[Download the plugin](https://github.com/steveseguin/vdo-streamdeck/releases/latest) · [Setup guide](docs/getting-started.md) · [Website](https://steveseguin.github.io/vdo-streamdeck/)
 
 ![Stream Deck keys muting a guest, turning off a camera, toggling a scene, selecting a guest, and hanging up, with the VDO.Ninja director page updating live](docs/assets/demo.gif)
 
-The plugin controlling a live director room with two test guests. The keys on the left show exactly what the plugin draws. [Watch the full-quality video (MP4)](docs/assets/demo.mp4).
+The plugin controlling a live director room with two test guests. The keys on the left show exactly what the plugin draws. [Watch the narrated video with sound](https://steveseguin.github.io/vdo-streamdeck/) or [download the MP4](docs/assets/demo.mp4).
 
 ## Install and connect
 

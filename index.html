@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>VDO.Ninja for Stream Deck</title>
+	<meta name="description" content="Free Stream Deck plugin for VDO.Ninja. Mute guests, switch scenes, move PTZ cameras, and adjust audio from Stream Deck keys and dials, with live feedback on every key.">
+	<meta property="og:title" content="VDO.Ninja for Stream Deck">
+	<meta property="og:description" content="Run your VDO.Ninja show from Stream Deck keys and dials. Free, no account needed.">
+	<meta property="og:image" content="https://steveseguin.github.io/vdo-streamdeck/docs/assets/demo-poster.jpg">
+	<meta property="og:type" content="website">
+	<meta name="twitter:card" content="summary_large_image">
+	<link rel="icon" href="plugin/imgs/plugin.svg" type="image/svg+xml">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+	<style>
+		:root {
+			--bg: #0b0d12;
+			--bg-raised: #12151c;
+			--surface: #161a22;
+			--surface-2: #1c212b;
+			--border: #262c38;
+			--text: #eef2f8;
+			--text-2: #b4bdcc;
+			--muted: #808b9e;
+			--brand: #35d07f;
+			--brand-strong: #2bb56c;
+			--brand-ink: #062a17;
+			--tile: #1e2532;
+			--focus: #6cb4ff;
+			--shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+			color-scheme: dark;
+		}
+		@media (prefers-color-scheme: light) {
+			:root:not([data-theme="dark"]) {
+				--bg: #f6f7f9;
+				--bg-raised: #ffffff;
+				--surface: #ffffff;
+				--surface-2: #eef1f5;
+				--border: #dde2ea;
+				--text: #121722;
+				--text-2: #3d4757;
+				--muted: #667085;
+				--brand: #138a4d;
+				--brand-strong: #0f7340;
+				--brand-ink: #ffffff;
+				--focus: #1d6fd6;
+				--shadow: 0 20px 50px rgba(16, 24, 40, 0.14);
+				color-scheme: light;
+			}
+		}
+		:root[data-theme="light"] {
+			--bg: #f6f7f9; --bg-raised: #ffffff; --surface: #ffffff; --surface-2: #eef1f5; --border: #dde2ea;
+			--text: #121722; --text-2: #3d4757; --muted: #667085; --brand: #138a4d; --brand-strong: #0f7340; --brand-ink: #ffffff;
+			--focus: #1d6fd6; --shadow: 0 20px 50px rgba(16, 24, 40, 0.14); color-scheme: light;
+		}
+
+		* { box-sizing: border-box; }
+		html { scroll-behavior: smooth; }
+		body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 Inter, "Segoe UI", system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+		a { color: inherit; }
+		img { max-width: 100%; display: block; }
+		:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 6px; }
+		.wrap { width: min(1140px, 100% - 32px); margin: 0 auto; }
+
+		/* Header */
+		header { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+		.bar { display: flex; align-items: center; justify-content: space-between; height: 64px; gap: 16px; }
+		.logo { display: flex; align-items: center; gap: 10px; font-weight: 700; white-space: nowrap; text-decoration: none; letter-spacing: -0.01em; }
+		.logo img { width: 30px; height: 30px; border-radius: 8px; }
+		nav { display: flex; align-items: center; gap: 6px; }
+		nav a { text-decoration: none; color: var(--text-2); font-size: 14px; font-weight: 500; padding: 8px 12px; border-radius: 8px; }
+		nav a:hover { color: var(--text); background: var(--surface-2); }
+
+		/* Buttons */
+		.btn { display: inline-flex; align-items: center; gap: 10px; padding: 13px 22px; border-radius: 12px; font-weight: 650; font-size: 16px; text-decoration: none; border: 1px solid transparent; transition: background 120ms ease, transform 120ms ease; }
+		.btn:active { transform: translateY(1px); }
+		.btn-primary { background: var(--brand); color: var(--brand-ink); }
+		.btn-primary:hover { background: var(--brand-strong); }
+		.btn-secondary { background: var(--surface); color: var(--text); border-color: var(--border); }
+		.btn-secondary:hover { background: var(--surface-2); }
+		.btn svg { width: 18px; height: 18px; flex: none; }
+		nav .btn { padding: 8px 14px; font-size: 14px; border-radius: 10px; }
+
+		/* Hero */
+		.hero { padding: 72px 0 40px; text-align: center; }
+		.eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: var(--surface-2); color: var(--text-2); font-size: 13px; font-weight: 600; }
+		.eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--brand); }
+		h1 { font-size: clamp(36px, 6vw, 64px); line-height: 1.04; letter-spacing: -0.035em; margin: 20px auto 18px; max-width: 17ch; text-wrap: balance; font-weight: 800; }
+		h1 em { font-style: normal; color: var(--brand); white-space: nowrap; }
+		.lede { font-size: clamp(17px, 2.2vw, 20px); color: var(--text-2); max-width: 640px; margin: 0 auto 30px; }
+		.cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+		.fine { margin-top: 16px; font-size: 13px; color: var(--muted); }
+		.video { margin: 48px auto 0; max-width: 1040px; border-radius: 18px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow); background: #000; aspect-ratio: 16 / 9; }
+		.video video { width: 100%; height: 100%; display: block; }
+		.video-note { margin-top: 12px; font-size: 13px; color: var(--muted); }
+
+		/* Sections */
+		section { padding: 72px 0; scroll-margin-top: 64px; }
+		.section-head { max-width: 640px; margin-bottom: 36px; }
+		.kicker { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand); margin: 0 0 10px; }
+		h2 { font-size: clamp(28px, 4vw, 40px); line-height: 1.12; letter-spacing: -0.025em; margin: 0 0 12px; font-weight: 750; }
+		.section-head p { color: var(--text-2); margin: 0; font-size: 17px; }
+		.band { background: var(--bg-raised); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+		/* Actions grid */
+		.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+		.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+		.card h3 { font-size: 16px; margin: 14px 0 6px; font-weight: 650; }
+		.card p { margin: 0; color: var(--text-2); font-size: 14.5px; line-height: 1.55; }
+		.tile { width: 44px; height: 44px; border-radius: 11px; background: var(--tile); display: grid; place-items: center; }
+		.tile img { width: 24px; height: 24px; }
+
+		/* Steps */
+		.steps { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+		.steps > *, .showcase > * { min-width: 0; }
+		.step-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 22px; counter-reset: step; }
+		.step-list li { display: grid; grid-template-columns: 40px 1fr; gap: 16px; counter-increment: step; }
+		.step-list li::before { content: counter(step); width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--brand); color: var(--brand-ink); font-weight: 750; }
+		.step-list h3 { margin: 6px 0 4px; font-size: 18px; }
+		.step-list p { margin: 0; color: var(--text-2); }
+		kbd, .ui { font: 600 0.92em Inter, system-ui, sans-serif; background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 1px 7px; overflow-wrap: anywhere; }
+		.shot { border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; background: #1d2129; justify-self: center; width: 100%; max-width: min(420px, 100%); height: auto; }
+
+		/* Feedback showcase */
+		.showcase { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center; }
+		.showcase .shot { max-width: 100%; background: transparent; }
+		.checks { list-style: none; padding: 0; margin: 22px 0 0; display: grid; gap: 12px; }
+		.checks li { display: grid; grid-template-columns: 22px 1fr; gap: 12px; color: var(--text-2); }
+		.checks svg { width: 22px; height: 22px; color: var(--brand); margin-top: 2px; }
+
+		/* FAQ */
+		.faq { display: grid; gap: 10px; max-width: 820px; }
+		details { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 0 20px; }
+		summary { cursor: pointer; list-style: none; padding: 18px 0; font-weight: 650; display: flex; justify-content: space-between; gap: 16px; }
+		summary::-webkit-details-marker { display: none; }
+		summary::after { content: "+"; color: var(--muted); font-size: 22px; line-height: 1; }
+		details[open] summary::after { content: "−"; }
+		details p { margin: 0 0 18px; color: var(--text-2); }
+
+		/* Final call to action */
+		.final { text-align: center; padding: 88px 0; }
+		.final h2 { margin-bottom: 14px; }
+		.final p { color: var(--text-2); margin: 0 auto 28px; max-width: 520px; font-size: 17px; }
+
+		footer { border-top: 1px solid var(--border); padding: 28px 0 40px; color: var(--muted); font-size: 14px; }
+		.foot { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+		.foot nav a { padding: 4px 8px; }
+
+		@media (max-width: 860px) {
+			.steps, .showcase { grid-template-columns: 1fr; gap: 32px; }
+			.hide-sm { display: none; }
+			.hero { padding-top: 48px; }
+			section { padding: 56px 0; }
+		}
+		@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+	</style>
+</head>
+<body>
+	<header>
+		<div class="wrap bar">
+			<a class="logo" href="#top" aria-label="VDO.Ninja for Stream Deck, top of page"><img src="plugin/imgs/plugin.svg" alt="">VDO.Ninja for Stream Deck</a>
+			<nav aria-label="Main">
+				<a class="hide-sm" href="#actions">Actions</a>
+				<a class="hide-sm" href="#setup">Setup</a>
+				<a class="hide-sm" href="#faq">FAQ</a>
+				<a class="hide-sm" href="https://github.com/steveseguin/vdo-streamdeck">GitHub</a>
+				<a class="btn btn-primary download-link" href="https://github.com/steveseguin/vdo-streamdeck/releases/latest">Download</a>
+			</nav>
+		</div>
+	</header>
+
+	<main id="top">
+		<div class="wrap hero">
+			<span class="eyebrow"><span class="dot" aria-hidden="true"></span>Free plugin · Beta · <span class="version-label">Latest release</span></span>
+			<h1>Run your VDO.Ninja show from <em>Stream Deck</em></h1>
+			<p class="lede">Mute guests, switch scenes, move PTZ cameras, and adjust audio from Stream Deck keys and dials. Every key shows live state from your VDO.Ninja page. No account, and no extra software.</p>
+			<div class="cta">
+				<a class="btn btn-primary download-link" href="https://github.com/steveseguin/vdo-streamdeck/releases/latest">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16"/></svg>
+					<span>Download the plugin</span>
+				</a>
+				<a class="btn btn-secondary" href="https://github.com/steveseguin/vdo-streamdeck/blob/main/docs/getting-started.md">Setup guide</a>
+			</div>
+			<p class="fine">Windows 10+ or macOS 12+ · Stream Deck app 6.8+ · Works with Stream Deck hardware and Stream Deck Mobile</p>
+
+			<div class="video">
+				<video controls playsinline preload="metadata" poster="docs/assets/demo-poster.jpg" aria-label="Narrated demo: Stream Deck keys controlling a live VDO.Ninja director room">
+					<source src="docs/assets/demo.mp4" type="video/mp4">
+					<a href="docs/assets/demo.mp4">Watch the demo video (MP4)</a>
+				</video>
+			</div>
+			<p class="video-note">Narrated, with captions. Recorded live: the plugin controls a real director room with two test guests.</p>
+		</div>
+
+		<section id="actions" class="band">
+			<div class="wrap">
+				<div class="section-head">
+					<p class="kicker">What you can control</p>
+					<h2>One plugin, the whole control surface</h2>
+					<p>Keys for the things you press, dials for the things you turn. Every action connects to the same VDO.Ninja page.</p>
+				</div>
+				<div class="grid">
+					<div class="card"><div class="tile"><img src="plugin/imgs/actions/connection.svg" alt=""></div><h3>Connection Status</h3><p>Set up the connection once and see at a glance whether your page is answering.</p></div>
+					<div class="card"><div class="tile"><img src="plugin/imgs/actions/local.svg" alt=""></div><h3>Local Control</h3><p>Your own mic, camera, speaker, recording, and screen share, including push-to-talk.</p></div>
+					<div class="card"><div class="tile"><img src="plugin/imgs/actions/guest.svg" alt=""></div><h3>Guest Command</h3><p>Mute a guest, hide their video, change volume, send a message, transfer, or hang up.</p></div>
+					<div class="card"><div class="tile"><img src="plugin/imgs/actions/select.svg" alt=""></div><h3>Select Guest</h3><p>Pick who your other keys control, or step to the next or previous guest.</p></div>
+					<div class="card"><div class="tile"><img src="plugin/imgs/actions/scene.svg" alt=""></div><h3>Guest Scene</h3><p>Add or remove a guest from a scene. The key stays lit while they are in it.</p></div>
+					<div class="card"><div class="tile"><img src="plugin/imgs/actions/list.svg" alt=""></div><h3>Guests List</h3><p>See who has joined, or who is in a scene, right on a key.</p></div>
+					<div class="card"><div class="tile"><img src="plugin/imgs/actions/mixer.svg" alt=""></div><h3>Mixer Control</h3><p>Change the layout, assign mixer slots, mute everyone, or move all guests to another room.</p></div>
+					<div class="card"><div class="tile"><img src="plugin/imgs/actions/ptz.svg" alt=""></div><h3>PTZ Key and Dial</h3><p>Pan, tilt, zoom, and focus supported cameras, with smooth control on Stream Deck + dials.</p></div>
+					<div class="card"><div class="tile"><img src="plugin/imgs/actions/value.svg" alt=""></div><h3>Value Dial</h3><p>Turn to adjust volume, audio panning, bitrate, or buffer delay. Press to reset.</p></div>
+					<div class="card"><div class="tile"><img src="plugin/imgs/actions/custom.svg" alt=""></div><h3>Custom Command</h3><p>Send any VDO.Ninja API command for advanced setups.</p></div>
+				</div>
+			</div>
+		</section>
+
+		<section id="setup">
+			<div class="wrap steps">
+				<div>
+					<div class="section-head">
+						<p class="kicker">Setup</p>
+						<h2>Connected in about a minute</h2>
+						<p>The plugin creates a private key and builds the VDO.Ninja link for you.</p>
+					</div>
+					<ol class="step-list">
+						<li><div><h3>Install</h3><p>Download <span class="ui">ninja.<wbr>vdo.<wbr>streamdeck.<wbr>streamDeckPlugin</span> and double-click it. Stream Deck adds the VDO.Ninja actions.</p></div></li>
+						<li><div><h3>Connect</h3><p>Drag <span class="ui">Connection Status</span> onto a key, click <span class="ui">Generate secure key</span>, enter your room name, and click <span class="ui">Open VDO.Ninja</span>.</p></div></li>
+						<li><div><h3>Add your controls</h3><p>Click <span class="ui">Test connection</span>, then drag in the keys and dials you need. They all share the same connection.</p></div></li>
+					</ol>
+				</div>
+				<img class="shot" src="docs/assets/property-inspector-setup.png" width="420" alt="The connection panel in Stream Deck: a key field with a Generate secure key button, a page link builder, and a Test connection button" loading="lazy">
+			</div>
+		</section>
+
+		<section class="band">
+			<div class="wrap showcase">
+				<img class="shot" src="docs/assets/command-icons-preview.png" alt="Example keys for microphones, cameras, recording, PTZ, and guest controls, each showing its current state" loading="lazy">
+				<div>
+					<p class="kicker">Live feedback</p>
+					<h2>Keys that show what is really happening</h2>
+					<p style="color: var(--text-2); margin: 0;">The plugin reads state back from your VDO.Ninja page, so keys stay correct even when someone changes things in the browser.</p>
+					<ul class="checks">
+						<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Green when on, red when muted or off, with a clear icon for each command.</span></li>
+						<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Guest names and positions in key titles, with your own templates.</span></li>
+						<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Risky actions like hang-up ask for a second press.</span></li>
+						<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>If a command fails, the key's settings panel says why.</span></li>
+					</ul>
+				</div>
+			</div>
+		</section>
+
+		<section id="faq">
+			<div class="wrap">
+				<div class="section-head">
+					<p class="kicker">FAQ</p>
+					<h2>Common questions</h2>
+				</div>
+				<div class="faq">
+					<details><summary>Do I need Bitfocus Companion or a VDO.Ninja account?</summary><p>No. The plugin talks to your VDO.Ninja page directly through its API. You only need the Stream Deck app and a browser tab with your VDO.Ninja page open.</p></details>
+					<details><summary>Is my connection private?</summary><p>The plugin generates a random key for you. Anyone with that key, or the link that contains it, could control your page, so the plugin keeps it hidden until you choose to show it. Use a separate key for each page you control.</p></details>
+					<details><summary>Which Stream Deck devices work?</summary><p>Any Stream Deck with keys, including Stream Deck Mobile. Dial actions need a Stream Deck +.</p></details>
+					<details><summary>Can I control PTZ cameras?</summary><p>Yes, for cameras that support it. Open the camera's VDO.Ninja page with <span class="ui">&amp;ptz</span> and allow camera control when the browser asks.</p></details>
+					<details><summary>Is it in the Elgato Marketplace?</summary><p>Not yet. The plugin is in beta and available from GitHub. Download the latest release and double-click the file to install or update.</p></details>
+					<details><summary>Something isn't working. Where can I get help?</summary><p>Start with the <a href="https://github.com/steveseguin/vdo-streamdeck/blob/main/docs/getting-started.md">setup and troubleshooting guide</a>. If you're still stuck, <a href="https://github.com/steveseguin/vdo-streamdeck/issues">open an issue on GitHub</a>.</p></details>
+				</div>
+			</div>
+		</section>
+
+		<section class="final band">
+			<div class="wrap">
+				<h2>Ready to take control?</h2>
+				<p>Free to download. Install it, generate a key, and your first key works in about a minute.</p>
+				<div class="cta">
+					<a class="btn btn-primary download-link" href="https://github.com/steveseguin/vdo-streamdeck/releases/latest">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16"/></svg>
+						<span>Download the plugin</span>
+					</a>
+					<a class="btn btn-secondary" href="https://github.com/steveseguin/vdo-streamdeck">View on GitHub</a>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<footer>
+		<div class="wrap foot">
+			<span>VDO.Ninja for Stream Deck. Not affiliated with Elgato.</span>
+			<nav aria-label="Footer">
+				<a href="https://vdo.ninja">VDO.Ninja</a>
+				<a href="https://github.com/steveseguin/vdo-streamdeck/blob/main/docs/getting-started.md">Setup guide</a>
+				<a href="https://github.com/steveseguin/vdo-streamdeck/releases">Releases</a>
+				<a href="https://github.com/steveseguin/vdo-streamdeck">GitHub</a>
+			</nav>
+		</div>
+	</footer>
+
+	<script>
+		// Point download buttons straight at the latest installer and show its version.
+		fetch("https://api.github.com/repos/steveseguin/vdo-streamdeck/releases/latest")
+			.then(response => response.ok ? response.json() : Promise.reject())
+			.then(release => {
+				const asset = (release.assets || []).find(item => item.name.endsWith(".streamDeckPlugin"));
+				for (const label of document.querySelectorAll(".version-label")) label.textContent = release.tag_name;
+				if (!asset) return;
+				for (const link of document.querySelectorAll(".download-link")) link.href = asset.browser_download_url;
+				for (const label of document.querySelectorAll(".download-link span")) label.textContent = "Download " + release.tag_name;
+			})
+			.catch(() => {});
+	</script>
+</body>
+</html>

@@ -93,7 +93,15 @@ npm run test:live
 
 These opt-in tests use real VDO.Ninja pages in headless Chrome with synthetic media, a fresh API key, and simulated Stream Deck host events against an isolated copy of the built plugin. They need the workspace's `../../tests/playwright` install and internet access. `alpha-live-smoke.mjs` covers local mic, camera, and speaker control on the alpha page. `director-live-smoke.mjs` runs a director room with two guests and checks guest mic and camera, Select Guest, scenes, the Guests List, the guest volume dial, director chat, mixer layout, custom commands, missing-guest errors, and confirmed hang-up against the director's own state. Set `VDO_BASE` (for example `https://vdo.ninja/alpha/`) to choose the deployment; the default is `https://vdo.ninja/`.
 
-The README demo comes from `scripts/record-demo.mjs`, which uses the same setup and draws a virtual deck from the plugin's output. Run it with `FFMPEG` set to an ffmpeg binary to regenerate `docs/assets/demo.mp4` and `demo.gif`.
+The narrated demo comes from `scripts/record-demo.mjs`, which uses the same setup and draws a virtual deck from the plugin's output. The voice-over script is `scripts/demo-narration.json`. `scripts/demo-voice.py` turns it into speech with [Kokoro](https://github.com/hexgrad/kokoro), an open-source TTS that runs locally. Scenes are timed to the voice clips, and the captions come from the same text.
+
+```bash
+npm run build
+python scripts/demo-voice.py <voice-dir>
+VOICE_DIR=<voice-dir> FFMPEG=<path-to-ffmpeg> node scripts/record-demo.mjs
+```
+
+This regenerates `docs/assets/demo.mp4` (with voice), `demo.gif` (silent, captions included), and `demo-poster.jpg`. None of these files are part of the installable plugin.
 
 ## Icons
 
