@@ -44,6 +44,22 @@ describe("guest targeting", () => {
 		expect(resolveGuestTargetValue({ targetMode: "streamId", target: "guestA" })).toBe("guestA");
 	});
 
+	it("treats an empty slot on a director page as a missing target", () => {
+		sessionStore.applyCallback({
+			action: "getDetails",
+			result: {
+				director: { streamID: "director", localStream: true, director: true },
+				guestA: { streamID: "guestA", label: "First", position: 1 }
+			}
+		});
+
+		expect(resolveGuestTargetValue({ targetMode: "slot", target: "1" })).toBe("1");
+		expect(resolveGuestTargetValue({ targetMode: "slot", target: "9" })).toBeUndefined();
+
+		sessionStore.applyCallback({ action: "getDetails", result: { viewer: { streamID: "viewer", localStream: true, director: false } } });
+		expect(resolveGuestTargetValue({ targetMode: "slot", target: "9" })).toBe("9");
+	});
+
 	it("keeps a fallback selected target when the stream is stale", () => {
 		sessionStore.applyCallback({ action: "getDetails", result: {} });
 		selectedTargetStore.setSelectedStreamID("missing-stream");

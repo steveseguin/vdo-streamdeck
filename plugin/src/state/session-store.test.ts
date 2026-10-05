@@ -194,6 +194,18 @@ describe("SessionStore", () => {
 		expect(store.getStream("guest123")?.directorVideoHide).toBe(false);
 	});
 
+	it("reads guest camera state from the director's video-off control", () => {
+		const store = new SessionStore();
+		store.applyCallback({
+			action: "getDetails",
+			result: {
+				guest123: { streamID: "guest123", others: { "mute-video-guest": "1", "hide-guest": "0" } }
+			}
+		});
+
+		expect(store.getStream("guest123")?.directorVideoHide).toBe(true);
+	});
+
 	it("preserves codirector update state on the local stream", () => {
 		const store = new SessionStore();
 		store.applyCallback({

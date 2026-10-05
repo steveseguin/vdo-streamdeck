@@ -301,8 +301,10 @@ function normalizeDirectorState(stream: StreamState): StreamState {
 	if (typeof normalized.directorMuted === "undefined" && typeof others["mute-guest"] !== "undefined") {
 		normalized.directorMuted = toBoolean(others["mute-guest"]);
 	}
-	if (typeof normalized.directorVideoHide === "undefined" && typeof others["hide-guest"] !== "undefined") {
-		normalized.directorVideoHide = toBoolean(others["hide-guest"]);
+	// The guest camera command drives the director's "Video off" control; "Hide" is the older fallback.
+	const videoOff = typeof others["mute-video-guest"] !== "undefined" ? others["mute-video-guest"] : others["hide-guest"];
+	if (typeof normalized.directorVideoHide === "undefined" && typeof videoOff !== "undefined") {
+		normalized.directorVideoHide = toBoolean(videoOff);
 	}
 	return normalized;
 }

@@ -12,7 +12,7 @@ describe("dangerous-action confirmation lifecycle", () => {
 		["guest", GuestCommandAction, { command: "hangup", target: "1" }],
 		["mixer", MixerControlAction, { command: "transferAllGuests", transferRoom: "test-room" }]
 	] as const) {
-		for (const transition of ["unchanged", "settings", "disappear"]) {
+		for (const transition of ["unchanged", "echo", "settings", "disappear"]) {
 			it(`${name} confirmation handles ${transition}`, async () => {
 				const send = vi.spyOn(vdoClient, "sendCommand").mockResolvedValue({ result: true });
 				vi.spyOn(sessionStore, "getStreamChoices").mockReturnValue([{ streamID: "test-guest", UUID: "guest-uuid", label: "Test Guest", position: 1 }]);
@@ -22,14 +22,20 @@ describe("dangerous-action confirmation lifecycle", () => {
 				await handler.onKeyDown(event);
 				expect(send).not.toHaveBeenCalled();
 				expect(action.setTitle).toHaveBeenLastCalledWith("Press\nagain");
-				if (transition === "settings") {
+				// A state poll redraws the key while it is armed.
+				await (handler as unknown as { render(a: unknown, s: unknown): Promise<void> }).render(action, settings);
+				expect(action.setTitle).toHaveBeenLastCalledWith("Press\nagain");
+				if (transition === "echo") {
+					// Each state poll's getSettings reply arrives as didReceiveSettings.
+					await handler.onDidReceiveSettings({ action, payload: { settings } } as never);
+				} else if (transition === "settings") {
 					await handler.onDidReceiveSettings({ action, payload: { settings: { ...settings, title: "Updated action" } } } as never);
 				} else if (transition === "disappear") {
 					await handler.onWillDisappear?.(event);
 					await handler.onWillAppear(event);
 				}
 				await handler.onKeyDown(event);
-				if (transition === "unchanged") {
+				if (transition === "unchanged" || transition === "echo") {
 					expect(action.showOk).toHaveBeenCalledOnce();
 				} else {
 					expect(send).not.toHaveBeenCalled();

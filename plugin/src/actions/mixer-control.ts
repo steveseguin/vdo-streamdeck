@@ -10,6 +10,7 @@ import { resolveGuestTargetChoice, resolveGuestTargetValue } from "./guest-targe
 @action({ UUID: "ninja.vdo.streamdeck.mixer-control" })
 export class MixerControlAction extends SingletonAction<MixerControlSettings> {
 	private armedUntil = new Map<string, number>();
+	private armedSettings = new Map<string, string>();
 
 	constructor() {
 		super();
@@ -28,7 +29,10 @@ export class MixerControlAction extends SingletonAction<MixerControlSettings> {
 	}
 
 	override async onDidReceiveSettings(ev: DidReceiveSettingsEvent<MixerControlSettings>): Promise<void> {
-		this.armedUntil.delete(ev.action.id);
+		// getSettings replies also arrive here; only a real change cancels a pending confirmation.
+		if (this.armedSettings.get(ev.action.id) !== JSON.stringify(ev.payload.settings)) {
+			this.armedUntil.delete(ev.action.id);
+		}
 		if (ev.action.isKey()) {
 			await this.render(ev.action, ev.payload.settings);
 		}
@@ -43,7 +47,7 @@ export class MixerControlAction extends SingletonAction<MixerControlSettings> {
 		const command = settings.command || "layout";
 
 		if (command === "transferAllGuests" && settings.dangerousConfirm !== false && !this.isArmed(ev.action.id)) {
-			this.arm(ev.action.id);
+			this.arm(ev.action.id, ev.payload.settings);
 			await ev.action.setState(0);
 			await ev.action.setTitle("Press\nagain");
 			setTimeout(() => {
@@ -88,6 +92,11 @@ export class MixerControlAction extends SingletonAction<MixerControlSettings> {
 	}
 
 	private async render(actionContext: KeyAction<MixerControlSettings>, rawSettings?: MixerControlSettings): Promise<void> {
+		// State polls redraw visible keys; keep the confirmation prompt while armed.
+		if (this.isArmed(actionContext.id)) {
+			await actionContext.setTitle("Press\nagain");
+			return;
+		}
 		const settings = normalizeMixerControlSettings(rawSettings || (await actionContext.getSettings<MixerControlSettings>()));
 		await setCommandIcon(actionContext, MIXER_ICONS[settings.command || "layout"] || "layout", true);
 		const command = settings.command || "layout";
@@ -106,8 +115,9 @@ export class MixerControlAction extends SingletonAction<MixerControlSettings> {
 		await actionContext.setTitle(title);
 	}
 
-	private arm(actionId: string): void {
+	private arm(actionId: string, settings: MixerControlSettings): void {
 		this.armedUntil.set(actionId, Date.now() + 2500);
+		this.armedSettings.set(actionId, JSON.stringify(settings));
 	}
 
 	private isArmed(actionId: string): boolean {

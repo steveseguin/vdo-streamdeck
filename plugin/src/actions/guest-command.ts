@@ -10,6 +10,7 @@ import { renderGuestTitle, resolveGuestTargetChoice, resolveGuestTargetValue } f
 @action({ UUID: "ninja.vdo.streamdeck.guest-command" })
 export class GuestCommandAction extends SingletonAction<GuestCommandSettings> {
 	private armedUntil = new Map<string, number>();
+	private armedSettings = new Map<string, string>();
 
 	constructor() {
 		super();
@@ -29,7 +30,10 @@ export class GuestCommandAction extends SingletonAction<GuestCommandSettings> {
 	}
 
 	override async onDidReceiveSettings(ev: DidReceiveSettingsEvent<GuestCommandSettings>): Promise<void> {
-		this.armedUntil.delete(ev.action.id);
+		// getSettings replies also arrive here; only a real change cancels a pending confirmation.
+		if (this.armedSettings.get(ev.action.id) !== JSON.stringify(ev.payload.settings)) {
+			this.armedUntil.delete(ev.action.id);
+		}
 		if (ev.action.isKey()) {
 			await this.render(ev.action, ev.payload.settings);
 		}
@@ -45,7 +49,7 @@ export class GuestCommandAction extends SingletonAction<GuestCommandSettings> {
 		const target = resolveGuestTargetValue(settings);
 
 		if (definition.dangerous && settings.dangerousConfirm !== false && !this.isArmed(ev.action.id)) {
-			this.arm(ev.action.id);
+			this.arm(ev.action.id, ev.payload.settings);
 			await ev.action.setState(0);
 			await ev.action.setTitle("Press\nagain");
 			setTimeout(() => {
@@ -88,6 +92,11 @@ export class GuestCommandAction extends SingletonAction<GuestCommandSettings> {
 	}
 
 	private async render(actionContext: KeyAction<GuestCommandSettings>, rawSettings?: GuestCommandSettings): Promise<void> {
+		// State polls redraw visible keys; keep the confirmation prompt while armed.
+		if (this.isArmed(actionContext.id)) {
+			await actionContext.setTitle("Press\nagain");
+			return;
+		}
 		const settings = normalizeGuestCommandSettings(rawSettings || (await actionContext.getSettings<GuestCommandSettings>()));
 		const definition = getGuestCommandDefinition(settings.command);
 		await setCommandIcon(actionContext, definition.icon, !definition.stateField);
@@ -128,8 +137,9 @@ export class GuestCommandAction extends SingletonAction<GuestCommandSettings> {
 		return undefined;
 	}
 
-	private arm(actionId: string): void {
+	private arm(actionId: string, settings: GuestCommandSettings): void {
 		this.armedUntil.set(actionId, Date.now() + 2000);
+		this.armedSettings.set(actionId, JSON.stringify(settings));
 	}
 
 	private isArmed(actionId: string): boolean {

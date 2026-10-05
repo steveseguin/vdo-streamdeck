@@ -81,7 +81,7 @@ Important update actions:
 | `endViewConnection` | Deletes stream by `data.value`. |
 | `positionChange` | Requests fresh `getDetails`. |
 | `directorMuted` | Stores director-enforced guest audio mute under `others["mute-guest"]`. |
-| `directorVideoHide` | Stores director-enforced guest video hide under `others["hide-guest"]`. |
+| `directorVideoHide` | Stores director-enforced guest video off under `others["mute-video-guest"]` (the control the `camera` API command drives), with `others["hide-guest"]` as a fallback. |
 | `remoteMuted` / `mic` | Updates `muted`. |
 | `remoteVideoMuted` / `camera` | Updates `videoMuted`. |
 | `details` | Requests fresh `getDetails`. |
@@ -157,7 +157,7 @@ Parity note: current Companion actions include local PTZ but not full guest PTZ 
 | Feedback | Inputs | Logic |
 | --- | --- | --- |
 | Mic status | stream, muted/unmuted state | Guest streams use `others["mute-guest"]` as director-enforced override; otherwise compare `muted`. |
-| Camera status | stream, muted/unmuted state | Guest streams use `others["hide-guest"]` as director-enforced override; otherwise compare `videoMuted`. |
+| Camera status | stream, muted/unmuted state | Guest streams use `others["mute-video-guest"]` (falling back to `others["hide-guest"]`) as director-enforced override; otherwise compare `videoMuted`. |
 | Speaker status | stream, muted/unmuted state | Compare `speakerMuted`. |
 | Guest in scene | stream, scene ID/name | Compare `stream.scenes[scene] == true`. |
 

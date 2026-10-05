@@ -16,6 +16,11 @@ export function resolveGuestTargetValue(settings: GuestTargetSettings): JsonValu
 	if (settings.targetMode === "streamId") {
 		return settings.target || resolveGuestTargetChoice(settings)?.streamID;
 	}
+	// A director page reports every guest position, and VDO.Ninja silently
+	// ignores commands for an empty slot, so treat it as a missing target.
+	if (sessionStore.getLocalBoolean("director") && !resolveGuestTargetChoice(settings)) {
+		return undefined;
+	}
 	return settings.target || "1";
 }
 

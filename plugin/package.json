@@ -10,6 +10,7 @@
     "check": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:runtime": "node tests/streamdeck-runtime-smoke.mjs",
+    "test:live": "node tests/alpha-live-smoke.mjs && node tests/director-live-smoke.mjs",
     "dev": "tsc -p tsconfig.json --watch"
   },
   "dependencies": {

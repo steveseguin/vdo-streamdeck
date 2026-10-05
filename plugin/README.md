@@ -84,6 +84,17 @@ npx @elgato/cli@1.7.4 pack ninja.vdo.streamdeck.sdPlugin --dry-run -f --no-updat
 
 These verify command payloads, TypeScript, generated plugin layout, manifest rules, package contents, and startup from an isolated copy with no development `node_modules` available. Tests cover every exposed command choice, property-inspector buttons and registry alignment, manifest image wiring, custom value parsing, transport behavior, and state normalization. Interactive button/dial testing still requires the Stream Deck app with either hardware or Stream Deck Mobile.
 
+## Live checks
+
+```bash
+npm run build
+npm run test:live
+```
+
+These opt-in tests use real VDO.Ninja pages in headless Chrome with synthetic media, a fresh API key, and simulated Stream Deck host events against an isolated copy of the built plugin. They need the workspace's `../../tests/playwright` install and internet access. `alpha-live-smoke.mjs` covers local mic, camera, and speaker control on the alpha page. `director-live-smoke.mjs` runs a director room with two guests and checks guest mic and camera, Select Guest, scenes, the Guests List, the guest volume dial, director chat, mixer layout, custom commands, missing-guest errors, and confirmed hang-up against the director's own state. Set `VDO_BASE` (for example `https://vdo.ninja/alpha/`) to choose the deployment; the default is `https://vdo.ninja/`.
+
+The README demo comes from `scripts/record-demo.mjs`, which uses the same setup and draws a virtual deck from the plugin's output. Run it with `FFMPEG` set to an ffmpeg binary to regenerate `docs/assets/demo.mp4` and `demo.gif`.
+
 ## Icons
 
 All artwork is generated from one spec by `npm run assets`, so the vector and raster forms cannot drift apart:

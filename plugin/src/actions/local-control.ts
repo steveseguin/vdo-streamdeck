@@ -15,6 +15,7 @@ import { sessionStore, vdoClient } from "../services.js";
 @action({ UUID: "ninja.vdo.streamdeck.local-control" })
 export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 	private armedUntil = new Map<string, number>();
+	private armedSettings = new Map<string, string>();
 	private momentarySequence = new Map<string, number>();
 	private momentaryPressed = new Set<string>();
 	private momentarySettings = new Map<string, { settings: LocalControlSettings; action: KeyAction<LocalControlSettings> }>();
@@ -34,7 +35,10 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 	}
 
 	override async onDidReceiveSettings(ev: DidReceiveSettingsEvent<LocalControlSettings>): Promise<void> {
-		this.armedUntil.delete(ev.action.id);
+		// getSettings replies also arrive here; only a real change cancels a pending confirmation.
+		if (this.armedSettings.get(ev.action.id) !== JSON.stringify(ev.payload.settings)) {
+			this.armedUntil.delete(ev.action.id);
+		}
 		if (ev.action.isKey()) {
 			const held = this.momentarySettings.get(ev.action.id);
 			const next = normalizeLocalControlSettings(ev.payload.settings);
@@ -68,7 +72,7 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 		}
 
 		if (definition.dangerous && settings.dangerousConfirm !== false && !this.isArmed(ev.action.id)) {
-			this.arm(ev.action.id);
+			this.arm(ev.action.id, ev.payload.settings);
 			await ev.action.setState(0);
 			await ev.action.setTitle("Press\nagain");
 			setTimeout(() => {
@@ -119,6 +123,11 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 	}
 
 	private async render(actionContext: KeyAction<LocalControlSettings>, rawSettings?: LocalControlSettings): Promise<void> {
+		// State polls redraw visible keys; keep the confirmation prompt while armed.
+		if (this.isArmed(actionContext.id)) {
+			await actionContext.setTitle("Press\nagain");
+			return;
+		}
 		const settings = normalizeLocalControlSettings(rawSettings || (await actionContext.getSettings<LocalControlSettings>()));
 		const definition = getLocalControlDefinition(settings.command);
 		await setCommandIcon(actionContext, definition.icon, !definition.stateField);
@@ -216,8 +225,9 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 		return !!trackField && sessionStore.getLocalBoolean(trackField) === false;
 	}
 
-	private arm(actionId: string): void {
+	private arm(actionId: string, settings: LocalControlSettings): void {
 		this.armedUntil.set(actionId, Date.now() + 2000);
+		this.armedSettings.set(actionId, JSON.stringify(settings));
 	}
 
 	private nextMomentarySequence(actionId: string): number {
