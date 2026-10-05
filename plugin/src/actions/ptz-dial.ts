@@ -1,3 +1,4 @@
+import { clearActionError, showActionAlert } from "./action-feedback.js";
 import {
 	action,
 	type DialAction,
@@ -114,7 +115,7 @@ export class PtzDialAction extends SingletonAction<PtzDialSettings> {
 		const target = settings.scope === "guest" ? resolveGuestTargetValue(settings) : undefined;
 
 		if (settings.scope === "guest" && (typeof target === "undefined" || target === "")) {
-			await actionContext.showAlert();
+			await showActionAlert(actionContext, "target");
 			await this.render(actionContext, settings, "No target");
 			pending.sending = false;
 			if (pending.ticks) {
@@ -132,11 +133,12 @@ export class PtzDialAction extends SingletonAction<PtzDialSettings> {
 				await vdoClient.sendCommand(payload, { awaitCallback: false });
 			}
 			if (this.pending.get(actionId) === pending) {
+				clearActionError(actionContext);
 				await this.render(actionContext, settings, tickStatus(ticks, settings));
 			}
-		} catch {
+		} catch (error) {
 			if (this.pending.get(actionId) === pending) {
-				await actionContext.showAlert();
+				await showActionAlert(actionContext, "ptz", error);
 				await this.render(actionContext, settings, "Blocked");
 			}
 		} finally {
@@ -159,10 +161,14 @@ export class PtzDialAction extends SingletonAction<PtzDialSettings> {
 			await this.render(actionContext, nextSettings, "Changed");
 			return;
 		}
+		if (settings.pushAction === "none") {
+			await this.render(actionContext, settings);
+			return;
+		}
 
 		const target = settings.scope === "guest" ? resolveGuestTargetValue(settings) : undefined;
 		if (settings.scope === "guest" && (typeof target === "undefined" || target === "")) {
-			await actionContext.showAlert();
+			await showActionAlert(actionContext, "target");
 			await this.render(actionContext, settings, "No target");
 			return;
 		}
@@ -175,9 +181,10 @@ export class PtzDialAction extends SingletonAction<PtzDialSettings> {
 					throw new Error(`${payload.action} was rejected by VDO.Ninja`);
 				}
 			}
+			if (payloads.length) clearActionError(actionContext);
 			await this.render(actionContext, settings, pushStatus(settings));
-		} catch {
-			await actionContext.showAlert();
+		} catch (error) {
+			await showActionAlert(actionContext, "ptz", error);
 			await this.render(actionContext, settings, "Blocked");
 		}
 	}

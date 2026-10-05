@@ -23,7 +23,7 @@ const DEG = Math.PI / 180;
 const imageDir = join(process.cwd(), "imgs");
 const actionIconDir = join(imageDir, "actions");
 let written = 0;
-const compositedOnlyKeyIcons = new Set(["state-on", "state-off", "state-neutral", "mixer-on", "mixer-off", "custom"]);
+const compositedOnlyKeyIcons = new Set(["state-on", "state-off", "state-neutral", "mixer-on", "mixer-off", "list-field", "custom"]);
 
 const keyBackgroundVariants = {
 	connection: [{ name: "connection-neutral", base: "state-neutral" }, { name: "connection-on", base: "state-on" }],
@@ -33,6 +33,7 @@ const keyBackgroundVariants = {
 	scene: [{ name: "scene-off", base: "state-off" }, { name: "scene-on", base: "state-on" }],
 	mixer: [{ name: "mixer-key-off", base: "mixer-off" }, { name: "mixer-key-on", base: "mixer-on" }],
 	ptz: [{ name: "ptz-off", base: "state-off" }, { name: "ptz-on", base: "state-on" }],
+	list: [{ name: "list-key", base: "list-field" }],
 	custom: [{ name: "custom-key", base: "custom" }]
 };
 

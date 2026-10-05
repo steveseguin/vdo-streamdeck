@@ -18,7 +18,7 @@
       --surface-chip: #232a36;
 
       --border: #3a4050;
-      --border-control: #4a5264;
+      --border-control: #68758a;
       --border-button: #59657a;
       --border-hover: #7e8ca5;
 
@@ -27,7 +27,7 @@
       --text-muted: #9ca7ba;
 
       --brand-fill: #17775e;
-      --brand-fill-hover: #1d896d;
+      --brand-fill-hover: #18775e;
       --brand-border: #2f9f7b;
       --brand-border-hover: #48c59b;
 
@@ -66,6 +66,10 @@
       padding-top: 0;
     }
 
+    #selectedGuestHint {
+      overflow-wrap: break-word;
+    }
+
     label {
       display: block;
       margin: 12px 0 5px;
@@ -95,7 +99,7 @@
     }
 
     ::placeholder {
-      color: #6d7788;
+      color: var(--text-muted);
     }
 
     /* Native arrow varies between the Windows and macOS property inspectors. */
@@ -183,6 +187,7 @@
       cursor: pointer;
       list-style: none;
       border-radius: 4px;
+      min-height: 28px;
     }
 
     summary::-webkit-details-marker {
@@ -306,13 +311,13 @@
 
     .row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 8px;
     }
 
     .button-row {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 6px;
       margin-top: 8px;
     }
@@ -376,6 +381,25 @@
       overflow-wrap: anywhere;
     }
 
+    .copy-state:empty {
+      display: none;
+    }
+
+    @media (max-width: 300px) {
+      .row, .button-row, .button-row.two, .button-row.four {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      button, summary::before {
+        transition: none;
+      }
+      button:active:not(:disabled) {
+        transform: none;
+      }
+    }
+
     ::-webkit-scrollbar {
       width: 10px;
       height: 10px;
@@ -403,19 +427,24 @@
       <div id="statusText" class="status-text">Configure an API key to begin.</div>
     </div>
     <div id="capabilityHint" class="hint hidden"></div>
+    <div id="selectedGuestHint" class="hint hidden" role="status" aria-live="polite"></div>
+    <div id="actionErrorBox" class="status warn hidden" role="status" aria-live="polite">
+      <div class="dot" aria-hidden="true"></div>
+      <div class="status-text"><strong>Last action</strong><div id="actionErrorText"></div></div>
+    </div>
 
     <details id="setupDetails" open>
       <summary class="setup-summary">Connect VDO.Ninja (3 steps)</summary>
-      <p class="intro">No account is needed. The connection key works like a private remote-control password. Stream Deck and the VDO.Ninja page must use the same key.</p>
+      <p class="intro">Connect once for all VDO.Ninja actions. No account needed. Keep the key private: anyone with it can control your page.</p>
 
       <div class="setup-step">
         <div class="setup-step-title"><span class="step-badge">1</span> Create a secure connection key</div>
-        <label for="apiKey">Connection key (API key)</label>
-        <input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Generate a key or paste an existing &api value">
-        <div class="button-row">
-          <button id="generateKey" type="button" class="primary">Generate secure key</button>
+        <label for="apiKey">Connection key or VDO.Ninja link</label>
+        <input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Paste an API key or a link with &api=...">
+        <button id="generateKey" type="button" class="primary full-button">Generate secure key</button>
+        <div class="button-row two">
           <button id="copyKey" type="button">Copy key</button>
-          <button id="hideKey" type="button">Show key</button>
+          <button id="hideKey" type="button" aria-controls="apiKey generatedUrl" aria-pressed="false">Show key</button>
         </div>
       </div>
 
@@ -450,12 +479,16 @@
           <input id="customUrl" type="url" spellcheck="false" placeholder="https://vdo.ninja/?director=my-room">
         </div>
 
-        <label for="generatedUrl">Ready-to-open URL</label>
-        <input id="generatedUrl" type="text" readonly aria-describedby="linkHelp">
-        <div class="button-row">
-          <button id="openUrl" type="button" class="primary">Open VDO.Ninja</button>
+        <label for="generatedUrl">Page link (contains your key)</label>
+        <input id="generatedUrl" type="password" readonly autocomplete="off" aria-describedby="linkHelp">
+        <button id="openUrl" type="button" class="primary full-button">Open VDO.Ninja</button>
+        <div class="button-row two">
           <button id="copyUrl" type="button">Copy link</button>
-          <button id="showQr" type="button">Show QR</button>
+          <button id="showQr" type="button" aria-controls="qrPanel" aria-expanded="false">Show QR</button>
+        </div>
+        <div id="qrPanel" class="qr-panel hidden">
+          <canvas id="qrCanvas" width="180" height="180" role="img" aria-label="Generated VDO.Ninja link QR code"></canvas>
+          <div class="hint">Scan to open on another device. Keep this QR code private; it contains your key.</div>
         </div>
         <div id="linkHelp" class="hint">Open this URL and keep the VDO.Ninja page open while using Stream Deck. Use a different connection key for each page you want to control separately.</div>
       </div>
@@ -463,13 +496,6 @@
       <div class="setup-step">
         <div class="setup-step-title"><span class="step-badge">3</span> Confirm it answers</div>
         <button id="testConnection" type="button" class="primary full-button">Test connection</button>
-      </div>
-
-      <div id="copyState" class="copy-state" role="status" aria-live="polite"></div>
-
-      <div id="qrPanel" class="qr-panel hidden">
-        <canvas id="qrCanvas" width="180" height="180" aria-label="Generated VDO.Ninja link QR code"></canvas>
-        <div class="hint">Scan to open this link on a phone or guest device.</div>
       </div>
 
       <details>
@@ -487,22 +513,23 @@
         </select>
         <label for="commandTransport">Command transport</label>
         <select id="commandTransport">
-          <option value="auto">HTTP callbacks + WebSocket realtime</option>
+          <option value="auto">Automatic (recommended)</option>
           <option value="websocket">WebSocket only (no callback feedback)</option>
         </select>
         <div class="row">
           <div>
-            <label for="timeout">Timeout ms</label>
+            <label for="timeout">Timeout (ms)</label>
             <input id="timeout" type="number" min="1000" step="500" value="5000">
           </div>
           <div>
-            <label for="detailsPoll">State refresh ms</label>
+            <label for="detailsPoll">State refresh (ms)</label>
             <input id="detailsPoll" type="number" min="500" step="500" value="5000">
           </div>
         </div>
-        <div class="hint">Use a different API key for each page you want to control separately. Insecure relay mode is for local self-hosted testing. WebSocket-only commands are fire-and-forget because the reference relay does not return peer callbacks.</div>
+        <div class="hint">Keep the defaults for normal use. Use insecure mode only with a local relay. WebSocket-only mode cannot confirm commands.</div>
       </details>
     </details>
+    <div id="copyState" class="copy-state" role="status" aria-live="polite"></div>
   </section>
 
   <section id="localSettings" class="hidden">
@@ -693,7 +720,7 @@
       <option value="on">Force On</option>
       <option value="off">Force Off</option>
     </select>
-    <div class="hint">Toggle works with all supported VDO.Ninja versions. On/off uses legacy fixed-scene commands; named scenes need live scene feedback so the plugin can toggle only when required.</div>
+    <div class="hint">Named scenes need live scene feedback for Force On and Force Off. Use Toggle if your page does not report scene membership.</div>
 
     <label for="sceneTitle">Title template</label>
     <textarea id="sceneTitle" rows="4" spellcheck="false" placeholder="{slot} {label} Scene {scene} {state}"></textarea>
@@ -711,11 +738,11 @@
     <div id="guestsListSceneGroup" class="hidden">
       <label for="guestsListScene">Scene ID or name</label>
       <input id="guestsListScene" type="text" list="sceneChoices" placeholder="1 or custom-scene">
-    </div>
 
-    <label for="guestsListHeader">Header template</label>
-    <textarea id="guestsListHeader" rows="4" spellcheck="false" placeholder="Scene {scene}"></textarea>
-    <div class="hint">Scene mode only. Tokens: <code>{scene}</code> <code>{count}</code></div>
+      <label for="guestsListHeader">Header template</label>
+      <textarea id="guestsListHeader" rows="4" spellcheck="false" placeholder="Scene {scene}"></textarea>
+      <div class="hint">First line on the key. Tokens: <code>{scene}</code> <code>{count}</code></div>
+    </div>
 
     <label for="guestsListRow">Row template</label>
     <textarea id="guestsListRow" rows="4" spellcheck="false" placeholder="{slot} {label}"></textarea>
@@ -781,16 +808,15 @@
     <div id="mixerTransferGroup" class="hidden">
       <label for="mixerTransferRoom">Destination room</label>
       <input id="mixerTransferRoom" type="text" placeholder="target-room">
+      <label class="inline" for="mixerDangerousConfirm">
+        <input id="mixerDangerousConfirm" type="checkbox" checked>
+        Require a second press to confirm
+      </label>
     </div>
 
     <label for="mixerTitle">Title template</label>
     <textarea id="mixerTitle" rows="4" spellcheck="false" placeholder="{slot} {label} {destinationSlot}"></textarea>
     <div class="hint">Slot assignment tokens: <code>{slot}</code> <code>{label}</code> <code>{streamID}</code> <code>{destinationSlot}</code> Press Enter for a new line.</div>
-
-    <label class="inline" for="mixerDangerousConfirm">
-      <input id="mixerDangerousConfirm" type="checkbox" checked>
-      Require second press for transfer all
-    </label>
   </section>
 
   <section id="ptzKeySettings" class="hidden">
@@ -863,7 +889,7 @@
 
     <label for="ptzTitle">Title template</label>
     <textarea id="ptzTitle" rows="4" spellcheck="false" placeholder="{slot} {label} {control} {direction}"></textarea>
-    <div class="hint">Relative values are signed deltas. Absolute values use <code>value2=abs</code>. Guest exposure and local autofocus are blocked because VDO.Ninja does not expose those command paths today. Press Enter for a new line.</div>
+    <div class="hint">Relative step moves the camera a little each press. Absolute position moves to a set value. Exposure is local only; autofocus is guest only. Press Enter for a new title line.</div>
   </section>
 
   <section id="ptzDialSettings" class="hidden">
@@ -940,7 +966,7 @@
 
     <label for="ptzDialTitle">Title template</label>
     <textarea id="ptzDialTitle" rows="4" spellcheck="false" placeholder="{slot} {label} {control} {status}"></textarea>
-    <div class="hint">Dial turns send relative PTZ deltas, accumulated and rate-limited before sending to VDO.Ninja. Guest exposure is blocked because VDO.Ninja does not expose a remote exposure command today. Title lines are combined into one line on the dial display.</div>
+    <div class="hint">Use smaller steps for finer movement. Exposure is local only. Titles appear on one line on the dial display.</div>
   </section>
 
   <section id="valueDialSettings" class="hidden">
@@ -984,6 +1010,7 @@
       <option value="bitrate">Video bitrate - local only</option>
       <option value="bufferDelay">Buffer delay - local only</option>
     </select>
+    <div id="valueDialUnits" class="hint">Volume: 0 to 100 percent.</div>
 
     <div id="valueDialBufferApplyGroup" class="hidden">
       <label for="valueDialBufferApply">Buffer applies to</label>
@@ -994,7 +1021,7 @@
     </div>
 
     <label for="valueDialValue">Current value</label>
-    <input id="valueDialValue" type="text" placeholder="100">
+    <input id="valueDialValue" type="text" placeholder="100" aria-describedby="valueDialUnits">
 
     <div class="row">
       <div>
@@ -1035,7 +1062,7 @@
 
     <label for="valueDialTitle">Title template</label>
     <textarea id="valueDialTitle" rows="4" spellcheck="false" placeholder="{slot} {label} {control} {value}{unit}"></textarea>
-    <div class="hint">Local volume is 0-100 percent; guest volume can boost up to 200 percent. Panning is 0-180, bitrate is kbps, and buffer delay is milliseconds. Buffer delay uses VDO.Ninja's <code>value2</code> target path, so this first pass supports default or all-stream local buffer control. Title lines are combined into one line on the dial display.</div>
+    <div class="hint">Press the dial or tap its display to use the selected press action. Titles appear on one line.</div>
   </section>
 
   <section id="customSettings" class="hidden">
@@ -1043,7 +1070,7 @@
     <label for="customAction">Action</label>
     <input id="customAction" type="text" placeholder="getDetails">
     <label for="customTarget">Target</label>
-    <input id="customTarget" type="text" placeholder="Slot, stream ID, UUID, or blank">
+    <input id="customTarget" type="text" placeholder="Guest position, stream ID, UUID, or blank">
     <label for="customValue">Value</label>
     <textarea id="customValue" placeholder="true, false, 1, text, or JSON"></textarea>
     <label for="customValue2">Value2</label>
@@ -1320,6 +1347,13 @@
       ["apiKey", "apiHost", "apiProtocol", "commandTransport", "timeout", "detailsPoll"].forEach(id => {
         byId(id).onchange = saveGlobal;
       });
+      byId("apiKey").onpaste = function(event) {
+        const text = event.clipboardData && event.clipboardData.getData("text");
+        if (!text || !/^https?:/i.test(text.trim())) return;
+        event.preventDefault();
+        byId("apiKey").value = text;
+        saveGlobal();
+      };
 
       ["baseUrl", "pageType", "roomName", "streamId", "sceneId", "customUrl"].forEach(id => {
         byId(id).oninput = saveGlobal;
@@ -1464,7 +1498,8 @@
 
       byId("generateKey").onclick = function() {
         byId("apiKey").value = generateApiKey();
-        keyVisible = true;
+        keyVisible = false;
+        updateKeyVisibility();
         saveGlobal();
         updateCopyState("Generated a private API key.");
       };
@@ -1483,6 +1518,7 @@
         qrVisible = !qrVisible;
         byId("qrPanel").classList.toggle("hidden", !qrVisible);
         byId("showQr").textContent = qrVisible ? "Hide QR" : "Show QR";
+        byId("showQr").setAttribute("aria-expanded", String(qrVisible));
         if (qrVisible) {
           drawQr(byId("generatedUrl").value);
         }
@@ -1492,7 +1528,7 @@
         updateKeyVisibility();
       };
       byId("testConnection").onclick = function() {
-        saveGlobal();
+        if (saveGlobal() === false) return;
         updateStatus("warn", "Testing for a VDO.Ninja page using this key...");
         sendToPlugin({ type: "testConnection" });
       };
@@ -1591,6 +1627,26 @@
     }
 
     function saveGlobal() {
+      const connectionInput = byId("apiKey").value.trim();
+      if (/^https?:/i.test(connectionInput)) {
+        try {
+          const url = new URL(connectionInput);
+          const apiKey = (url.searchParams.get("api") || "").trim();
+          if (!apiKey) throw new Error("No API key in link");
+          byId("apiKey").value = apiKey;
+          // Keep the key in its masked field, not in the editable source URL.
+          url.searchParams.delete("api");
+          byId("customUrl").value = url.toString();
+          byId("pageType").value = "custom";
+          keyVisible = false;
+          updateKeyVisibility();
+          updateCopyState("Page link and API key imported. Keep that page open, then test the connection.");
+        } catch (error) {
+          renderLinkBuilder();
+          updateStatus("warn", "Link not imported. Paste a full link with an api key, or use Generate secure key.");
+          return false;
+        }
+      }
       renderLinkBuilder();
       globalSettings = {
         apiKey: byId("apiKey").value.trim(),
@@ -1802,11 +1858,12 @@
       byId("baseUrlGroup").classList.toggle("hidden", type === "custom");
 
       const url = buildGeneratedUrl();
-      byId("generatedUrl").value = url;
       const ready = isGeneratedLinkReady();
-      const hasKey = !!(byId("apiKey").value || "").trim();
+      byId("generatedUrl").value = ready ? url : "";
+      const key = (byId("apiKey").value || "").trim();
+      const hasKey = !!key && !/^https?:/i.test(key);
       byId("copyKey").disabled = !hasKey;
-      byId("hideKey").disabled = !hasKey;
+      byId("hideKey").disabled = !key;
       byId("openUrl").disabled = !ready;
       byId("copyUrl").disabled = !ready;
       byId("showQr").disabled = !ready;
@@ -1821,12 +1878,14 @@
           qrVisible = false;
           byId("qrPanel").classList.add("hidden");
           byId("showQr").textContent = "Show QR";
+          byId("showQr").setAttribute("aria-expanded", "false");
         }
       }
     }
 
     function isGeneratedLinkReady() {
-      if (!(byId("apiKey").value || "").trim()) return false;
+      const key = (byId("apiKey").value || "").trim();
+      if (!key || /^https?:/i.test(key)) return false;
       const type = byId("pageType").value || "director";
       if ((type === "director" || type === "scene") && !(byId("roomName").value || "").trim()) return false;
       if ((type === "push" || type === "view") && !(byId("streamId").value || "").trim()) return false;
@@ -1837,12 +1896,13 @@
 
     function missingLinkMessage() {
       if (!(byId("apiKey").value || "").trim()) return "Generate or enter an API key first.";
+      if (/^https?:/i.test(byId("apiKey").value.trim())) return "Paste a full link with an api key, or generate a key above.";
       const type = byId("pageType").value || "director";
       if ((type === "director" || type === "scene") && !(byId("roomName").value || "").trim()) return "Enter the room name used by VDO.Ninja.";
       if ((type === "push" || type === "view") && !(byId("streamId").value || "").trim()) return "Enter the stream ID used by VDO.Ninja.";
       if (type === "scene" && !(byId("sceneId").value || "").trim()) return "Enter a scene ID or name.";
       if (type === "custom") return "Paste a complete http:// or https:// VDO.Ninja URL.";
-      return "Complete the link fields above.";
+      return "Enter a valid VDO.Ninja base URL under Advanced and self-hosted setup.";
     }
 
     function renderLocalSettings() {
@@ -1878,7 +1938,7 @@
       byId("guestValue").placeholder = guestValuePlaceholder(command);
       byId("guestDangerGroup").classList.toggle("hidden", !["forward", "hangup", "recoverStream"].includes(command));
       const compatibility = command === "activateQueuedGuest"
-        ? "Activate Guest requires the current VDO.Ninja queue-control API (v30.2+). Older pages will reject the command without changing established APIs."
+        ? "To activate a held guest, use VDO.Ninja v30.2 or newer."
         : "";
       byId("guestCompatibilityHint").textContent = compatibility;
       byId("guestCompatibilityHint").classList.toggle("hidden", !compatibility);
@@ -1980,6 +2040,11 @@
         if (option) option.disabled = scope === "guest";
       });
       const defaults = valueDialDefaults(control, scope);
+      let units = scope === "guest" ? "Volume: 0 to 200 percent." : "Volume: 0 to 100 percent.";
+      if (control === "panning") units = "Add &panning to the controlled page URL. 0 is left, 90 is centre, 180 is right.";
+      if (control === "bitrate") units = "Bitrate in kbps. Set Reset value to -1 for automatic bitrate.";
+      if (control === "bufferDelay") units = "Delay in milliseconds (1000 ms = 1 second).";
+      byId("valueDialUnits").textContent = units;
       byId("valueDialValue").placeholder = defaults.value;
       byId("valueDialMin").placeholder = defaults.min;
       byId("valueDialMax").placeholder = defaults.max;
@@ -2057,19 +2122,27 @@
     function renderSelectedTargetText() {
       const input = byId("currentSelectedTarget");
       if (!input) return;
+      const choice = targetChoices.find(item => item.streamID === selectedStreamID);
       if (!selectedStreamID) {
         input.value = "None";
-        return;
-      }
-      const choice = targetChoices.find(item => item.streamID === selectedStreamID);
-      if (!choice) {
+      } else if (!choice) {
         input.value = selectedStreamID + " (not currently detected)";
-        return;
+      } else {
+        const parts = [];
+        if (typeof choice.position === "number") parts.push("G" + choice.position);
+        parts.push(choice.label || choice.streamID);
+        input.value = parts.join(" - ");
       }
-      const parts = [];
-      if (typeof choice.position === "number") parts.push("G" + choice.position);
-      parts.push(choice.label || choice.streamID);
-      input.value = parts.join(" - ");
+      const guestScope = actionSettings.scope === "guest";
+      const usesSelected = actionSettings.targetMode === "selected" && (
+        actionUuid === "ninja.vdo.streamdeck.guest-command" || actionUuid === "ninja.vdo.streamdeck.guest-scene" ||
+        (actionUuid === "ninja.vdo.streamdeck.mixer-control" && actionSettings.command === "setGuestSlot") ||
+        (guestScope && ["ninja.vdo.streamdeck.ptz-key", "ninja.vdo.streamdeck.ptz-dial", "ninja.vdo.streamdeck.value-dial"].includes(actionUuid))
+      );
+      const hint = byId("selectedGuestHint");
+      const text = !usesSelected ? "" : selectedStreamID ? "Selected guest: " + input.value : "No guest selected. Press a Select Guest key first.";
+      if (hint.textContent !== text) hint.textContent = text;
+      hint.classList.toggle("hidden", !text);
     }
 
     function guestCommandSupportsBehavior(command) {
@@ -2118,8 +2191,6 @@
     function buildGeneratedUrl() {
       const type = byId("pageType").value || "director";
       const apiKey = byId("apiKey").value.trim();
-      const base = normalizeBaseUrl(byId("baseUrl").value.trim() || DEFAULT_BASE_URL);
-
       try {
         if (type === "custom") {
           const custom = byId("customUrl").value.trim();
@@ -2127,6 +2198,7 @@
           return withApi(custom, apiKey);
         }
 
+        const base = normalizeBaseUrl(byId("baseUrl").value.trim() || DEFAULT_BASE_URL);
         const url = new URL(type === "director" ? "mixer" : "", base);
         if (type === "director") {
           url.searchParams.set("director", byId("roomName").value.trim() || "ROOM");
@@ -2211,12 +2283,19 @@
         qrVisible = false;
         byId("qrPanel").classList.add("hidden");
         byId("showQr").textContent = "Show QR";
+        byId("showQr").setAttribute("aria-expanded", "false");
       }
     }
 
     function handlePluginMessage(payload) {
       if (!payload || typeof payload !== "object") return;
-      if (payload.type === "status" || payload.type === "connectionTestResult") {
+      if (payload.type === "actionError") {
+        if (payload.context !== actionContext) return;
+        const message = typeof payload.message === "string" ? payload.message : "";
+        const text = byId("actionErrorText");
+        if (text.textContent !== message) text.textContent = message;
+        byId("actionErrorBox").classList.toggle("hidden", !message);
+      } else if (payload.type === "status" || payload.type === "connectionTestResult") {
         const state = payload.state || "";
         const ok = payload.ok === true;
         latestConnectionState = state;
@@ -2269,6 +2348,7 @@
     }
 
     function renderCapabilityHint() {
+      renderSelectedTargetText();
       const hint = capabilityHintText();
       byId("capabilityHint").textContent = hint;
       byId("capabilityHint").classList.toggle("hidden", !hint);
@@ -2314,12 +2394,16 @@
       const box = byId("statusBox");
       box.classList.remove("ok", "warn", "error");
       if (kind) box.classList.add(kind);
-      byId("statusText").textContent = message;
+      if (byId("statusText").textContent !== message) {
+        byId("statusText").textContent = message;
+      }
     }
 
     function updateKeyVisibility() {
       byId("apiKey").type = keyVisible ? "text" : "password";
+      byId("generatedUrl").type = keyVisible ? "text" : "password";
       byId("hideKey").textContent = keyVisible ? "Hide key" : "Show key";
+      byId("hideKey").setAttribute("aria-pressed", String(keyVisible));
     }
 
     async function copyText(value, message) {
@@ -2327,12 +2411,24 @@
       try {
         await navigator.clipboard.writeText(value);
       } catch (error) {
+        const previousFocus = document.activeElement;
         const helper = document.createElement("textarea");
         helper.value = value;
-        document.body.appendChild(helper);
-        helper.select();
-        document.execCommand("copy");
-        helper.remove();
+        helper.style.position = "fixed";
+        helper.style.opacity = "0";
+        try {
+          document.body.appendChild(helper);
+          helper.select();
+          if (!document.execCommand("copy")) {
+            throw new Error("Copy failed");
+          }
+        } catch (copyError) {
+          updateCopyState("Could not copy. Use Show key, then select and copy the text manually.");
+          return;
+        } finally {
+          helper.remove();
+          if (previousFocus) previousFocus.focus();
+        }
       }
       updateCopyState(message);
     }

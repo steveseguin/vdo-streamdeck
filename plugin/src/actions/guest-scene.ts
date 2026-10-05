@@ -1,3 +1,4 @@
+import { clearActionError, showActionAlert } from "./action-feedback.js";
 import { action, type KeyAction, type KeyDownEvent, SingletonAction, type DidReceiveSettingsEvent, type WillAppearEvent } from "@elgato/streamdeck";
 import { buildGuestScenePayload } from "../api/command-registry.js";
 import { normalizeGuestSceneSettings } from "../api/settings.js";
@@ -33,7 +34,7 @@ export class GuestSceneAction extends SingletonAction<GuestSceneSettings> {
 		const settings = normalizeGuestSceneSettings(ev.payload.settings);
 		const target = resolveGuestTargetValue(settings);
 		if (typeof target === "undefined" || target === "") {
-			await ev.action.showAlert();
+			await showActionAlert(ev.action, "target");
 			await this.render(ev.action, settings);
 			return;
 		}
@@ -45,9 +46,10 @@ export class GuestSceneAction extends SingletonAction<GuestSceneSettings> {
 			if (payload) {
 				await vdoClient.sendCommand(payload);
 			}
+			clearActionError(ev.action);
 			await ev.action.showOk();
-		} catch {
-			await ev.action.showAlert();
+		} catch (error) {
+			await showActionAlert(ev.action, "command", error);
 		}
 		await this.render(ev.action, settings);
 	}

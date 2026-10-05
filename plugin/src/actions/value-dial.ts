@@ -1,3 +1,4 @@
+import { clearActionError, showActionAlert } from "./action-feedback.js";
 import {
 	action,
 	type DialAction,
@@ -174,7 +175,7 @@ export class ValueDialAction extends SingletonAction<ValueDialSettings> {
 	private async sendValue(actionContext: DialAction<ValueDialSettings>, settings: ValueDialSettings, value: number, isCurrent = () => true): Promise<void> {
 		const target = settings.scope === "guest" ? resolveGuestTargetValue(settings) : undefined;
 		if (settings.scope === "guest" && (typeof target === "undefined" || target === "")) {
-			await actionContext.showAlert();
+			await showActionAlert(actionContext, "target");
 			await this.render(actionContext, settings);
 			return;
 		}
@@ -185,13 +186,14 @@ export class ValueDialAction extends SingletonAction<ValueDialSettings> {
 			if (!isCurrent()) {
 				return;
 			}
+			clearActionError(actionContext);
 			this.schedulePersist(actionContext, value);
 			await this.render(actionContext, settings, value);
-		} catch {
+		} catch (error) {
 			if (!isCurrent()) {
 				return;
 			}
-			await actionContext.showAlert();
+			await showActionAlert(actionContext, "command", error);
 			await this.render(actionContext, settings);
 		}
 	}

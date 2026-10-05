@@ -1,3 +1,4 @@
+import { clearActionError, showActionAlert } from "./action-feedback.js";
 import { setCommandIcon, MIXER_ICONS } from "./command-icon.js";
 import { action, type KeyAction, type KeyDownEvent, SingletonAction, type DidReceiveSettingsEvent, type WillAppearEvent, type WillDisappearEvent } from "@elgato/streamdeck";
 import { buildMixerControlPayloads } from "../api/command-registry.js";
@@ -67,9 +68,10 @@ export class MixerControlAction extends SingletonAction<MixerControlSettings> {
 					await delay(75);
 				}
 			}
+			clearActionError(ev.action);
 			await ev.action.showOk();
-		} catch {
-			await ev.action.showAlert();
+		} catch (error) {
+			await showActionAlert(ev.action, "command", error);
 		}
 
 		this.armedUntil.delete(ev.action.id);

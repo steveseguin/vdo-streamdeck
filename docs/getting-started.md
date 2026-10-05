@@ -1,98 +1,118 @@
 # Set Up VDO.Ninja on Stream Deck
 
-This guide is for everyday use. You do not need a VDO.Ninja account, and you do not need to know anything about programming.
+Use Stream Deck to control a VDO.Ninja page while it stays open in your browser.
 
-## Before You Start
+## Install
 
-You need:
+You need the Stream Deck app **6.8+**, Stream Deck hardware or Stream Deck Mobile, and a browser that supports VDO.Ninja, such as Chrome or Edge.
 
-- The Stream Deck app, version 6.8 or newer.
-- A Stream Deck, Stream Deck +, or Stream Deck Mobile.
-- Chrome, Edge, or another browser that can run VDO.Ninja.
-- The VDO.Ninja Stream Deck plugin file. Its name ends in `.streamDeckPlugin`.
+[Download the latest plugin](https://github.com/steveseguin/vdo-streamdeck/releases/latest). Under **Assets**, choose **ninja.vdo.streamdeck.streamDeckPlugin**, then double-click it and choose **Install**. You do not need Node.js or Companion. The plugin is in beta and is not yet in the Elgato Marketplace.
 
-The plugin is still in testing and is not in the Stream Deck Marketplace yet. If you were given a test copy, double-click the `.streamDeckPlugin` file and choose **Install**.
+## Connect your page
 
-## Connect Your First VDO.Ninja Page
+1. Open Stream Deck and find **VDO.Ninja** in the action list.
+2. Drag **Connection Status** onto an empty key.
+3. In the panel below the keys, click **Generate secure key**.
+4. Leave **Director mixer room** selected and enter your room name.
+5. Click **Open VDO.Ninja** and finish opening the room in your browser.
+6. Keep the browser tab open, return to Stream Deck, and click **Test connection**.
 
-1. Open the Stream Deck app.
-2. Search for **VDO.Ninja** in the action list.
-3. Drag **Connection Status** onto an empty key.
-4. In the setup panel below the keys, click **Generate secure key**.
-5. Leave **Director mixer room** selected and type your VDO.Ninja room name.
-6. Click **Open VDO.Ninja**.
-7. Leave the VDO.Ninja browser tab open while you use Stream Deck.
-8. Return to the Stream Deck app and click **Test connection**.
+You are connected when the panel says **VDO.Ninja page answered** and the connection key turns green.
 
-You are ready when the setup panel says **VDO.Ninja page answered** and the Stream Deck key turns green.
+All VDO.Ninja keys and dials share this connection, including those on other profiles. Changing the connection key affects all of them. Changing the room or page link does not switch the active browser page: close the old controlled tab, open the new link, then test again.
 
-The connection key is a private remote-control password. The plugin puts it into the VDO.Ninja link for you, so you do not need to copy it anywhere. Do not share the key or a screenshot that shows the full link.
+The connection key is a remote-control password. **Show key** reveals both the key and the generated link. Keep the key, link, and QR code private.
 
-## Add Useful Controls
+### Use an existing page or a camera
 
-Drag another VDO.Ninja action onto an empty key, then choose what it should control in the panel below the keys.
+If your page's URL already contains `api=`, paste the full URL into **Connection key or VDO.Ninja link**. The plugin fills in the key and keeps your page options, including `/alpha/`. Leave that page open and click **Test connection**.
 
-- **Local Control → Mic** turns your own microphone on or off.
-- **Local Control → Camera** turns your own camera on or off.
-- **Guest Command → Mic** controls a guest's microphone.
-- **Select Guest** lets one set of guest buttons follow G1, G2, G3, and so on.
-- **Guest Scene** adds or removes a guest from a scene.
+Under **Page to control**, choose:
 
-The G1, G2, and G3 numbers are the guest numbers shown in the VDO.Ninja director. They are not mixer destination slots.
+- **Existing VDO.Ninja URL** to paste a director, guest, mixer, or camera link you already use. The generated link keeps its options and sets the connection key. Open that generated link in place of the original page.
+- **Push camera** to publish a camera using a stream ID.
+- **View stream** to control a page that watches a stream.
+- **Scene / clean output** to control an output for a room and scene.
 
-## Use the Stream Deck + Dials
+**Local Control** always affects this connected page, even when it runs on another computer. Guest controls need a director or mixer page.
 
-Choose **Dials** near the top-right of the Stream Deck app, then drag an action onto a dial.
+## Add controls
 
-- **Value Dial** can adjust local volume, guest volume, bitrate, panning, or buffer delay.
-- **PTZ Dial** can adjust camera zoom, pan, tilt, focus, or exposure.
+Drag another VDO.Ninja action onto an empty key and choose its settings. The connection section starts collapsed once a key is configured; expand it to change the shared connection.
 
-PTZ camera movement needs extra browser permission. Open the controlled camera page with PTZ enabled and approve the camera-control request. If you do not use a movable camera, you can ignore PTZ.
+| Goal | Action and setting |
+| --- | --- |
+| Toggle your microphone or camera | **Local Control → Mic** or **Camera**, with **Toggle**. |
+| Hold a key to speak | **Local Control → Mic → Hold to talk**. Releasing the key mutes it. |
+| Start and stop recording | Two **Local Control → Record** keys: one **Start recording**, one **Stop recording**. |
+| Mute a guest | **Guest Command → Mic**, choose the guest, then **Turn off**. |
+| Add or remove a guest from a scene | **Guest Scene**, choose the guest and scene, then **Toggle**. |
+| See who is connected | **Guests List → All connected guests**. |
 
-## What the Keys Tell You
+Reload, hangup, recovery, and transfer actions require a second press within two seconds by default. Their settings let you turn this confirmation off.
 
-Each key is a solid colour with a small round badge in the top corner. The colour tells you the state from across the room; the badge confirms it up close. The key's own label stays readable in the middle.
+### Choose a guest
 
-- **Green key, check badge:** connected and ready, or the selected setting is on.
-- **Dark red key, X badge:** the page or guest is unavailable, or the selected setting is off.
-- **Dark grey key, dots badge:** still waiting for the VDO.Ninja page to answer.
-- **Amber lightning badge:** a Custom Command key, which is always ready to send.
+- **Guest position (G1, G2...)** follows the guest number shown in the director. It is not a mixer destination slot.
+- **Stream ID** follows a particular stream. Pick a detected guest, or use **Manual ID** if it has not joined yet.
+- **Selected guest** follows your **Select Guest** keys. Add a Select Guest key set to **Select next guest**, then set your Guest Command or Guest Scene keys to **Selected guest**. Press the selection key before using those controls.
+- **First held guest** targets the first guest waiting to be activated. **Activate Guest** needs VDO.Ninja v30.2 or newer.
 
-If a key says **Set API Key**, finish the connection steps above.
+### Mixer slots and layouts
 
-A guest control can be red while the main connection key is green. This usually means the guest has not joined yet or that no guest is selected.
+Use the default **Director mixer room** link for these controls. **Mixer Control → Assign guest to mixer slot** takes both a guest position and a destination slot. Destination **1** means mixer slot 1; **0** removes the assignment. Layout **0** selects the automatic layout.
 
-## If It Does Not Connect
+## Use Stream Deck + dials
 
-Try these in order:
+Choose **Dials** in Stream Deck, then drag **Value Dial** or **PTZ Dial** onto a dial.
 
-1. Make sure the VDO.Ninja browser tab is still open.
-2. Make sure the browser page finished loading.
-3. Click **Test connection** again.
-4. If you opened more than one controlled page, give each page its own generated connection key.
-5. For a guest control, confirm that the guest is in the room and that the correct G number is selected.
-6. Restart the Stream Deck app, reopen the VDO.Ninja link, and test again.
+- **Value Dial** adjusts volume, audio panning, bitrate, or buffer delay. Choose **Guest volume** to adjust one guest. Set the step per tick and the dial press action as needed.
+- **PTZ Dial** controls a supported camera's zoom, pan, tilt, focus, or local exposure. Smaller steps give finer movement; **Invert dial direction** reverses it.
 
-## Testing the Alpha Version
+| Gesture | What happens |
+| --- | --- |
+| Turn clockwise / counterclockwise | Increase / decrease by the configured step. **Invert dial direction** reverses this. |
+| Press the dial or tap its display | Run the chosen **Dial press / touch** action. Value Dial resets by default; PTZ Dial sends no command by default. |
 
-Only use this when you have been asked to test upcoming VDO.Ninja changes.
+For example, a volume dial set to 100 with a step of 5 drops to 95 with one counterclockwise click. Press it to return to its reset value, 100 by default.
 
-1. Open **Advanced and self-hosted setup** in the Connection Status panel.
+PTZ needs `&ptz` on the camera page's URL and approval of the browser's camera-control permission. For guest PTZ, add it to the guest's camera link. The camera must support the chosen control.
+
+Audio panning needs `&panning` on the controlled page's URL. It adjusts the incoming audio you hear on that page.
+
+## Read the keys
+
+Icons and text accompany the colours:
+
+- **Green with a check:** connected, selected, on, or ready, depending on the action.
+- **Dark red with an X:** off, inactive, or unavailable. Read the key's label for the specific state.
+- **Grey:** waiting for connection, or a command without an on/off state, such as screen share or recording.
+- **Amber lightning:** a Custom Command. This colour does not indicate connection status.
+
+If a key says **Set API Key**, finish the connection setup. A guest key can be unavailable while Connection Status is green; check that the guest has joined and is selected.
+
+If a key or dial flashes a warning, select it in Stream Deck and read **Last action** for help. The message clears when that action next succeeds. A missing reply does not prove a command failed; check the VDO.Ninja page before repeating it.
+
+## Troubleshooting
+
+| What you see | What to do |
+| --- | --- |
+| No VDO page / timeout | Keep the controlled tab open, let it finish loading, and click **Test connection**. Confirm its URL uses the same `api` key. |
+| Guest missing / no selection | Check the guest's G number or stream ID. For **Selected guest**, press a Select Guest key first. |
+| Mic or camera says Inactive | Enable that media source on the connected VDO.Ninja page. A director without a local camera cannot toggle one. |
+| Wrong page responds | Close other tabs using the same API key. Give separately controlled pages different keys. |
+| Named scene will not Force On/Off | Use **Toggle**, or a page that reports live scene membership. |
+| PTZ does nothing | Enable `&ptz` on the camera page, approve browser permission, and check that the camera supports that control. |
+| Copy fails | Click **Show key**, then select and copy the key or link manually. |
+
+## Use VDO.Ninja alpha
+
+[Alpha](https://vdo.ninja/alpha/) has the newest VDO.Ninja code.
+
+1. Expand **Connect VDO.Ninja**, then **Advanced and self-hosted setup**.
 2. Set **VDO.Ninja base URL** to `https://vdo.ninja/alpha/`.
-3. Close the advanced section.
-4. Use **Open VDO.Ninja** as normal.
+3. Close the old controlled tab, click **Open VDO.Ninja**, and test the connection again.
 
-The generated director link will stay under `/alpha/mixer`.
+Director links stay under `/alpha/mixer`. If you chose **Existing VDO.Ninja URL**, edit that URL to use `/alpha/` instead; the base URL setting does not change an existing link.
 
-## For a Developer or Technical Helper
-
-If you do not have an installable test file, a technical helper can build one from the repository:
-
-```text
-cd plugin
-npm install
-npm run build
-npx @elgato/cli@1.7.4 pack ninja.vdo.streamdeck.sdPlugin
-```
-
-The resulting `.streamDeckPlugin` file can be installed by double-clicking it.
+For source builds, see the [plugin build instructions](../plugin/README.md#build).

@@ -83,7 +83,7 @@ describe("title templates", () => {
 		const inspector = readFileSync(join(import.meta.dirname, "../ui/action-settings.html"), "utf8");
 		for (const id of ["ptzDialTitle", "valueDialTitle"]) {
 			const hint = inspector.match(new RegExp(`<textarea\\b[^>]*id="${id}"[^>]*>[\\s\\S]*?<div class="hint">([\\s\\S]*?)</div>`))?.[1];
-			expect(hint).toContain("Title lines are combined into one line on the dial display.");
+			expect(hint).toContain("Titles appear on one line");
 		}
 	});
 });

@@ -162,6 +162,13 @@ export const KEY_ICONS = {
 		shapes: [field(colors.slateField), badgeDisc(colors.slateBadge), ...gridGlyph(colors.slateGlyph)]
 	},
 
+	"list-field": {
+		size: KEY,
+		description: "Guests list placeholder until live guests are drawn",
+		raster: [144, 288],
+		shapes: [field(colors.slateField)]
+	},
+
 	custom: {
 		size: KEY,
 		description: "Custom API command ready to send",
@@ -270,6 +277,17 @@ export const ACTION_ICONS = {
 		]
 	},
 
+	// Roster rows: the live guest list, distinct from a single guest target.
+	list: {
+		size: 24,
+		shapes: [0, 11].flatMap(dy => [
+			{ type: "circle", cx: 5.5, cy: 4.6 + dy, r: 2.3, fill: glyph },
+			{ type: "rect", x: 2.2, y: 7.8 + dy, w: 6.6, h: 3.6, r: 1.8, fill: glyph },
+			{ type: "line", x1: 12, y1: 5.2 + dy, x2: 21.4, y2: 5.2 + dy, width: 2.2, cap: "round", fill: glyph },
+			{ type: "line", x1: 12, y1: 9.6 + dy, x2: 18, y2: 9.6 + dy, width: 2.2, cap: "round", fill: glyph }
+		])
+	},
+
 	// Four-pane scene grid, matching VDO.Ninja's scene controls.
 	scene: {
 		size: 24,
@@ -342,7 +360,8 @@ export const COMMAND_ICONS = {
 	hand: icon(rect(7,9,12,12,5),rect(7,4,2.5,11),rect(10.3,2,2.5,12),rect(13.6,3,2.5,11),rect(17,6,2,10),line(8,17,3,11)),
 	keyframe: icon(line(3,4,21,4),line(3,4,3,20),line(21,4,21,20),line(3,20,21,20),polygon([[9,7],[17,12],[9,17]])),
 	reload: icon({type:"arc",cx:12,cy:12,r:8,width:2.4,from:30,to:315,fill:glyph},polygon([[19,3],[21,11],[13,8]])),
-	hangup: icon({type:"arc",cx:12,cy:15,r:8,width:4,from:205,to:335,cap:"round",fill:glyph},rect(2,12,5,5,2),rect(17,12,5,5,2)),
+	// Handset laid flat with its ear and mouth pieces down: the usual "end call" mark.
+	hangup: icon({type:"arc",cx:12,cy:17,r:11,width:4.5,from:215,to:325,fill:glyph},polygon([[0.8,9.6],[5.4,8.2],[6.4,13.4],[2,14.6]]),polygon([[23.2,9.6],[18.6,8.2],[17.6,13.4],[22,14.6]])),
 	group: icon({type:"circle",cx:8,cy:7,r:3,fill:glyph},{type:"circle",cx:17,cy:8,r:2.5,fill:glyph},rect(2,12,12,9,4),rect(15,13,7,8,3)),
 	transfer: icon(line(3,4,10,4),line(3,4,3,20),line(3,20,10,20),line(8,12,21,12),line(16,7,21,12),line(16,17,21,12)),
 	activate: icon({type:"circle",cx:8,cy:7,r:3.5,fill:glyph},rect(2,13,11,9,4),line(14,12,17,15),line(17,15,22,8)),

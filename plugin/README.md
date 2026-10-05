@@ -1,8 +1,8 @@
 # VDO.Ninja Stream Deck Plugin
 
-This is the native Stream Deck plugin implementation workspace. For everyday setup, start with the [plain-language guide](../docs/getting-started.md). For screenshots, the supported-action matrix, and install notes, see the [repo README](../README.md).
+Build the plugin from source or look up its action behavior here. For installation and everyday use, see the [setup guide](../docs/getting-started.md).
 
-Current positioning: early native prototype/MVP. It is not yet a full replacement for the Bitfocus Companion VDO.Ninja module because presets, named connections, and broader dynamic feedback are still in progress.
+The plugin uses one shared connection for all actions and profiles. Named connections and simultaneous control of separate pages are not available.
 
 ## Actions
 
@@ -12,8 +12,8 @@ Every action targets a VDO.Ninja page opened with `&api=KEY`.
 | --- | --- | --- |
 | Connection Status | Key | Connection and status feedback for the configured API key. |
 | Local Control | Key | Mic, camera, speaker, record, screen share, hand, keyframe, reload, and hangup on the local page. Mic also supports push-to-talk and push-to-mute. |
-| Select Guest | Key | Selects a fixed slot/stream, the next or previous guest, the first held guest, or clears the selection. |
-| Guest Command | Key | Guest control targeted by slot, stream ID, selected guest, or first held guest. |
+| Select Guest | Key | Selects a fixed guest position/stream, the next or previous guest, the first held guest, or clears the selection. |
+| Guest Command | Key | Guest control targeted by guest position, stream ID, selected guest, or first held guest. |
 | Guest Scene | Key | Arbitrary scene ID/name toggles, fixed-scene force on/off, and scene membership feedback. |
 | Guests List | Key | Displays connected guests or the members of one scene, with automatic text sizing and rotation for long lists. |
 | Mixer Control | Key | Layout selection, guest slot assignment, all-guest mute, and a guarded all-guest transfer. |
@@ -32,12 +32,25 @@ Beyond the actions themselves:
 
 ## Build
 
+Install Node.js 20+ for development, then run from the repository root:
+
 ```text
-npm install
+cd plugin
+npm ci
 npm run build
+npx @elgato/cli@1.7.4 pack ninja.vdo.streamdeck.sdPlugin --no-update-check
 ```
 
-The build output is `ninja.vdo.streamdeck.sdPlugin/`.
+The build output is `ninja.vdo.streamdeck.sdPlugin/`. Double-click the resulting `ninja.vdo.streamdeck.streamDeckPlugin` file to install. To replace an existing package file when rebuilding, add `-f` to the pack command.
+
+For local development, link the bundle to Stream Deck:
+
+```text
+npx @elgato/cli@1.7.4 link ninja.vdo.streamdeck.sdPlugin
+npx @elgato/cli@1.7.4 restart ninja.vdo.streamdeck
+```
+
+Icons are generated. Edit `scripts/icon-set.mjs` and run `npm run assets`; changes made directly under `imgs/` are overwritten by the next build.
 
 ## Use
 
@@ -59,7 +72,7 @@ The row template defaults to `{slot} {label}` and also supports `{streamID}`. In
 ## No-hardware checks
 
 ```bash
-npm test
+node node_modules/vitest/vitest.mjs run --maxWorkers=2
 npm run check
 npm run build
 npm run test:runtime
@@ -97,7 +110,7 @@ See the [illustrative icon preview](../docs/assets/command-icons-preview.png). I
 
 ### Targeting
 
-- Selected guest stores a stream ID. Selecting by slot resolves the current slot to its stream ID when the select action is pressed, so later slot changes do not silently retarget selected-guest actions.
+- Selected guest stores a stream ID. Selecting by guest position resolves the current G number to its stream ID when the select action is pressed, so later guest-order changes do not silently retarget selected-guest actions.
 
 ### Scenes
 

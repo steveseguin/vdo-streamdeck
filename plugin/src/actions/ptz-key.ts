@@ -1,3 +1,4 @@
+import { clearActionError, showActionAlert } from "./action-feedback.js";
 import { setCommandIcon, PTZ_ICONS } from "./command-icon.js";
 import { action, type KeyAction, type KeyDownEvent, SingletonAction, type DidReceiveSettingsEvent, type WillAppearEvent } from "@elgato/streamdeck";
 import { buildPtzKeyPayloads } from "../api/command-registry.js";
@@ -35,7 +36,7 @@ export class PtzKeyAction extends SingletonAction<PtzKeySettings> {
 		const target = settings.scope === "guest" ? resolveGuestTargetValue(settings) : undefined;
 
 		if (settings.scope === "guest" && (typeof target === "undefined" || target === "")) {
-			await ev.action.showAlert();
+			await showActionAlert(ev.action, "target");
 			await this.render(ev.action, settings);
 			return;
 		}
@@ -48,9 +49,10 @@ export class PtzKeyAction extends SingletonAction<PtzKeySettings> {
 					throw new Error(`${payload.action} was rejected by VDO.Ninja`);
 				}
 			}
+			clearActionError(ev.action);
 			await ev.action.showOk();
-		} catch {
-			await ev.action.showAlert();
+		} catch (error) {
+			await showActionAlert(ev.action, "ptz", error);
 		}
 
 		await this.render(ev.action, settings);

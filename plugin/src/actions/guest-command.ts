@@ -1,3 +1,4 @@
+import { clearActionError, showActionAlert } from "./action-feedback.js";
 import { setCommandIcon } from "./command-icon.js";
 import { action, type KeyAction, type KeyDownEvent, SingletonAction, type DidReceiveSettingsEvent, type WillAppearEvent, type WillDisappearEvent } from "@elgato/streamdeck";
 import { buildGuestCommandPayload, getGuestCommandDefinition } from "../api/command-registry.js";
@@ -56,7 +57,7 @@ export class GuestCommandAction extends SingletonAction<GuestCommandSettings> {
 		}
 
 		if (typeof target === "undefined" || target === "") {
-			await ev.action.showAlert();
+			await showActionAlert(ev.action, "target");
 			await this.render(ev.action, settings);
 			return;
 		}
@@ -67,9 +68,10 @@ export class GuestCommandAction extends SingletonAction<GuestCommandSettings> {
 			if (definition.falseMeansFailure && callback.result === false) {
 				throw new Error(`${definition.label} was rejected by VDO.Ninja`);
 			}
+			clearActionError(ev.action);
 			await ev.action.showOk();
-		} catch {
-			await ev.action.showAlert();
+		} catch (error) {
+			await showActionAlert(ev.action, "command", error);
 		}
 
 		this.armedUntil.delete(ev.action.id);

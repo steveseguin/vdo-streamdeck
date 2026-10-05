@@ -158,7 +158,7 @@
       "UUID": "ninja.vdo.streamdeck.guests-list",
       "Name": "Guests List",
       "Tooltip": "Show the connected VDO.Ninja guests with auto-scaling text, optionally filtered to one scene.",
-      "Icon": "imgs/actions/guest",
+      "Icon": "imgs/actions/list",
       "Controllers": [
         "Keypad"
       ],
@@ -166,7 +166,7 @@
       "States": [
         {
           "Name": "List",
-          "Image": "imgs/guest-off",
+          "Image": "imgs/list-key",
           "ShowTitle": false
         }
       ],

@@ -151,6 +151,146 @@ describe("property inspector contract", () => {
 		expect(harness.socket.sent.some(message => message.includes('"type":"openUrl"'))).toBe(true);
 		expect(harness.socket.sent.some(message => message.includes('"type":"testConnection"'))).toBe(true);
 	});
+
+	it("keeps incomplete base URLs recoverable and independent of existing URLs", () => {
+		const harness = createInspectorHarness();
+		harness.connect();
+		harness.socket.onopen();
+		const field = (id: string) => harness.elements.get(id)!;
+		field("apiKey").value = "test-key";
+		field("roomName").value = "test-room";
+		field("pageType").value = "director";
+		field("baseUrl").value = "https://";
+		expect(() => field("baseUrl").oninput?.()).not.toThrow();
+		expect(field("openUrl").disabled).toBe(true);
+		expect(field("linkHelp").textContent).toContain("valid VDO.Ninja base URL");
+		field("pageType").value = "custom";
+		field("customUrl").value = "https://vdo.ninja/alpha/?view=test-stream";
+		field("customUrl").oninput?.();
+		expect(field("openUrl").disabled).toBe(false);
+		expect(new URL(field("generatedUrl").value).searchParams.get("view")).toBe("test-stream");
+		field("pageType").value = "director";
+		field("baseUrl").value = "https://vdo.ninja/alpha/";
+		field("baseUrl").oninput?.();
+		expect(field("openUrl").disabled).toBe(false);
+		expect(new URL(field("generatedUrl").value).pathname).toBe("/alpha/mixer");
+	});
+
+	it("hides generated keys and links until explicitly revealed", () => {
+		const harness = createInspectorHarness();
+		harness.connect();
+		harness.socket.onopen();
+		harness.elements.get("generateKey")!.onclick?.();
+		for (const id of ["apiKey", "generatedUrl"]) {
+			expect(harness.elements.get(id)!.type).toBe("password");
+		}
+		harness.elements.get("hideKey")!.onclick?.();
+		for (const id of ["apiKey", "generatedUrl"]) {
+			expect(harness.elements.get(id)!.type).toBe("text");
+		}
+		harness.elements.get("hideKey")!.onclick?.();
+		expect(harness.elements.get("generatedUrl")!.type).toBe("password");
+	});
+
+	it("imports a pasted connection link while preserving its page options", () => {
+		const harness = createInspectorHarness();
+		harness.connect();
+		harness.socket.onopen();
+		const field = (id: string) => harness.elements.get(id)!;
+		field("apiHost").value = "localhost:8080";
+		field("apiProtocol").value = "insecure";
+		let prevented = false;
+		field("apiKey").onpaste?.({
+			clipboardData: { getData: () => "https://vdo.ninja/alpha/?director=test-room&api=test%2Bkey&label=Test%20Director&slotmode=1" },
+			preventDefault: () => { prevented = true; }
+		});
+		expect(prevented).toBe(true);
+		expect(field("apiKey").value).toBe("test+key");
+		expect(field("apiKey").type).toBe("password");
+		expect(field("pageType").value).toBe("custom");
+		expect(new URL(field("customUrl").value).searchParams.has("api")).toBe(false);
+		const url = new URL(field("generatedUrl").value);
+		expect(url.pathname).toBe("/alpha/");
+		expect(Object.fromEntries(url.searchParams)).toEqual({ director: "test-room", api: "test+key", label: "Test Director", slotmode: "1" });
+		expect(field("generatedUrl").type).toBe("password");
+		expect(field("testConnection").disabled).toBe(false);
+		const saved = harness.socket.sent.map(message => JSON.parse(message)).find(message => message.event === "setGlobalSettings");
+		expect(saved.payload.apiKey).toBe("test+key");
+		expect(saved.payload.apiHost).toBe("localhost:8080");
+		expect(saved.payload.useTls).toBe(false);
+	});
+
+	it.each(["https://", "https://vdo.ninja/?director=test-room", "https://vdo.ninja/?api=%20"])("rejects unusable connection link %s without saving or testing it", link => {
+		const harness = createInspectorHarness();
+		harness.connect();
+		harness.socket.onopen();
+		const field = (id: string) => harness.elements.get(id)!;
+		field("apiKey").value = link;
+		field("apiKey").onchange?.();
+		field("testConnection").onclick?.();
+		expect(field("statusText").textContent).toContain("Link not imported");
+		expect(field("testConnection").disabled).toBe(true);
+		expect(field("openUrl").disabled).toBe(true);
+		expect(field("generatedUrl").value).toBe("");
+		expect(harness.socket.sent.some(message => message.includes('"setGlobalSettings"') || message.includes('"testConnection"'))).toBe(false);
+		field("apiKey").value = "plain-test-key";
+		field("apiKey").onchange?.();
+		expect(field("testConnection").disabled).toBe(false);
+		const saved = harness.socket.sent.map(message => JSON.parse(message)).find(message => message.event === "setGlobalSettings");
+		expect(saved.payload.apiKey).toBe("plain-test-key");
+	});
+
+	it("reports a failed clipboard fallback instead of claiming success", async () => {
+		const harness = createInspectorHarness({ clipboardFails: true, copyResult: false });
+		harness.connect();
+		harness.socket.onopen();
+		harness.elements.get("apiKey")!.value = "test-key";
+		harness.elements.get("copyKey")!.onclick?.();
+		await Promise.resolve();
+		expect(harness.elements.get("copyState")!.textContent).toContain("Could not copy");
+	});
+
+	it("copies through the fallback when clipboard access is unavailable", async () => {
+		const harness = createInspectorHarness({ clipboardFails: true, copyResult: true });
+		harness.connect();
+		harness.socket.onopen();
+		harness.elements.get("apiKey")!.value = "test-key";
+		harness.elements.get("copyKey")!.onclick?.();
+		await Promise.resolve();
+		expect(harness.elements.get("copyState")!.textContent).toBe("API key copied.");
+	});
+
+	it("shows only this action's last error and hides it after success", () => {
+		const harness = createInspectorHarness();
+		harness.connect();
+		harness.socket.onopen();
+		const reply = (context: string, message: string) => harness.socket.onmessage({ data: JSON.stringify({
+			event: "sendToPropertyInspector", payload: { type: "actionError", context, message }
+		}) });
+		reply("action-context", "Check the guest target.");
+		expect(harness.elements.get("actionErrorBox")!.classList.contains("hidden")).toBe(false);
+		expect(harness.elements.get("actionErrorText")!.textContent).toBe("Check the guest target.");
+		reply("another-action", "Different error");
+		expect(harness.elements.get("actionErrorText")!.textContent).toBe("Check the guest target.");
+		reply("action-context", "");
+		expect(harness.elements.get("actionErrorBox")!.classList.contains("hidden")).toBe(true);
+	});
+
+	it("names the selected guest and updates the hint when its target mode changes", () => {
+		const harness = createInspectorHarness({ action: "guest-command", settings: { targetMode: "selected" } });
+		harness.connect();
+		harness.socket.onopen();
+		const hint = harness.elements.get("selectedGuestHint")!;
+		expect(hint.textContent).toContain("Press a Select Guest key");
+		harness.socket.onmessage({ data: JSON.stringify({ event: "sendToPropertyInspector", payload: {
+			type: "targetChoices", selectedStreamID: "test-guest", streams: [{ streamID: "test-guest", position: 2, label: "Guest Two" }]
+		} }) });
+		expect(hint.textContent).toBe("Selected guest: G2 - Guest Two");
+		const mode = harness.elements.get("guestTargetMode")!;
+		mode.value = "slot";
+		mode.onchange?.();
+		expect(hint.classList.contains("hidden")).toBe(true);
+	});
 });
 
 function escapeRegExp(value: string): string {
@@ -162,7 +302,7 @@ function selectOptionValues(id: string): string[] {
 	return Array.from(select.matchAll(/<option\b[^>]*value="([^"]+)"/gi), match => match[1]);
 }
 
-function createInspectorHarness(): {
+function createInspectorHarness(options: { clipboardFails?: boolean; copyResult?: boolean; action?: string; settings?: Record<string, unknown> } = {}): {
 	connect: () => void;
 	socket: FakeSocket;
 	elements: Map<string, FakeElement>;
@@ -175,7 +315,7 @@ function createInspectorHarness(): {
 	const document = {
 		getElementById: (id: string) => elements.get(id) || null,
 		createElement: (tag: string) => new FakeElement(tag, ""),
-		execCommand: () => true,
+		execCommand: () => options.copyResult !== false,
 		body: {
 			appendChild: () => undefined
 		}
@@ -190,7 +330,9 @@ function createInspectorHarness(): {
 	}
 	const navigator = {
 		clipboard: {
-			writeText: async () => undefined
+			writeText: async () => {
+				if (options.clipboardFails) throw new Error("Clipboard unavailable");
+			}
 		}
 	};
 	const crypto = {
@@ -227,8 +369,8 @@ function createInspectorHarness(): {
 				"{}",
 				JSON.stringify({
 					context: "action-context",
-					action: "ninja.vdo.streamdeck.connection",
-					payload: { settings: {} }
+					action: "ninja.vdo.streamdeck." + (options.action || "connection"),
+					payload: { settings: options.settings || {} }
 				})
 			);
 		},
@@ -280,6 +422,7 @@ class FakeClassList {
 }
 
 class FakeElement {
+	readonly style: Record<string, string> = {};
 	value = "";
 	checked = false;
 	disabled = false;
@@ -287,6 +430,7 @@ class FakeElement {
 	onclick: (() => unknown) | null = null;
 	oninput: (() => unknown) | null = null;
 	onchange: (() => unknown) | null = null;
+	onpaste: ((event: { clipboardData: { getData: () => string }; preventDefault: () => void }) => unknown) | null = null;
 	readonly classList = new FakeClassList();
 	readonly options: FakeElement[] = [];
 	private text = "";
@@ -317,6 +461,8 @@ class FakeElement {
 	getContext(): { fillStyle: string; fillRect: () => void } {
 		return { fillStyle: "", fillRect: () => undefined };
 	}
+
+	setAttribute(): void {}
 
 	focus(): void {}
 	select(): void {}

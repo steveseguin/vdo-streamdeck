@@ -283,9 +283,11 @@ try {
 		"guest volume readback rendering"
 	);
 
+	sendToPlugin({ event: "propertyInspectorDidAppear", action: "ninja.vdo.streamdeck.guest-command", context: "guest-mic", device: "runtime-device" });
 	keyDown("ninja.vdo.streamdeck.select-guest", "select", selectSettings, 0);
 	await waitFor(() => hasOutput("select", "setState", payload => payload.state === 1), "G1 selected state");
 	assert.ok(hasEvent("select", "showOk"), "Select Guest should acknowledge a valid fixed target");
+	await waitFor(() => hasOutput("guest-mic", "sendToPropertyInspector", payload => payload.type === "targetChoices" && payload.selectedStreamID === "guest"), "selected guest updates the open inspector");
 
 	const initialDetailsRequests = apiRequests.filter(request => request.action === "getDetails").length;
 	keyDown("ninja.vdo.streamdeck.connection", "connection", {}, 0);
@@ -317,6 +319,11 @@ try {
 		cameraRequestsBefore,
 		"Inactive camera control must not send a command"
 	);
+	assert.equal(hasOutput("guest-mic", "sendToPropertyInspector", payload => payload.type === "actionError" && !!payload.message), false, "Camera errors must not appear on another key");
+	sendToPlugin({ event: "propertyInspectorDidAppear", action: "ninja.vdo.streamdeck.local-control", context: "local-camera-inactive", device: "runtime-device" });
+	sendToPlugin({ event: "sendToPlugin", action: "ninja.vdo.streamdeck.local-control", context: "local-camera-inactive", payload: { type: "requestStatus" } });
+	await waitFor(() => hasOutput("local-camera-inactive", "sendToPropertyInspector", payload => payload.type === "actionError" && payload.context === "local-camera-inactive" && payload.message.includes("inactive")), "opening the inspector shows the action's previous error");
+	sendToPlugin({ event: "propertyInspectorDidDisappear", action: "ninja.vdo.streamdeck.local-control", context: "local-camera-inactive", device: "runtime-device" });
 
 	keyDown("ninja.vdo.streamdeck.guest-scene", "guest-scene", sceneSettings, 4);
 	await waitFor(

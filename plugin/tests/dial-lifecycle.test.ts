@@ -16,6 +16,15 @@ function dial(initial: Record<string, unknown>) {
 describe("queued dial input", () => {
 	afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
 
+	it.each(["onDialDown", "onTouchTap"] as const)("ignores %s when PTZ press/touch is set to None, even without a guest", async method => {
+		const send = vi.spyOn(vdoClient, "sendCommand").mockResolvedValue({ result: true });
+		const settings = { scope: "guest", targetMode: "selected", pushAction: "none" };
+		const action = dial(settings);
+		await new PtzDialAction()[method]({ action, payload: { settings } } as never);
+		expect(send).not.toHaveBeenCalled();
+		expect(action.showAlert).not.toHaveBeenCalled();
+	});
+
 	it.each(["value", "ptz"])("does not send queued %s ticks after cycling control", async kind => {
 		vi.useFakeTimers();
 		const send = vi.spyOn(vdoClient, "sendCommand").mockResolvedValue({ result: true });

@@ -1,3 +1,4 @@
+import { clearActionError, showActionAlert } from "./action-feedback.js";
 import { action, type KeyAction, type KeyDownEvent, SingletonAction, type DidReceiveSettingsEvent, type WillAppearEvent } from "@elgato/streamdeck";
 import { normalizeSelectGuestSettings } from "../api/settings.js";
 import type { SelectGuestSettings, StreamChoice } from "../api/types.js";
@@ -32,12 +33,13 @@ export class SelectGuestAction extends SingletonAction<SelectGuestSettings> {
 		const settings = normalizeSelectGuestSettings(ev.payload.settings);
 		const next = resolveNextSelection(settings);
 		if (settings.mode !== "clear" && !next) {
-			await ev.action.showAlert();
+			await showActionAlert(ev.action, "selection");
 			await this.render(ev.action, settings);
 			return;
 		}
 
 		selectedTargetStore.setSelectedStreamID(next);
+		clearActionError(ev.action);
 		await ev.action.showOk();
 		await this.render(ev.action, settings);
 	}

@@ -1,3 +1,4 @@
+import { clearActionError, showActionAlert } from "./action-feedback.js";
 import { setCommandIcon } from "./command-icon.js";
 import { action, type KeyAction, type KeyDownEvent, type KeyUpEvent, SingletonAction, type DidReceiveSettingsEvent, type WillAppearEvent, type WillDisappearEvent } from "@elgato/streamdeck";
 import {
@@ -56,7 +57,7 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 		const settings = normalizeLocalControlSettings(ev.payload.settings);
 		const definition = getLocalControlDefinition(settings.command);
 		if (this.isTrackInactive(definition)) {
-			await ev.action.showAlert();
+			await showActionAlert(ev.action, "media");
 			await this.render(ev.action, settings);
 			return;
 		}
@@ -81,9 +82,10 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 		try {
 			const payload = buildLocalControlPayload(settings);
 			await vdoClient.sendCommand(payload);
+			clearActionError(ev.action);
 			await ev.action.showOk();
-		} catch {
-			await ev.action.showAlert();
+		} catch (error) {
+			await showActionAlert(ev.action, "command", error);
 		}
 
 		this.armedUntil.delete(ev.action.id);
@@ -164,10 +166,11 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 		this.momentaryRequests.set(actionContext.id, request);
 		try {
 			await request;
-		} catch {
+			if (this.isCurrentMomentarySequence(actionContext.id, sequence)) clearActionError(actionContext);
+		} catch (error) {
 			if (this.isCurrentMomentarySequence(actionContext.id, sequence)) {
 				this.momentaryPressed.delete(actionContext.id);
-				await actionContext.showAlert();
+				await showActionAlert(actionContext, "command", error);
 			}
 		} finally {
 			if (this.momentaryRequests.get(actionContext.id) === request) {

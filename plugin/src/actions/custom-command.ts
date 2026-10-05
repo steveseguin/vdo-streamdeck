@@ -1,3 +1,4 @@
+import { clearActionError, showActionAlert } from "./action-feedback.js";
 import { action, type KeyDownEvent, SingletonAction, type DidReceiveSettingsEvent, type WillAppearEvent } from "@elgato/streamdeck";
 import type { JsonValue } from "@elgato/utils";
 import { normalizeCustomCommandSettings } from "../api/settings.js";
@@ -38,9 +39,10 @@ export class CustomCommandAction extends SingletonAction<CustomCommandSettings> 
 
 		try {
 			await vdoClient.sendCommand(payload, { awaitCallback: settings.awaitCallback !== false });
+			clearActionError(ev.action);
 			await ev.action.showOk();
-		} catch {
-			await ev.action.showAlert();
+		} catch (error) {
+			await showActionAlert(ev.action, "command", error);
 		}
 	}
 }

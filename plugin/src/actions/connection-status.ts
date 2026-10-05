@@ -1,3 +1,4 @@
+import { clearActionError, showActionAlert } from "./action-feedback.js";
 import { action, type KeyAction, type KeyDownEvent, SingletonAction, type WillAppearEvent } from "@elgato/streamdeck";
 import type { ConnectionStatusSettings } from "../api/types.js";
 import { sessionStore, vdoClient } from "../services.js";
@@ -20,9 +21,10 @@ export class ConnectionStatusAction extends SingletonAction<ConnectionStatusSett
 	override async onKeyDown(ev: KeyDownEvent<ConnectionStatusSettings>): Promise<void> {
 		try {
 			await vdoClient.sendCommand({ action: "getDetails" });
+			clearActionError(ev.action);
 			await ev.action.showOk();
-		} catch {
-			await ev.action.showAlert();
+		} catch (error) {
+			await showActionAlert(ev.action, "command", error);
 		}
 		await this.render(ev.action);
 	}

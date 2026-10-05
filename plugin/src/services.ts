@@ -5,6 +5,7 @@ import { normalizeGlobalSettings } from "./api/settings.js";
 import type { ConnectionStateName, GlobalSettings } from "./api/types.js";
 import { SelectedTargetStore } from "./state/selected-target-store.js";
 import { SessionStore } from "./state/session-store.js";
+import { sendActionError } from "./actions/action-feedback.js";
 
 export const vdoClient = new VdoClient();
 export const sessionStore = new SessionStore();
@@ -20,6 +21,9 @@ let pollInFlight = false;
 export async function initializeServices(): Promise<void> {
 	const settings = normalizeGlobalSettings(await streamDeck.settings.getGlobalSettings<GlobalSettings>());
 	registerPropertyInspectorMessages();
+	selectedTargetStore.subscribe(() => {
+		if (streamDeck.ui.action) void sendInspectorTargets().catch(() => undefined);
+	});
 	vdoClient.onState(state => sessionStore.setConnectionState(state));
 	vdoClient.onCallback(callback => sessionStore.applyCallback(callback));
 	vdoClient.onUpdate(update => {
@@ -48,6 +52,7 @@ function registerPropertyInspectorMessages(): void {
 
 		const type = typeof payload.type === "string" ? payload.type : "";
 		if (type === "requestStatus") {
+			await sendActionError(ev.action);
 			await sendInspectorStatus("status");
 			await sendInspectorTargets();
 		} else if (type === "requestTargets") {
