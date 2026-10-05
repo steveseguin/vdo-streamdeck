@@ -67,7 +67,7 @@ const deckCss = `
 	.key.pressed::after { content: ""; position: absolute; inset: 0; border-radius: 14px; box-shadow: inset 0 0 0 3px #ffffffcc; }
 	#step { margin-top: 22px; font-size: 13px; font-weight: 650; letter-spacing: 0.06em; text-transform: uppercase; color: #35d07f; min-height: 18px; }
 	#note { margin-top: auto; font-size: 11px; color: #6f7b8f; }
-	#subs { position: fixed; left: ${DECK_WIDTH + 30}px; right: 30px; bottom: 26px; z-index: 2147483647; display: flex; justify-content: center; pointer-events: none; }
+	#subs { position: fixed; left: ${DECK_WIDTH + 30}px; right: 30px; bottom: 74px; z-index: 2147483647; display: flex; justify-content: center; pointer-events: none; }
 	#subs span { max-width: 760px; padding: 8px 16px; border-radius: 8px; background: rgba(0, 0, 0, 0.82); color: #fff; font-family: "Segoe UI", system-ui, sans-serif; font-size: 25px; line-height: 1.32; font-weight: 600; text-align: center; }
 	#subs span:empty { display: none; }
 	#card { position: fixed; left: ${DECK_WIDTH}px; right: 0; top: 0; bottom: 0; z-index: 2147483645; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background: #0b0d12f2; font-family: "Segoe UI", system-ui, sans-serif; color: #e8edf5; }
