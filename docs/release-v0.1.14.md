@@ -1,5 +1,3 @@
-## VDO.Ninja for Stream Deck v0.1.14
-
 Run your VDO.Ninja show from Stream Deck: mute guests, switch scenes, move PTZ cameras, and adjust audio, with live feedback on every key.
 
 ![The plugin controlling a live VDO.Ninja director room: muting a guest, turning off a camera, toggling a scene, and a confirmed hang-up](https://github.com/steveseguin/vdo-streamdeck/raw/main/docs/assets/demo.gif)
