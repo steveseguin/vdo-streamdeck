@@ -11,6 +11,7 @@ import { renderGuestTitle, resolveGuestTargetChoice, resolveGuestTargetValue } f
 export class GuestCommandAction extends SingletonAction<GuestCommandSettings> {
 	private armedUntil = new Map<string, number>();
 	private armedSettings = new Map<string, string>();
+	private armedTargets = new Map<string, string>();
 
 	constructor() {
 		super();
@@ -47,9 +48,17 @@ export class GuestCommandAction extends SingletonAction<GuestCommandSettings> {
 		const settings = normalizeGuestCommandSettings(ev.payload.settings);
 		const definition = getGuestCommandDefinition(settings.command);
 		const target = resolveGuestTargetValue(settings);
+		const targetIdentity = this.targetIdentity(settings);
 
-		if (definition.dangerous && settings.dangerousConfirm !== false && !this.isArmed(ev.action.id)) {
-			this.arm(ev.action.id, ev.payload.settings);
+		if (typeof target === "undefined" || target === "") {
+			this.armedUntil.delete(ev.action.id);
+			await showActionAlert(ev.action, "target");
+			await this.render(ev.action, settings);
+			return;
+		}
+
+		if (definition.dangerous && settings.dangerousConfirm !== false && !this.isArmed(ev.action.id, targetIdentity)) {
+			this.arm(ev.action.id, ev.payload.settings, targetIdentity);
 			await ev.action.setState(0);
 			await ev.action.setTitle("Press\nagain");
 			setTimeout(() => {
@@ -57,12 +66,6 @@ export class GuestCommandAction extends SingletonAction<GuestCommandSettings> {
 					void this.render(ev.action, settings);
 				}
 			}, 2100);
-			return;
-		}
-
-		if (typeof target === "undefined" || target === "") {
-			await showActionAlert(ev.action, "target");
-			await this.render(ev.action, settings);
 			return;
 		}
 
@@ -92,12 +95,12 @@ export class GuestCommandAction extends SingletonAction<GuestCommandSettings> {
 	}
 
 	private async render(actionContext: KeyAction<GuestCommandSettings>, rawSettings?: GuestCommandSettings): Promise<void> {
+		const settings = normalizeGuestCommandSettings(rawSettings || (await actionContext.getSettings<GuestCommandSettings>()));
 		// State polls redraw visible keys; keep the confirmation prompt while armed.
-		if (this.isArmed(actionContext.id)) {
+		if (this.isArmed(actionContext.id, this.targetIdentity(settings))) {
 			await actionContext.setTitle("Press\nagain");
 			return;
 		}
-		const settings = normalizeGuestCommandSettings(rawSettings || (await actionContext.getSettings<GuestCommandSettings>()));
 		const definition = getGuestCommandDefinition(settings.command);
 		await setCommandIcon(actionContext, definition.icon, !definition.stateField);
 		const choice = resolveGuestTargetChoice(settings);
@@ -137,12 +140,22 @@ export class GuestCommandAction extends SingletonAction<GuestCommandSettings> {
 		return undefined;
 	}
 
-	private arm(actionId: string, settings: GuestCommandSettings): void {
-		this.armedUntil.set(actionId, Date.now() + 2000);
-		this.armedSettings.set(actionId, JSON.stringify(settings));
+	private targetIdentity(settings: GuestCommandSettings): string {
+		const choice = resolveGuestTargetChoice(settings);
+		return JSON.stringify([resolveGuestTargetValue(settings), choice?.streamID, choice?.UUID]);
 	}
 
-	private isArmed(actionId: string): boolean {
+	private arm(actionId: string, settings: GuestCommandSettings, targetIdentity: string): void {
+		this.armedUntil.set(actionId, Date.now() + 2000);
+		this.armedSettings.set(actionId, JSON.stringify(settings));
+		this.armedTargets.set(actionId, targetIdentity);
+	}
+
+	private isArmed(actionId: string, targetIdentity?: string): boolean {
+		// Slot order and the first held guest can change without a settings event.
+		if (targetIdentity !== undefined && this.armedTargets.get(actionId) !== targetIdentity) {
+			this.armedUntil.delete(actionId);
+		}
 		const until = this.armedUntil.get(actionId) || 0;
 		if (until > Date.now()) {
 			return true;
