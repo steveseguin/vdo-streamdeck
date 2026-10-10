@@ -6,7 +6,7 @@ Start here to find the right document. The [repo README](../README.md) covers in
 
 | Document | What it covers |
 | --- | --- |
-| [Set Up VDO.Ninja on Stream Deck](getting-started.md) | Plain-language setup, key colours, and troubleshooting. No programming knowledge assumed. |
+| [Set Up VDO.Ninja on Stream Deck](getting-started.md) | Visual setup guide with settings screenshots, Mixer layout buttons, key colours, and troubleshooting. |
 | [VDO.Ninja Version Compatibility Audit](vdo-version-compatibility.md) | Which controls work on older VDO.Ninja builds, and what `Activate Guest` needs. |
 
 ## Building on the plugin
