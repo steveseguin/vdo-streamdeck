@@ -198,7 +198,7 @@ Choose **Dials** in Stream Deck, then drag **Value Dial** or **PTZ Dial** onto a
 
 **Press or tap** to run the chosen **Dial press / touch** action. Value Dial resets by default; PTZ Dial sends no command by default.
 
-For example, volume **100** with step **5** becomes **95** after one counterclockwise click. Press to return to the reset value, **100** by default.
+For example, volume **100** with step **5** becomes **95** after one counterclockwise click. Press to return to the reset value, **100** by default. Local volume is a percentage. Guest volume uses the director's nonlinear slider level: **100** is normal gain, and **200** is about **8.3 times** normal gain.
 
 **PTZ:** add `&ptz` to the camera page URL and approve the browser's camera-control permission. The camera must support the control. For guest PTZ, use the guest's camera link.
 

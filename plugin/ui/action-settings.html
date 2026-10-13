@@ -2040,7 +2040,7 @@
         if (option) option.disabled = scope === "guest";
       });
       const defaults = valueDialDefaults(control, scope);
-      let units = scope === "guest" ? "Volume: 0 to 200 percent." : "Volume: 0 to 100 percent.";
+      let units = scope === "guest" ? "Guest volume slider level: 0 to 200. 100 is normal gain; 200 is about 8.3 times normal gain." : "Volume: 0 to 100 percent.";
       if (control === "panning") units = "Add &panning to the controlled page URL. 0 is left, 90 is centre, 180 is right.";
       if (control === "bitrate") units = "Bitrate in kbps. Set Reset value to -1 for automatic bitrate.";
       if (control === "bufferDelay") units = "Delay in milliseconds (1000 ms = 1 second).";
@@ -2154,7 +2154,7 @@
     }
 
     function guestValueLabel(command) {
-      if (command === "volume") return "Volume percent";
+      if (command === "volume") return "Volume slider level (0 to 200; 100 = normal)";
       if (command === "group") return "Group ID";
       if (command === "forward") return "Destination room";
       if (command === "sendDirectorChat" || command === "sendPinnedDirectorChat") return "Message";

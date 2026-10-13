@@ -17,6 +17,7 @@ import { renderGuestTitle, resolveGuestTargetChoice, resolveGuestTargetValue } f
 
 type PendingDial = {
 	action: DialAction<PtzDialSettings>;
+	selectedStreamID?: string | null;
 	ticks: number;
 	lastSentAt: number;
 	timer?: NodeJS.Timeout;
@@ -33,6 +34,9 @@ export class PtzDialAction extends SingletonAction<PtzDialSettings> {
 			void this.refreshVisible();
 		});
 		selectedTargetStore.subscribe(() => {
+			for (const [id, pending] of this.pending) {
+				if (typeof pending.selectedStreamID !== "undefined") this.clearPending(id);
+			}
 			void this.refreshVisible();
 		});
 	}
@@ -53,7 +57,7 @@ export class PtzDialAction extends SingletonAction<PtzDialSettings> {
 			return;
 		}
 
-		const pending = this.ensurePending(ev.action);
+		const pending = this.ensurePending(ev.action, settings);
 		pending.ticks += ev.payload.ticks;
 		await this.render(ev.action, settings, tickStatus(pending.ticks, settings));
 		this.scheduleFlush(ev.action.id, settings.intervalMs || 80);
@@ -67,7 +71,7 @@ export class PtzDialAction extends SingletonAction<PtzDialSettings> {
 		await this.handlePush(ev.action, ev.payload.settings);
 	}
 
-	private ensurePending(actionContext: DialAction<PtzDialSettings>): PendingDial {
+	private ensurePending(actionContext: DialAction<PtzDialSettings>, settings: PtzDialSettings): PendingDial {
 		const existing = this.pending.get(actionContext.id);
 		if (existing) {
 			existing.action = actionContext;
@@ -75,6 +79,7 @@ export class PtzDialAction extends SingletonAction<PtzDialSettings> {
 		}
 		const pending: PendingDial = {
 			action: actionContext,
+			selectedStreamID: settings.scope === "guest" && settings.targetMode === "selected" ? selectedTargetStore.getSelectedStreamID() : undefined,
 			ticks: 0,
 			lastSentAt: 0
 		};

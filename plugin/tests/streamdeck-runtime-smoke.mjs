@@ -279,7 +279,7 @@ try {
 		"fixed G1 selection rendering"
 	);
 	await waitFor(
-		() => hasOutput("guest-volume", "setFeedback", payload => feedbackValue(payload) === "100%"),
+		() => hasOutput("guest-volume", "setFeedback", payload => feedbackValue(payload) === "100"),
 		"guest volume readback rendering"
 	);
 
@@ -360,7 +360,7 @@ try {
 		"guest volume dial HTTP delivery"
 	);
 	await waitFor(
-		() => hasOutput("guest-volume", "setFeedback", payload => feedbackValue(payload) === "105%"),
+		() => hasOutput("guest-volume", "setFeedback", payload => feedbackValue(payload) === "105"),
 		"guest volume 105 feedback"
 	);
 	await waitFor(() => contextSettings.get("guest-volume")?.value === "105", "guest volume settings persistence", 2500);
@@ -368,7 +368,7 @@ try {
 	const latestVolumeTitle = feedbackValue(latestOutput("guest-volume", "setFeedback")?.payload || {});
 	assert.match(
 		latestVolumeTitle,
-		/105%/,
+		/^105$/,
 		`Polled VDO state must not snap guest volume back to media volume; latest title was ${JSON.stringify(latestVolumeTitle)}`
 	);
 	assert.equal(apiSocketMessages.some(message => message.action === "volume"), false, "Volume must use reliable HTTP while WS is open");

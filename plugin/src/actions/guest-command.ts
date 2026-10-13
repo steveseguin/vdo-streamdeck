@@ -11,6 +11,7 @@ import { renderGuestTitle, resolveGuestTargetChoice, resolveGuestTargetValue } f
 export class GuestCommandAction extends SingletonAction<GuestCommandSettings> {
 	private armedUntil = new Map<string, number>();
 	private armedSettings = new Map<string, string>();
+	private armedGuest = new Map<string, string | undefined>();
 
 	constructor() {
 		super();
@@ -19,6 +20,7 @@ export class GuestCommandAction extends SingletonAction<GuestCommandSettings> {
 		});
 		selectedTargetStore.subscribe(() => {
 			this.armedUntil.clear();
+			this.armedGuest.clear();
 			void this.refreshVisible();
 		});
 	}
@@ -33,6 +35,7 @@ export class GuestCommandAction extends SingletonAction<GuestCommandSettings> {
 		// getSettings replies also arrive here; only a real change cancels a pending confirmation.
 		if (this.armedSettings.get(ev.action.id) !== JSON.stringify(ev.payload.settings)) {
 			this.armedUntil.delete(ev.action.id);
+			this.armedGuest.delete(ev.action.id);
 		}
 		if (ev.action.isKey()) {
 			await this.render(ev.action, ev.payload.settings);
@@ -41,15 +44,19 @@ export class GuestCommandAction extends SingletonAction<GuestCommandSettings> {
 
 	override async onWillDisappear(ev: WillDisappearEvent<GuestCommandSettings>): Promise<void> {
 		this.armedUntil.delete(ev.action.id);
+		this.armedGuest.delete(ev.action.id);
 	}
 
 	override async onKeyDown(ev: KeyDownEvent<GuestCommandSettings>): Promise<void> {
 		const settings = normalizeGuestCommandSettings(ev.payload.settings);
 		const definition = getGuestCommandDefinition(settings.command);
 		const target = resolveGuestTargetValue(settings);
+		const choice = resolveGuestTargetChoice(settings);
+		const guest = choice?.UUID || choice?.streamID;
 
-		if (definition.dangerous && settings.dangerousConfirm !== false && !this.isArmed(ev.action.id)) {
+		if (definition.dangerous && settings.dangerousConfirm !== false && (!this.isArmed(ev.action.id) || this.armedGuest.get(ev.action.id) !== guest)) {
 			this.arm(ev.action.id, ev.payload.settings);
+			this.armedGuest.set(ev.action.id, guest);
 			await ev.action.setState(0);
 			await ev.action.setTitle("Press\nagain");
 			setTimeout(() => {
@@ -79,6 +86,7 @@ export class GuestCommandAction extends SingletonAction<GuestCommandSettings> {
 		}
 
 		this.armedUntil.delete(ev.action.id);
+		this.armedGuest.delete(ev.action.id);
 		await this.render(ev.action, settings);
 	}
 
@@ -148,6 +156,7 @@ export class GuestCommandAction extends SingletonAction<GuestCommandSettings> {
 			return true;
 		}
 		this.armedUntil.delete(actionId);
+		this.armedGuest.delete(actionId);
 		return false;
 	}
 }

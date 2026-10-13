@@ -161,7 +161,7 @@ describe("settings normalization", () => {
 		});
 	});
 
-	it("defaults guest value dial volume to the director's 200 percent range", () => {
+	it("defaults guest value dial volume to the director's 0 to 200 slider range", () => {
 		expect(normalizeValueDialSettings({ scope: "guest" })).toEqual(
 			expect.objectContaining({
 				scope: "guest",
