@@ -76,6 +76,7 @@ Press the key to mute or unmute that page's microphone. The page must have a mic
 | Mute a guest | **Guest Command** | **Mic**, choose the guest, then **Turn off**. |
 | Toggle my camera | **Local Control** | **Camera** → **Toggle**. |
 | Hold to talk | **Local Control** | **Mic** → **Hold to talk**. |
+| Hold to talk with an OBS mic | **Local Control** | **Mic** > **Hold to talk** > **Control OBS mic**. [Setup](captions-and-obs.md). |
 | Start / stop recording | Two **Local Control** keys | **Record** → **Start recording** on one; **Stop recording** on the other. |
 | Add a guest to a scene | **Guest Scene** | Choose the guest and scene, then **Toggle**. |
 | See connected guests | **Guests List** | **All connected guests**. |
@@ -220,6 +221,7 @@ For example, volume **100** with step **5** becomes **95** after one countercloc
 | **Layout only works with browser focus** | Replace the Stream Deck hotkey with **Mixer Control → Mixer layout**. |
 | **Named scene will not Force On/Off** | Use **Toggle**, or a page that reports live scene membership. |
 | **PTZ does nothing** | Check `&ptz`, browser permission, and camera support. |
+| **Key title is cropped** | Select the key and open the [T font settings](https://help.elgato.com/hc/en-us/articles/360027958532-Elgato-Stream-Deck-Custom-Titles-for-Actions). Choose Arial, size 9, regular, and bottom alignment for both states. Existing keys keep their saved font settings after an update. Shorten long custom titles or add a line break. |
 | **Copy fails** | Click **Show key**, then select and copy the key or link manually. |
 
 ## Useful links

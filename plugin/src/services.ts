@@ -1,6 +1,7 @@
 import streamDeck from "@elgato/streamdeck";
 import type { JsonObject, JsonValue } from "@elgato/utils";
 import { VdoClient } from "./api/vdo-client.js";
+import { ObsClient, ObsRequestError } from "./api/obs-client.js";
 import { normalizeGlobalSettings } from "./api/settings.js";
 import type { ConnectionStateName, GlobalSettings } from "./api/types.js";
 import { SelectedTargetStore } from "./state/selected-target-store.js";
@@ -60,10 +61,37 @@ function registerPropertyInspectorMessages(): void {
 			await sendInspectorTargets();
 		} else if (type === "testConnection") {
 			await testConnectionFromInspector();
+		} else if (type === "testObs") {
+			await testObsFromInspector();
 		} else if (type === "openUrl") {
 			await openUrlFromInspector(payload);
 		}
 	});
+}
+
+async function testObsFromInspector(): Promise<void> {
+	const settings = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
+	const obs = new ObsClient(settings);
+	try {
+		const response = await obs.request("GetInputList");
+		const inputs = Array.isArray(response.inputs) ? response.inputs : [];
+		const names: string[] = [];
+		for (const input of inputs) {
+			if (typeof input.inputName !== "string") continue;
+			try {
+				await obs.request("GetInputMute", { inputName: input.inputName });
+				names.push(input.inputName);
+			} catch (error) {
+				if (!(error instanceof ObsRequestError)) throw error;
+				// Video-only sources do not support microphone mute requests.
+			}
+		}
+		await sendInspectorResponse({ type: "obsResult", ok: true, inputs: names, message: names.length ? "Connected. Choose your microphone." : "Connected. Add an audio input in OBS first." });
+	} catch (error) {
+		await sendInspectorResponse({ type: "obsResult", ok: false, message: error instanceof Error ? error.message : "OBS: Connection failed." });
+	} finally {
+		obs.close();
+	}
 }
 
 async function testConnectionFromInspector(): Promise<void> {

@@ -1,6 +1,6 @@
 import { clearActionError, showActionAlert } from "./action-feedback.js";
 import { setCommandIcon } from "./command-icon.js";
-import { action, type KeyAction, type KeyDownEvent, type KeyUpEvent, SingletonAction, type DidReceiveSettingsEvent, type WillAppearEvent, type WillDisappearEvent } from "@elgato/streamdeck";
+import streamDeck, { action, type KeyAction, type KeyDownEvent, type KeyUpEvent, SingletonAction, type DidReceiveSettingsEvent, type WillAppearEvent, type WillDisappearEvent } from "@elgato/streamdeck";
 import {
 	buildLocalControlPayload,
 	buildLocalMomentaryPayload,
@@ -9,7 +9,8 @@ import {
 	isMomentaryLocalBehavior
 } from "../api/command-registry.js";
 import { normalizeLocalControlSettings } from "../api/settings.js";
-import type { LocalControlSettings } from "../api/types.js";
+import type { GlobalSettings, LocalControlSettings } from "../api/types.js";
+import { ObsClient } from "../api/obs-client.js";
 import { sessionStore, vdoClient } from "../services.js";
 
 @action({ UUID: "ninja.vdo.streamdeck.local-control" })
@@ -20,11 +21,18 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 	private momentaryPressed = new Set<string>();
 	private momentarySettings = new Map<string, { settings: LocalControlSettings; action: KeyAction<LocalControlSettings> }>();
 	private momentaryRequests = new Map<string, Promise<void>>();
+	private obsMics = new Map<string, ObsClient>();
 
 	constructor() {
 		super();
 		sessionStore.subscribe(() => {
 			void this.refreshVisible();
+		});
+		vdoClient.onState(state => {
+			if (state === "connected") return;
+			for (const held of this.momentarySettings.values()) {
+				if (held.settings.obsSync) void this.sendMomentary(held.action, held.settings, "up");
+			}
 		});
 	}
 
@@ -42,7 +50,7 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 		if (ev.action.isKey()) {
 			const held = this.momentarySettings.get(ev.action.id);
 			const next = normalizeLocalControlSettings(ev.payload.settings);
-			if (held && (held.settings.command !== next.command || held.settings.behavior !== next.behavior)) {
+			if (held && (held.settings.command !== next.command || held.settings.behavior !== next.behavior || held.settings.obsSync !== next.obsSync || held.settings.obsInput !== next.obsInput)) {
 				await this.sendMomentary(ev.action, held.settings, "up");
 			}
 			await this.render(ev.action, ev.payload.settings);
@@ -59,6 +67,11 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 
 	override async onKeyDown(ev: KeyDownEvent<LocalControlSettings>): Promise<void> {
 		const settings = normalizeLocalControlSettings(ev.payload.settings);
+		if (settings.obsSync && ev.payload.isInMultiAction) {
+			await showActionAlert(ev.action, "command", new Error("OBS: Put Hold to talk on its own key, outside a Multi Action."));
+			return;
+		}
+		if (settings.obsSync && this.momentaryPressed.has(ev.action.id)) return;
 		const definition = getLocalControlDefinition(settings.command);
 		if (this.isTrackInactive(definition)) {
 			await showActionAlert(ev.action, "media");
@@ -164,13 +177,56 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 			this.momentaryPressed.delete(actionContext.id);
 			this.momentarySettings.delete(actionContext.id);
 		}
+		// Stop OBS immediately on release, even while a caption request is pending.
+		const heldObs = this.obsMics.get(actionContext.id);
+		const obsRelease = phase === "up" && heldObs ? heldObs.release() : Promise.resolve();
+		void obsRelease.catch(() => undefined);
 
 		// HTTP requests can complete out of order. Keep each key's press/release
 		// commands ordered so a late press cannot leave the microphone live.
 		const previous = this.momentaryRequests.get(actionContext.id) || Promise.resolve();
 		const request = previous.catch(() => undefined).then(async () => {
 			const payload = buildLocalMomentaryPayload(settings, phase);
-			await vdoClient.sendCommand(payload, { awaitCallback: false });
+			if (!settings.obsSync) {
+				await vdoClient.sendCommand(payload, { awaitCallback: false });
+				return;
+			}
+			if (phase === "up") {
+				const obs = this.obsMics.get(actionContext.id);
+				const results = await Promise.allSettled([
+					vdoClient.sendCommand(payload, { awaitCallback: false }),
+					obs ? obs.release() : obsRelease
+				]);
+				if (results[1].status === "fulfilled" && this.obsMics.get(actionContext.id) === obs) this.obsMics.delete(actionContext.id);
+				for (const result of results) if (result.status === "rejected") throw result.reason;
+				return;
+			}
+			if (!this.isCurrentMomentarySequence(actionContext.id, sequence)) return;
+			const previousObs = this.obsMics.get(actionContext.id);
+			if (previousObs) await previousObs.release();
+			const global = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
+			if (!this.isCurrentMomentarySequence(actionContext.id, sequence)) return;
+			const obs = new ObsClient(global);
+			this.obsMics.set(actionContext.id, obs);
+			obs.onDisconnect = () => {
+				if (this.obsMics.get(actionContext.id) === obs && this.momentaryPressed.has(actionContext.id)) {
+					void this.sendMomentary(actionContext, settings, "up");
+				}
+			};
+			try {
+				await obs.connect();
+				if (!this.isCurrentMomentarySequence(actionContext.id, sequence)) return;
+				await obs.unmute(settings.obsInput || "");
+				if (!this.isCurrentMomentarySequence(actionContext.id, sequence)) return;
+				await vdoClient.sendCommand(payload, { awaitCallback: false });
+			} catch (error) {
+				const cleanup = await Promise.allSettled([
+					obs.release(),
+					vdoClient.sendCommand(buildLocalMomentaryPayload(settings, "up"), { awaitCallback: false })
+				]);
+				if (cleanup[0].status === "fulfilled" && this.obsMics.get(actionContext.id) === obs) this.obsMics.delete(actionContext.id);
+				throw error;
+			}
 		});
 		this.momentaryRequests.set(actionContext.id, request);
 		try {
@@ -202,11 +258,11 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 		const label = settings.title || "Mic";
 		if (settings.behavior === "pushToMute") {
 			await actionContext.setState(pressed ? 0 : 1);
-			await actionContext.setTitle(pressed ? `${label}\nMuted` : `${label}\nHold Mute`);
+			await actionContext.setTitle(pressed ? `${label}\nMuted` : settings.title ? `${label}\nHold Mute` : "Hold\nMute");
 			return;
 		}
 		await actionContext.setState(pressed ? 1 : 0);
-		await actionContext.setTitle(pressed ? `${label}\nLive` : `${label}\nHold Talk`);
+		await actionContext.setTitle(pressed ? `${label}\nLive` : settings.title ? `${label}\nHold Talk` : "Hold\nTalk");
 	}
 
 	private resolveActive(definition: ReturnType<typeof getLocalControlDefinition>): boolean | undefined {

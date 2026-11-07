@@ -14,7 +14,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { deflateSync } from "node:zlib";
-import { ACTION_ICONS, COMMAND_ICONS, OFF_COMMAND_ICONS, KEY_ICONS } from "./icon-set.mjs";
+import { ACTION_ICONS, COMMAND_ICONS, OFF_COMMAND_ICONS, KEY_ICONS, KEY_GLYPH_LAYOUT } from "./icon-set.mjs";
 
 /** Sub-samples per axis for pixels that straddle a shape edge. */
 const SAMPLES = 8;
@@ -54,7 +54,7 @@ for (const [actionName, variants] of Object.entries(keyBackgroundVariants)) {
 		const [field, ...foreground] = base.shapes;
 		const icon = {
 			...base,
-			shapes: [field, ...backgroundGlyph(ACTION_ICONS[actionName], base.size), ...foreground]
+			shapes: [field, ...backgroundGlyph(ACTION_ICONS[actionName]), ...foreground]
 		};
 		await write(join(imageDir, `${variant.name}.svg`), renderSvg(icon));
 		for (const [index, width] of icon.raster.entries()) {
@@ -74,7 +74,7 @@ for (const [name, glyph] of Object.entries(COMMAND_ICONS)) {
 		const [field, ...foreground] = base.shapes;
 		// Neutral command keys are ready, not waiting for a connection.
 		const commandGlyph = state === "off" ? OFF_COMMAND_ICONS[name] || glyph : glyph;
-		const icon = { ...base, shapes: [field, ...backgroundGlyph(commandGlyph, base.size), ...(state === "neutral" ? [] : foreground)] };
+		const icon = { ...base, shapes: [field, ...backgroundGlyph(commandGlyph), ...(state === "neutral" ? [] : foreground)] };
 		await write(join(imageDir, `command-${name}-${state}.svg`), renderSvg(icon));
 		for (const [index, width] of icon.raster.entries()) {
 			await write(join(imageDir, `command-${name}-${state}${index ? "@2x" : ""}.png`), renderPng(icon, width));
@@ -163,11 +163,9 @@ function renderPng(icon, size) {
 	return encodePng(pixels, size, size);
 }
 
-function backgroundGlyph(icon, keySize) {
-	const size = 60;
+function backgroundGlyph(icon) {
+	const { size, x: offsetX, y: offsetY } = KEY_GLYPH_LAYOUT;
 	const scale = size / icon.size;
-	const offsetX = 12;
-	const offsetY = 2;
 	return icon.shapes.map(shape => transformShape(shape, scale, offsetX, offsetY));
 }
 

@@ -22,6 +22,8 @@ export interface GlobalSettings extends JsonObject {
 	setupStreamId?: string;
 	setupScene?: string;
 	setupCustomUrl?: string;
+	obsPort?: number;
+	obsPassword?: string;
 }
 
 export interface VdoCommandPayload extends JsonObject {
@@ -107,6 +109,8 @@ export interface LocalControlSettings extends JsonObject {
 	behavior?: "toggle" | "on" | "off" | "press" | "pushToTalk" | "pushToMute";
 	dangerousConfirm?: boolean;
 	title?: string;
+	obsSync?: boolean;
+	obsInput?: string;
 }
 
 export interface GuestCommandSettings extends JsonObject {

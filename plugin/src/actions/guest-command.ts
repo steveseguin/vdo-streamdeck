@@ -111,7 +111,7 @@ export class GuestCommandAction extends SingletonAction<GuestCommandSettings> {
 		const choice = resolveGuestTargetChoice(settings);
 		const stream = choice ? sessionStore.getStream(choice.streamID) : undefined;
 		const active = this.resolveActive(definition.id, stream);
-		const title = renderGuestTitle(settings.title, definition.label.replace(/^Guest /, ""), choice, {
+		const title = renderGuestTitle(settings.title, definition.keyLabel || definition.label.replace(/^Guest /, ""), choice, {
 			command: definition.label,
 			state: active === true ? "On" : active === false ? "Off" : ""
 		});

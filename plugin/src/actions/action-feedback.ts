@@ -40,6 +40,7 @@ function errorMessage(reason: FailureReason, error: unknown): string {
 	// Do not display raw errors: custom commands and transport errors can
 	// contain private URLs, keys, or command values.
 	const message = error instanceof Error ? error.message : "";
+	if (message.startsWith("OBS: ")) return message;
 	if (message === "Missing VDO.Ninja API key") return "Set up the connection key under Connect VDO.Ninja, then test the connection.";
 	if (message === "No VDO.Ninja page is joined to this API key") return "Open the VDO.Ninja page with the same API key, then test the connection.";
 	if (message.startsWith("Timed out waiting for ")) return "No reply arrived. Check the VDO.Ninja page before trying again; the command may already have run.";

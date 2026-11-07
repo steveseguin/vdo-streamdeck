@@ -32,6 +32,7 @@ export type GuestCommandDefinition = {
 	icon: string;
 	id: string;
 	label: string;
+	keyLabel?: string;
 	action: string;
 	valueKind: GuestCommandValueKind;
 	defaultValue?: JsonValue;
@@ -179,6 +180,7 @@ export const GUEST_COMMANDS: Record<string, GuestCommandDefinition> = {
 		id: "activateQueuedGuest",
 		icon: "activate",
 		label: "Activate Guest",
+		keyLabel: "Activate",
 		action: "activateQueuedGuest",
 		valueKind: "none",
 		pressOnly: true,
@@ -188,6 +190,7 @@ export const GUEST_COMMANDS: Record<string, GuestCommandDefinition> = {
 		id: "hangup",
 		icon: "hangup",
 		label: "Hang Up Guest",
+		keyLabel: "Hang Up",
 		action: "hangup",
 		valueKind: "none",
 		dangerous: true,
@@ -212,6 +215,7 @@ export const GUEST_COMMANDS: Record<string, GuestCommandDefinition> = {
 		id: "soloChatBidirectional",
 		icon: "talk",
 		label: "Two-way Talk",
+		keyLabel: "Two-way",
 		action: "soloChatBidirectional",
 		valueKind: "toggle"
 	},
@@ -227,6 +231,7 @@ export const GUEST_COMMANDS: Record<string, GuestCommandDefinition> = {
 		id: "sendPinnedDirectorChat",
 		icon: "pin",
 		label: "Pinned Overlay",
+		keyLabel: "Pin Overlay",
 		action: "sendPinnedDirectorChat",
 		valueKind: "text",
 		falseMeansFailure: true
@@ -244,6 +249,7 @@ export const GUEST_COMMANDS: Record<string, GuestCommandDefinition> = {
 		id: "refreshVideo",
 		icon: "reload",
 		label: "Refresh Video",
+		keyLabel: "Refresh Vid",
 		action: "refreshVideo",
 		valueKind: "none",
 		pressOnly: true,
@@ -253,6 +259,7 @@ export const GUEST_COMMANDS: Record<string, GuestCommandDefinition> = {
 		id: "refreshConnection",
 		icon: "reload",
 		label: "Refresh Conn",
+		keyLabel: "Reconnect",
 		action: "refreshConnection",
 		valueKind: "none",
 		pressOnly: true,

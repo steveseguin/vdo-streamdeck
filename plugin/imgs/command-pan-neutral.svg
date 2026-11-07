@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 144">
   <rect x="0" y="0" width="144" height="144" fill="#1e2532"/>
-  <line x1="17" y1="32" x2="67" y2="32" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
-  <line x1="17" y1="32" x2="29.5" y2="19.5" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
-  <line x1="17" y1="32" x2="29.5" y2="44.5" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
-  <line x1="67" y1="32" x2="54.5" y2="19.5" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
-  <line x1="67" y1="32" x2="54.5" y2="44.5" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+  <line x1="20.333" y1="36" x2="63.667" y2="36" stroke="#ffffff" stroke-width="4.333" stroke-linecap="round"/>
+  <line x1="20.333" y1="36" x2="31.167" y2="25.167" stroke="#ffffff" stroke-width="4.333" stroke-linecap="round"/>
+  <line x1="20.333" y1="36" x2="31.167" y2="46.833" stroke="#ffffff" stroke-width="4.333" stroke-linecap="round"/>
+  <line x1="63.667" y1="36" x2="52.833" y2="25.167" stroke="#ffffff" stroke-width="4.333" stroke-linecap="round"/>
+  <line x1="63.667" y1="36" x2="52.833" y2="46.833" stroke="#ffffff" stroke-width="4.333" stroke-linecap="round"/>
 </svg>

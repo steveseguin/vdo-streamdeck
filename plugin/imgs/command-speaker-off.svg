@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 144">
   <rect x="0" y="0" width="144" height="144" fill="#4a1d23"/>
-  <polygon points="19.5,24.5 29.5,24.5 42,14.5 42,49.5 29.5,39.5 19.5,39.5" fill="#ffffff"/>
-  <path d="M 49.142 20.509 A 15 15 0 0 1 49.142 43.491" fill="none" stroke="#ffffff" stroke-width="5"/>
-  <path d="M 57.178 14.322 A 25 25 0 0 1 57.178 49.678" fill="none" stroke="#ffffff" stroke-width="5"/>
-  <line x1="19.5" y1="9.5" x2="64.5" y2="54.5" stroke="#4a1d23" stroke-width="11.25" stroke-linecap="round"/>
-  <line x1="19.5" y1="9.5" x2="64.5" y2="54.5" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+  <polygon points="22.5,29.5 31.167,29.5 42,20.833 42,51.167 31.167,42.5 22.5,42.5" fill="#ffffff"/>
+  <path d="M 48.19 26.041 A 13 13 0 0 1 48.19 45.959" fill="none" stroke="#ffffff" stroke-width="4.333"/>
+  <path d="M 55.154 20.679 A 21.667 21.667 0 0 1 55.154 51.321" fill="none" stroke="#ffffff" stroke-width="4.333"/>
+  <line x1="22.5" y1="16.5" x2="61.5" y2="55.5" stroke="#4a1d23" stroke-width="9.75" stroke-linecap="round"/>
+  <line x1="22.5" y1="16.5" x2="61.5" y2="55.5" stroke="#ffffff" stroke-width="4.333" stroke-linecap="round"/>
   <circle cx="108" cy="33" r="16" fill="#f87171"/>
   <line x1="101.7" y1="26.7" x2="114.3" y2="39.3" stroke="#3a0f14" stroke-width="4.55" stroke-linecap="round"/>
   <line x1="114.3" y1="26.7" x2="101.7" y2="39.3" stroke="#3a0f14" stroke-width="4.55" stroke-linecap="round"/>

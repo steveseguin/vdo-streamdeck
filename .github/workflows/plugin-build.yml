@@ -17,6 +17,9 @@ jobs:
         name: Test and package
         runs-on: ubuntu-latest
         timeout-minutes: 15
+        env:
+            GOMAXPROCS: "1"
+            UV_THREADPOOL_SIZE: "1"
         defaults:
             run:
                 working-directory: plugin
@@ -39,7 +42,7 @@ jobs:
               run: npm audit --audit-level=high
 
             - name: Run tests
-              run: npm test
+              run: npm test -- --maxWorkers=1
 
             - name: Check TypeScript
               run: npm run check

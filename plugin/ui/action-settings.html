@@ -557,6 +557,22 @@
         <option value="pushToMute">Hold to mute</option>
       </select>
     </div>
+    <div id="obsSyncGroup" class="hidden">
+      <label class="inline" for="obsSync" title="Unmute an OBS microphone while this key is held, then mute it on release. OBS must run on this computer.">
+        <input id="obsSync" type="checkbox">Control OBS mic
+      </label>
+      <div id="obsSettings" class="hidden">
+        <label for="obsPort">OBS port</label>
+        <input id="obsPort" type="number" min="1" max="65535" value="4455">
+        <label for="obsPassword">OBS password</label>
+        <input id="obsPassword" type="password" autocomplete="off">
+        <button id="testObs" type="button" class="full-button">Connect to OBS</button>
+        <div id="obsStatus" role="status" class="hint"></div>
+        <label for="obsInput">Microphone</label>
+        <select id="obsInput"><option value="">Connect to choose...</option></select>
+        <a href="https://github.com/steveseguin/vdo-streamdeck/blob/main/docs/captions-and-obs.md" target="_blank" rel="noopener noreferrer">Setup guide</a>
+      </div>
+    </div>
     <label for="localTitle">Title override</label>
     <textarea id="localTitle" rows="4" spellcheck="false" placeholder="Optional"></textarea>
     <label id="localDangerGroup" class="inline" for="dangerousConfirm">
@@ -1090,6 +1106,7 @@
     let actionContext = null;
     let actionUuid = "";
     let globalSettings = {};
+    let obsInputs = [];
     let actionSettings = {};
     let targetChoices = [];
     let selectedStreamID = "";
@@ -1158,6 +1175,8 @@
       byId("streamId").value = globalSettings.setupStreamId || "";
       byId("sceneId").value = globalSettings.setupScene || "";
       byId("customUrl").value = globalSettings.setupCustomUrl || "";
+      byId("obsPort").value = globalSettings.obsPort || 4455;
+      byId("obsPassword").value = globalSettings.obsPassword || "";
       renderLinkBuilder();
       updateKeyVisibility();
       updateStatusIfConnectionChanged();
@@ -1201,6 +1220,8 @@
       if (actionUuid === "ninja.vdo.streamdeck.local-control") {
         byId("localCommand").value = actionSettings.command || "mic";
         byId("behavior").value = actionSettings.behavior || "toggle";
+        byId("obsSync").checked = actionSettings.obsSync === true;
+        renderObsInputs();
         byId("localTitle").value = actionSettings.title || "";
         byId("dangerousConfirm").checked = actionSettings.dangerousConfirm !== false;
         renderLocalSettings();
@@ -1344,7 +1365,7 @@
       if (bound) return;
       bound = true;
 
-      ["apiKey", "apiHost", "apiProtocol", "commandTransport", "timeout", "detailsPoll"].forEach(id => {
+      ["apiKey", "apiHost", "apiProtocol", "commandTransport", "timeout", "detailsPoll", "obsPort", "obsPassword"].forEach(id => {
         byId(id).onchange = saveGlobal;
       });
       byId("apiKey").onpaste = function(event) {
@@ -1360,7 +1381,7 @@
         byId(id).onchange = saveGlobal;
       });
 
-      ["localCommand", "behavior", "localTitle", "dangerousConfirm"].forEach(id => {
+      ["localCommand", "behavior", "localTitle", "dangerousConfirm", "obsSync", "obsInput"].forEach(id => {
         byId(id).oninput = saveAction;
         byId(id).onchange = saveAction;
       });
@@ -1532,6 +1553,11 @@
         updateStatus("warn", "Testing for a VDO.Ninja page using this key...");
         sendToPlugin({ type: "testConnection" });
       };
+      byId("testObs").onclick = function() {
+        saveGlobal();
+        byId("obsStatus").textContent = "Connecting...";
+        sendToPlugin({ type: "testObs" });
+      };
       byId("refreshTargets").onclick = function() {
         sendToPlugin({ type: "requestTargets" });
         updateCopyState("Refreshing VDO.Ninja targets.");
@@ -1660,7 +1686,9 @@
         setupRoom: byId("roomName").value.trim(),
         setupStreamId: byId("streamId").value.trim(),
         setupScene: byId("sceneId").value.trim(),
-        setupCustomUrl: byId("customUrl").value.trim()
+        setupCustomUrl: byId("customUrl").value.trim(),
+        obsPort: numberValue("obsPort", 4455),
+        obsPassword: byId("obsPassword").value
       };
       send({ event: "setGlobalSettings", context: propertyInspectorContext, payload: globalSettings });
       updateStatusIfConnectionChanged();
@@ -1681,6 +1709,8 @@
         actionSettings = {
           command,
           behavior,
+          obsSync: command === "mic" && behavior === "pushToTalk" && byId("obsSync").checked,
+          obsInput: byId("obsInput").value,
           title: byId("localTitle").value,
           dangerousConfirm: byId("dangerousConfirm").checked
         };
@@ -1907,6 +1937,9 @@
 
     function renderLocalSettings() {
       const command = byId("localCommand").value || "mic";
+      const obsAvailable = command === "mic" && byId("behavior").value === "pushToTalk";
+      byId("obsSyncGroup").classList.toggle("hidden", !obsAvailable);
+      byId("obsSettings").classList.toggle("hidden", !obsAvailable || !byId("obsSync").checked);
       const pressOnly = ["screenshare", "hand", "keyframe", "reload", "hangup"].includes(command);
       byId("localBehaviorGroup").classList.toggle("hidden", pressOnly);
       byId("localDangerGroup").classList.toggle("hidden", !(command === "reload" || command === "hangup"));
@@ -1925,6 +1958,21 @@
       if (command === "record" && !["on", "off"].includes(byId("behavior").value)) {
         byId("behavior").value = "on";
       }
+    }
+
+    function renderObsInputs() {
+      const select = byId("obsInput");
+      const current = actionSettings.obsInput || "";
+      select.textContent = "";
+      const names = [""].concat(obsInputs);
+      if (current && !names.includes(current)) names.push(current);
+      names.forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name || "Choose microphone...";
+        select.appendChild(option);
+      });
+      select.value = current;
     }
 
     function renderGuestSettings() {
@@ -2289,7 +2337,11 @@
 
     function handlePluginMessage(payload) {
       if (!payload || typeof payload !== "object") return;
-      if (payload.type === "actionError") {
+      if (payload.type === "obsResult") {
+        byId("obsStatus").textContent = payload.message || "";
+        obsInputs = Array.isArray(payload.inputs) ? payload.inputs : [];
+        renderObsInputs();
+      } else if (payload.type === "actionError") {
         if (payload.context !== actionContext) return;
         const message = typeof payload.message === "string" ? payload.message : "";
         const text = byId("actionErrorText");

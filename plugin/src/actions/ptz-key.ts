@@ -104,7 +104,7 @@ function ptzLabel(settings: PtzKeySettings): string {
 	if (control === "autofocus") {
 		return autofocusLabel(settings.value);
 	}
-	return `${controlLabel(control)} ${directionLabel(settings)}`.trim();
+	return `${control === "exposure" ? "Exp." : controlLabel(control)} ${directionLabel(settings)}`.trim();
 }
 
 function controlLabel(control: PtzKeySettings["control"]): string {

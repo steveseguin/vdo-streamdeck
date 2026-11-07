@@ -5,7 +5,7 @@
   "Author": "VDO.Ninja",
   "URL": "https://vdo.ninja",
   "Description": "Control VDO.Ninja from Stream Deck keys and dials: mic, camera, guests, scenes, mixer layouts, PTZ, volume, and custom API commands on any VDO.Ninja page opened with &api=KEY.",
-  "Version": "0.1.14.0",
+  "Version": "0.1.15.0",
   "SDKVersion": 2,
   "Software": {
     "MinimumVersion": "6.8"
@@ -43,13 +43,21 @@
           "Name": "Waiting",
           "Image": "imgs/connection-neutral",
           "Title": "VDO",
-          "ShowTitle": true
+          "ShowTitle": true,
+          "FontFamily": "Arial",
+          "FontSize": 9,
+          "FontStyle": "Regular",
+          "TitleAlignment": "bottom"
         },
         {
           "Name": "Connected",
           "Image": "imgs/connection-on",
           "Title": "VDO",
-          "ShowTitle": true
+          "ShowTitle": true,
+          "FontFamily": "Arial",
+          "FontSize": 9,
+          "FontStyle": "Regular",
+          "TitleAlignment": "bottom"
         }
       ],
       "UserTitleEnabled": false
@@ -68,13 +76,21 @@
           "Name": "Inactive",
           "Image": "imgs/local-off",
           "Title": "Local",
-          "ShowTitle": true
+          "ShowTitle": true,
+          "FontFamily": "Arial",
+          "FontSize": 9,
+          "FontStyle": "Regular",
+          "TitleAlignment": "bottom"
         },
         {
           "Name": "Active",
           "Image": "imgs/local-on",
           "Title": "Local",
-          "ShowTitle": true
+          "ShowTitle": true,
+          "FontFamily": "Arial",
+          "FontSize": 9,
+          "FontStyle": "Regular",
+          "TitleAlignment": "bottom"
         }
       ],
       "UserTitleEnabled": false
@@ -93,13 +109,21 @@
           "Name": "No Target",
           "Image": "imgs/select-off",
           "Title": "Select",
-          "ShowTitle": true
+          "ShowTitle": true,
+          "FontFamily": "Arial",
+          "FontSize": 9,
+          "FontStyle": "Regular",
+          "TitleAlignment": "bottom"
         },
         {
           "Name": "Target Selected",
           "Image": "imgs/select-on",
           "Title": "Target",
-          "ShowTitle": true
+          "ShowTitle": true,
+          "FontFamily": "Arial",
+          "FontSize": 9,
+          "FontStyle": "Regular",
+          "TitleAlignment": "bottom"
         }
       ],
       "UserTitleEnabled": false
@@ -118,13 +142,21 @@
           "Name": "Inactive",
           "Image": "imgs/guest-off",
           "Title": "Guest",
-          "ShowTitle": true
+          "ShowTitle": true,
+          "FontFamily": "Arial",
+          "FontSize": 9,
+          "FontStyle": "Regular",
+          "TitleAlignment": "bottom"
         },
         {
           "Name": "Active",
           "Image": "imgs/guest-on",
           "Title": "Guest",
-          "ShowTitle": true
+          "ShowTitle": true,
+          "FontFamily": "Arial",
+          "FontSize": 9,
+          "FontStyle": "Regular",
+          "TitleAlignment": "bottom"
         }
       ],
       "UserTitleEnabled": false
@@ -143,13 +175,21 @@
           "Name": "Not In Scene",
           "Image": "imgs/scene-off",
           "Title": "Scene",
-          "ShowTitle": true
+          "ShowTitle": true,
+          "FontFamily": "Arial",
+          "FontSize": 9,
+          "FontStyle": "Regular",
+          "TitleAlignment": "bottom"
         },
         {
           "Name": "In Scene",
           "Image": "imgs/scene-on",
           "Title": "Scene",
-          "ShowTitle": true
+          "ShowTitle": true,
+          "FontFamily": "Arial",
+          "FontSize": 9,
+          "FontStyle": "Regular",
+          "TitleAlignment": "bottom"
         }
       ],
       "UserTitleEnabled": false
@@ -186,13 +226,21 @@
           "Name": "Inactive",
           "Image": "imgs/mixer-key-off",
           "Title": "Mixer",
-          "ShowTitle": true
+          "ShowTitle": true,
+          "FontFamily": "Arial",
+          "FontSize": 9,
+          "FontStyle": "Regular",
+          "TitleAlignment": "bottom"
         },
         {
           "Name": "Active",
           "Image": "imgs/mixer-key-on",
           "Title": "Mixer",
-          "ShowTitle": true
+          "ShowTitle": true,
+          "FontFamily": "Arial",
+          "FontSize": 9,
+          "FontStyle": "Regular",
+          "TitleAlignment": "bottom"
         }
       ],
       "UserTitleEnabled": false
@@ -211,13 +259,21 @@
           "Name": "Unavailable",
           "Image": "imgs/ptz-off",
           "Title": "PTZ",
-          "ShowTitle": true
+          "ShowTitle": true,
+          "FontFamily": "Arial",
+          "FontSize": 9,
+          "FontStyle": "Regular",
+          "TitleAlignment": "bottom"
         },
         {
           "Name": "Ready",
           "Image": "imgs/ptz-on",
           "Title": "PTZ",
-          "ShowTitle": true
+          "ShowTitle": true,
+          "FontFamily": "Arial",
+          "FontSize": 9,
+          "FontStyle": "Regular",
+          "TitleAlignment": "bottom"
         }
       ],
       "UserTitleEnabled": false
@@ -292,7 +348,11 @@
           "Name": "Ready",
           "Image": "imgs/custom-key",
           "Title": "Command",
-          "ShowTitle": true
+          "ShowTitle": true,
+          "FontFamily": "Arial",
+          "FontSize": 9,
+          "FontStyle": "Regular",
+          "TitleAlignment": "bottom"
         }
       ],
       "UserTitleEnabled": false

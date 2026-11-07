@@ -54,7 +54,7 @@ For PTZ, open the camera page with `&ptz` and approve camera-control permission.
 
 The key, generated link, and QR code allow remote control of your page. Do not share them. The key and link stay hidden until you click **Show key**. Use a separate key for each VDO.Ninja page; pages sharing a key receive the same commands.
 
-Settings are saved in Stream Deck. Commands go to the configured VDO.Ninja API relay. No separate plugin account is required.
+Settings are saved in Stream Deck. VDO.Ninja commands go to the configured API relay. Optional OBS microphone commands go directly to OBS on this computer. No separate plugin account is required.
 
 ## More help
 

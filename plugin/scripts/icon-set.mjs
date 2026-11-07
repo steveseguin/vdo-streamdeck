@@ -47,6 +47,9 @@ const colors = {
 
 const KEY = 144;
 
+// Keep command artwork inside the rounded key and above the native title.
+export const KEY_GLYPH_LAYOUT = { size: 52, x: 16, y: 10 };
+
 /** Every keypad state image places its badge here, clear of the two-line title. */
 const badge = { cx: 108, cy: 33, r: 16 };
 

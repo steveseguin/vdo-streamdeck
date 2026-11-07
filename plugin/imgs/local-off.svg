@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 144">
   <rect x="0" y="0" width="144" height="144" fill="#4a1d23"/>
-  <rect x="35" y="8.5" width="14" height="26.5" rx="7" fill="#ffffff"/>
-  <path d="M 53.276 34.604 A 12 12 0 0 1 30.724 34.604" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
-  <line x1="42" y1="42.5" x2="42" y2="51.5" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
-  <line x1="33.5" y1="54" x2="50.5" y2="54" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+  <rect x="35.933" y="15.633" width="12.133" height="22.967" rx="6.067" fill="#ffffff"/>
+  <path d="M 51.773 38.257 A 10.4 10.4 0 0 1 32.227 38.257" fill="none" stroke="#ffffff" stroke-width="4.333" stroke-linecap="round"/>
+  <line x1="42" y1="45.1" x2="42" y2="52.9" stroke="#ffffff" stroke-width="4.333" stroke-linecap="round"/>
+  <line x1="34.633" y1="55.067" x2="49.367" y2="55.067" stroke="#ffffff" stroke-width="4.333" stroke-linecap="round"/>
   <circle cx="108" cy="33" r="16" fill="#f87171"/>
   <line x1="101.7" y1="26.7" x2="114.3" y2="39.3" stroke="#3a0f14" stroke-width="4.55" stroke-linecap="round"/>
   <line x1="114.3" y1="26.7" x2="101.7" y2="39.3" stroke="#3a0f14" stroke-width="4.55" stroke-linecap="round"/>

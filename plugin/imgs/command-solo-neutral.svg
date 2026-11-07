@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 144">
   <rect x="0" y="0" width="144" height="144" fill="#1e2532"/>
-  <line x1="17" y1="9.5" x2="32" y2="9.5" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
-  <line x1="17" y1="9.5" x2="17" y2="24.5" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
-  <line x1="52" y1="9.5" x2="67" y2="9.5" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
-  <line x1="67" y1="9.5" x2="67" y2="24.5" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
-  <line x1="17" y1="39.5" x2="17" y2="54.5" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
-  <line x1="17" y1="54.5" x2="32" y2="54.5" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
-  <line x1="52" y1="54.5" x2="67" y2="54.5" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
-  <line x1="67" y1="39.5" x2="67" y2="54.5" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
-  <circle cx="42" cy="24.5" r="7.5" fill="#ffffff"/>
-  <rect x="29.5" y="37" width="25" height="12.5" rx="5" fill="#ffffff"/>
+  <line x1="20.333" y1="16.5" x2="33.333" y2="16.5" stroke="#ffffff" stroke-width="4.333" stroke-linecap="round"/>
+  <line x1="20.333" y1="16.5" x2="20.333" y2="29.5" stroke="#ffffff" stroke-width="4.333" stroke-linecap="round"/>
+  <line x1="50.667" y1="16.5" x2="63.667" y2="16.5" stroke="#ffffff" stroke-width="4.333" stroke-linecap="round"/>
+  <line x1="63.667" y1="16.5" x2="63.667" y2="29.5" stroke="#ffffff" stroke-width="4.333" stroke-linecap="round"/>
+  <line x1="20.333" y1="42.5" x2="20.333" y2="55.5" stroke="#ffffff" stroke-width="4.333" stroke-linecap="round"/>
+  <line x1="20.333" y1="55.5" x2="33.333" y2="55.5" stroke="#ffffff" stroke-width="4.333" stroke-linecap="round"/>
+  <line x1="50.667" y1="55.5" x2="63.667" y2="55.5" stroke="#ffffff" stroke-width="4.333" stroke-linecap="round"/>
+  <line x1="63.667" y1="42.5" x2="63.667" y2="55.5" stroke="#ffffff" stroke-width="4.333" stroke-linecap="round"/>
+  <circle cx="42" cy="29.5" r="6.5" fill="#ffffff"/>
+  <rect x="31.167" y="40.333" width="21.667" height="10.833" rx="4.333" fill="#ffffff"/>
 </svg>

@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 144">
   <rect x="0" y="0" width="144" height="144" fill="#1e2532"/>
-  <rect x="29.5" y="24.5" width="30" height="30" rx="12.5" fill="#ffffff"/>
-  <rect x="29.5" y="12" width="6.25" height="27.5" rx="2.5" fill="#ffffff"/>
-  <rect x="37.75" y="7" width="6.25" height="30" rx="2.5" fill="#ffffff"/>
-  <rect x="46" y="9.5" width="6.25" height="27.5" rx="2.5" fill="#ffffff"/>
-  <rect x="54.5" y="17" width="5" height="25" rx="2.5" fill="#ffffff"/>
-  <line x1="32" y1="44.5" x2="19.5" y2="29.5" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+  <rect x="31.167" y="29.5" width="26" height="26" rx="10.833" fill="#ffffff"/>
+  <rect x="31.167" y="18.667" width="5.417" height="23.833" rx="2.167" fill="#ffffff"/>
+  <rect x="38.317" y="14.333" width="5.417" height="26" rx="2.167" fill="#ffffff"/>
+  <rect x="45.467" y="16.5" width="5.417" height="23.833" rx="2.167" fill="#ffffff"/>
+  <rect x="52.833" y="23" width="4.333" height="21.667" rx="2.167" fill="#ffffff"/>
+  <line x1="33.333" y1="46.833" x2="22.5" y2="33.833" stroke="#ffffff" stroke-width="4.333" stroke-linecap="round"/>
 </svg>

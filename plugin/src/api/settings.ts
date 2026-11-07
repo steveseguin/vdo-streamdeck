@@ -31,7 +31,9 @@ export function normalizeLocalControlSettings(settings: Partial<LocalControlSett
 		command: stringOrEmpty(settings?.command) || "mic",
 		behavior: normalizeLocalBehavior(settings?.behavior),
 		dangerousConfirm: settings?.dangerousConfirm !== false,
-		title: titleOrEmpty(settings?.title)
+		title: titleOrEmpty(settings?.title),
+		obsSync: settings?.obsSync === true && (!settings.command || settings.command === "mic") && settings.behavior === "pushToTalk",
+		obsInput: typeof settings?.obsInput === "string" ? settings.obsInput : ""
 	};
 }
 
