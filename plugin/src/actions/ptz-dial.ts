@@ -4,6 +4,7 @@ import {
 	type DialAction,
 	type DialDownEvent,
 	type DialRotateEvent,
+	type DidReceiveSettingsEvent,
 	SingletonAction,
 	type TouchTapEvent,
 	type WillAppearEvent,
@@ -17,7 +18,8 @@ import { renderGuestTitle, resolveGuestTargetChoice, resolveGuestTargetValue } f
 
 type PendingDial = {
 	action: DialAction<PtzDialSettings>;
-	selectedStreamID?: string | null;
+	settings: PtzDialSettings;
+	contextKey: string;
 	ticks: number;
 	lastSentAt: number;
 	timer?: NodeJS.Timeout;
@@ -31,12 +33,11 @@ export class PtzDialAction extends SingletonAction<PtzDialSettings> {
 	constructor() {
 		super();
 		sessionStore.subscribe(() => {
+			this.clearChangedTargets();
 			void this.refreshVisible();
 		});
 		selectedTargetStore.subscribe(() => {
-			for (const [id, pending] of this.pending) {
-				if (typeof pending.selectedStreamID !== "undefined") this.clearPending(id);
-			}
+			this.clearChangedTargets();
 			void this.refreshVisible();
 		});
 	}
@@ -51,6 +52,14 @@ export class PtzDialAction extends SingletonAction<PtzDialSettings> {
 		this.clearPending(ev.action.id);
 	}
 
+	override async onDidReceiveSettings(ev: DidReceiveSettingsEvent<PtzDialSettings>): Promise<void> {
+		if (ev.action.isDial()) {
+			const settings = normalizePtzDialSettings(ev.payload.settings);
+			this.clearChangedContext(ev.action.id, settings);
+			await this.render(ev.action, settings);
+		}
+	}
+
 	override async onDialRotate(ev: DialRotateEvent<PtzDialSettings>): Promise<void> {
 		const settings = normalizePtzDialSettings(ev.payload.settings);
 		if (!Number.isFinite(ev.payload.ticks) || ev.payload.ticks === 0) {
@@ -60,7 +69,9 @@ export class PtzDialAction extends SingletonAction<PtzDialSettings> {
 		const pending = this.ensurePending(ev.action, settings);
 		pending.ticks += ev.payload.ticks;
 		await this.render(ev.action, settings, tickStatus(pending.ticks, settings));
-		this.scheduleFlush(ev.action.id, settings.intervalMs || 80);
+		if (this.pending.get(ev.action.id) === pending) {
+			this.scheduleFlush(ev.action.id, settings.intervalMs || 80);
+		}
 	}
 
 	override async onDialDown(ev: DialDownEvent<PtzDialSettings>): Promise<void> {
@@ -72,14 +83,17 @@ export class PtzDialAction extends SingletonAction<PtzDialSettings> {
 	}
 
 	private ensurePending(actionContext: DialAction<PtzDialSettings>, settings: PtzDialSettings): PendingDial {
+		this.clearChangedContext(actionContext.id, settings);
 		const existing = this.pending.get(actionContext.id);
 		if (existing) {
 			existing.action = actionContext;
+			existing.settings = settings;
 			return existing;
 		}
 		const pending: PendingDial = {
 			action: actionContext,
-			selectedStreamID: settings.scope === "guest" && settings.targetMode === "selected" ? selectedTargetStore.getSelectedStreamID() : undefined,
+			settings,
+			contextKey: movementContextKey(settings),
 			ticks: 0,
 			lastSentAt: 0
 		};
@@ -113,23 +127,25 @@ export class PtzDialAction extends SingletonAction<PtzDialSettings> {
 		pending.lastSentAt = Date.now();
 
 		const actionContext = pending.action;
-		const settings = normalizePtzDialSettings(await actionContext.getSettings<PtzDialSettings>());
-		if (this.pending.get(actionId) !== pending) {
-			return;
-		}
-		const target = settings.scope === "guest" ? resolveGuestTargetValue(settings) : undefined;
-
-		if (settings.scope === "guest" && (typeof target === "undefined" || target === "")) {
-			await showActionAlert(actionContext, "target");
-			await this.render(actionContext, settings, "No target");
-			pending.sending = false;
-			if (pending.ticks) {
-				this.scheduleFlush(actionId, settings.intervalMs || 80);
-			}
-			return;
-		}
-
+		let settings = pending.settings;
 		try {
+			settings = normalizePtzDialSettings(await actionContext.getSettings<PtzDialSettings>());
+			if (this.pending.get(actionId) !== pending) {
+				return;
+			}
+			this.clearChangedContext(actionId, settings);
+			if (this.pending.get(actionId) !== pending) {
+				return;
+			}
+			const target = settings.scope === "guest" ? resolveGuestTargetValue(settings) : undefined;
+			if (settings.scope === "guest" && (typeof target === "undefined" || target === "")) {
+				await showActionAlert(actionContext, "target");
+				if (this.pending.get(actionId) === pending) {
+					await this.render(actionContext, settings, "No target");
+				}
+				return;
+			}
+
 			const payloads = buildPtzDialPayloads(settings, ticks, target);
 			for (const payload of payloads) {
 				if (this.pending.get(actionId) !== pending) {
@@ -148,7 +164,7 @@ export class PtzDialAction extends SingletonAction<PtzDialSettings> {
 			}
 		} finally {
 			pending.sending = false;
-			if (pending.ticks) {
+			if (this.pending.get(actionId) === pending && pending.ticks) {
 				this.scheduleFlush(actionId, settings.intervalMs || 80);
 			}
 		}
@@ -250,6 +266,34 @@ export class PtzDialAction extends SingletonAction<PtzDialSettings> {
 		}
 		this.pending.delete(actionId);
 	}
+
+	private clearChangedContext(actionId: string, settings: PtzDialSettings): void {
+		const pending = this.pending.get(actionId);
+		if (pending && pending.contextKey !== movementContextKey(settings)) {
+			this.clearPending(actionId);
+		}
+	}
+
+	private clearChangedTargets(): void {
+		// Invalidate synchronously, before a refresh awaits settings. This also
+		// cancels a burst when a target changes away and back before its timer.
+		for (const [actionId, pending] of this.pending) {
+			this.clearChangedContext(actionId, pending.settings);
+		}
+	}
+}
+
+function movementContextKey(settings: PtzDialSettings): string {
+	const choice = settings.scope === "guest" ? resolveGuestTargetChoice(settings) : undefined;
+	return JSON.stringify([
+		settings.scope, settings.control, settings.step, settings.intervalMs,
+		settings.acceleration, settings.invert, settings.disableAutofocus,
+		settings.scope === "guest" ? [
+			settings.targetMode, settings.target, resolveGuestTargetValue(settings),
+			choice?.streamID, choice?.UUID,
+			choice ? !!sessionStore.getStream(choice.streamID) : false
+		] : undefined
+	]);
 }
 
 function encoderTitle(title: string, value: string): string {

@@ -110,19 +110,12 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 	}
 
 	override async onKeyUp(ev: KeyUpEvent<LocalControlSettings>): Promise<void> {
+		// Settings changes and disappearance may already have released the press.
+		// Never synthesize a second release from the key's current behavior: a
+		// PTT-to-PTM edit would otherwise turn the microphone back on at key-up.
 		const held = this.momentarySettings.get(ev.action.id);
 		if (held) {
 			await this.sendMomentary(ev.action, held.settings, "up");
-			return;
-		}
-		const settings = normalizeLocalControlSettings(ev.payload.settings);
-		const definition = getLocalControlDefinition(settings.command);
-		if (this.isTrackInactive(definition)) {
-			await this.render(ev.action, settings);
-			return;
-		}
-		if (isMomentaryLocalBehavior(settings.behavior)) {
-			await this.sendMomentary(ev.action, settings, "up");
 		}
 	}
 

@@ -4,6 +4,7 @@ import {
 	type DialAction,
 	type DialDownEvent,
 	type DialRotateEvent,
+	type DidReceiveSettingsEvent,
 	SingletonAction,
 	type TouchTapEvent,
 	type WillAppearEvent,
@@ -17,7 +18,8 @@ import { renderGuestTitle, resolveGuestTargetChoice, resolveGuestTargetValue } f
 
 type PendingValue = {
 	action: DialAction<ValueDialSettings>;
-	selectedStreamID?: string | null;
+	context: string;
+	settings: ValueDialSettings;
 	value: number;
 	lastSentAt: number;
 	timer?: NodeJS.Timeout;
@@ -26,9 +28,11 @@ type PendingValue = {
 
 type PendingPersist = {
 	action: DialAction<ValueDialSettings>;
-	selectedStreamID?: string | null;
+	context: string;
+	settings: ValueDialSettings;
 	value: number;
 	timer: NodeJS.Timeout;
+	saving?: boolean;
 };
 
 const PERSIST_DELAY_MS = 500;
@@ -41,15 +45,11 @@ export class ValueDialAction extends SingletonAction<ValueDialSettings> {
 	constructor() {
 		super();
 		sessionStore.subscribe(() => {
+			this.clearChangedTargets();
 			void this.refreshVisible();
 		});
 		selectedTargetStore.subscribe(() => {
-			for (const [id, pending] of this.pending) {
-				if (typeof pending.selectedStreamID !== "undefined") this.clearPending(id);
-			}
-			for (const [id, entry] of this.pendingPersist) {
-				if (typeof entry.selectedStreamID !== "undefined") this.clearPersist(id);
-			}
+			this.clearChangedTargets();
 			void this.refreshVisible();
 		});
 	}
@@ -69,6 +69,14 @@ export class ValueDialAction extends SingletonAction<ValueDialSettings> {
 		}
 	}
 
+	override async onDidReceiveSettings(ev: DidReceiveSettingsEvent<ValueDialSettings>): Promise<void> {
+		if (ev.action.isDial()) {
+			const settings = normalizeValueDialSettings(ev.payload.settings);
+			this.clearChangedContext(ev.action.id, settings);
+			await this.render(ev.action, settings);
+		}
+	}
+
 	override async onDialRotate(ev: DialRotateEvent<ValueDialSettings>): Promise<void> {
 		const settings = normalizeValueDialSettings(ev.payload.settings);
 		if (!Number.isFinite(ev.payload.ticks) || ev.payload.ticks === 0) {
@@ -81,7 +89,9 @@ export class ValueDialAction extends SingletonAction<ValueDialSettings> {
 		pending.value = nextValue;
 
 		await this.render(ev.action, settings, nextValue);
-		this.scheduleFlush(ev.action.id, settings.intervalMs || 100);
+		if (this.pending.get(ev.action.id) === pending) {
+			this.scheduleFlush(ev.action.id, settings.intervalMs || 100);
+		}
 	}
 
 	override async onDialDown(ev: DialDownEvent<ValueDialSettings>): Promise<void> {
@@ -96,11 +106,13 @@ export class ValueDialAction extends SingletonAction<ValueDialSettings> {
 		const existing = this.pending.get(actionContext.id);
 		if (existing) {
 			existing.action = actionContext;
+			existing.settings = settings;
 			return existing;
 		}
 		const pending: PendingValue = {
 			action: actionContext,
-			selectedStreamID: settings.scope === "guest" && settings.targetMode === "selected" ? selectedTargetStore.getSelectedStreamID() : undefined,
+			context: valueContext(settings),
+			settings,
 			value,
 			lastSentAt: 0
 		};
@@ -129,15 +141,21 @@ export class ValueDialAction extends SingletonAction<ValueDialSettings> {
 		pending.lastSentAt = Date.now();
 
 		const actionContext = pending.action;
-		const settings = normalizeValueDialSettings(await actionContext.getSettings<ValueDialSettings>());
-		if (this.pending.get(actionId) !== pending) {
-			return;
-		}
-		const requestedValue = pending.value;
-		const value = clampValueDialNumber(requestedValue, settings);
-
+		let settings = pending.settings;
+		let requestedValue = pending.value;
 		try {
+			settings = normalizeValueDialSettings(await actionContext.getSettings<ValueDialSettings>());
+			if (this.pending.get(actionId) !== pending) return;
+			this.clearChangedContext(actionId, settings);
+			if (this.pending.get(actionId) !== pending) return;
+			requestedValue = pending.value;
+			const value = clampValueDialNumber(requestedValue, settings);
 			await this.sendValue(actionContext, settings, value, () => this.pending.get(actionId) === pending);
+		} catch (error) {
+			if (this.pending.get(actionId) === pending) {
+				this.clearPending(actionId);
+				await showActionAlert(actionContext, "command", error);
+			}
 		} finally {
 			pending.sending = false;
 			if (this.pending.get(actionId) === pending && pending.value === requestedValue) {
@@ -182,7 +200,8 @@ export class ValueDialAction extends SingletonAction<ValueDialSettings> {
 	}
 
 	private async sendValue(actionContext: DialAction<ValueDialSettings>, settings: ValueDialSettings, value: number, isCurrent = () => true): Promise<void> {
-		const selectedStreamID = settings.scope === "guest" && settings.targetMode === "selected" ? selectedTargetStore.getSelectedStreamID() : undefined;
+		const context = valueContext(settings);
+		const isCurrentTarget = () => isCurrent() && context === valueContext(settings);
 		const target = settings.scope === "guest" ? resolveGuestTargetValue(settings) : undefined;
 		if (settings.scope === "guest" && (typeof target === "undefined" || target === "")) {
 			await showActionAlert(actionContext, "target");
@@ -193,14 +212,14 @@ export class ValueDialAction extends SingletonAction<ValueDialSettings> {
 		try {
 			const payload = buildValueDialPayload(settings, value, target);
 			await vdoClient.sendCommand(payload, { awaitCallback: false });
-			if (!isCurrent() || (typeof selectedStreamID !== "undefined" && selectedStreamID !== selectedTargetStore.getSelectedStreamID())) {
+			if (!isCurrentTarget()) {
 				return;
 			}
 			clearActionError(actionContext);
-			this.schedulePersist(actionContext, value, selectedStreamID);
+			this.schedulePersist(actionContext, value, settings);
 			await this.render(actionContext, settings, value);
 		} catch (error) {
-			if (!isCurrent() || (typeof selectedStreamID !== "undefined" && selectedStreamID !== selectedTargetStore.getSelectedStreamID())) {
+			if (!isCurrentTarget()) {
 				return;
 			}
 			await showActionAlert(actionContext, "command", error);
@@ -208,7 +227,7 @@ export class ValueDialAction extends SingletonAction<ValueDialSettings> {
 		}
 	}
 
-	private schedulePersist(actionContext: DialAction<ValueDialSettings>, value: number, selectedStreamID?: string | null): void {
+	private schedulePersist(actionContext: DialAction<ValueDialSettings>, value: number, settings: ValueDialSettings): void {
 		const existing = this.pendingPersist.get(actionContext.id);
 		if (existing) {
 			clearTimeout(existing.timer);
@@ -216,23 +235,30 @@ export class ValueDialAction extends SingletonAction<ValueDialSettings> {
 		const timer = setTimeout(() => {
 			void this.persistValue(actionContext.id);
 		}, PERSIST_DELAY_MS);
-		this.pendingPersist.set(actionContext.id, { action: actionContext, value, timer, selectedStreamID });
+		this.pendingPersist.set(actionContext.id, { action: actionContext, context: valueContext(settings), settings, value, timer });
 	}
 
 	private async persistValue(actionId: string): Promise<void> {
 		const entry = this.pendingPersist.get(actionId);
-		if (!entry) {
+		if (!entry || entry.saving) {
 			return;
 		}
-		this.clearPersist(actionId);
+		clearTimeout(entry.timer);
+		entry.saving = true;
 		try {
 			// Merge into the latest saved settings so a property-inspector edit
 			// made during the debounce window is not clobbered.
 			const settings = await entry.action.getSettings<ValueDialSettings>();
-			if (typeof entry.selectedStreamID !== "undefined" && entry.selectedStreamID !== selectedTargetStore.getSelectedStreamID()) return;
+			if (this.pendingPersist.get(actionId) !== entry || entry.context !== valueContext(settings)) {
+				return;
+			}
 			await entry.action.setSettings({ ...settings, value: String(entry.value) });
 		} catch {
 			// The dial may have been removed before the write completed.
+		} finally {
+			if (this.pendingPersist.get(actionId) === entry) {
+				this.clearPersist(actionId);
+			}
 		}
 	}
 
@@ -286,14 +312,17 @@ export class ValueDialAction extends SingletonAction<ValueDialSettings> {
 	}
 
 	private resolveCurrentValue(actionId: string, settings: ValueDialSettings): number {
+		const context = valueContext(settings);
 		const pending = this.pending.get(actionId);
 		if (pending) {
-			return clampValueDialNumber(pending.value, settings);
+			if (pending.context === context) return clampValueDialNumber(pending.value, settings);
+			this.clearPending(actionId);
 		}
 
 		const unpersisted = this.pendingPersist.get(actionId);
 		if (unpersisted) {
-			return clampValueDialNumber(unpersisted.value, settings);
+			if (unpersisted.context === context) return clampValueDialNumber(unpersisted.value, settings);
+			this.clearPersist(actionId);
 		}
 
 		const observed = observedValue(settings);
@@ -320,6 +349,23 @@ export class ValueDialAction extends SingletonAction<ValueDialSettings> {
 		}
 		this.pending.delete(actionId);
 	}
+
+	private clearChangedContext(actionId: string, settings: ValueDialSettings): void {
+		const context = valueContext(settings);
+		const pending = this.pending.get(actionId);
+		if (pending && pending.context !== context) this.clearPending(actionId);
+		const entry = this.pendingPersist.get(actionId);
+		if (entry && entry.context !== context) this.clearPersist(actionId);
+	}
+
+	private clearChangedTargets(): void {
+		for (const [id, pending] of this.pending) {
+			if (pending.context !== valueContext(pending.settings)) this.clearPending(id);
+		}
+		for (const [id, entry] of this.pendingPersist) {
+			if (entry.context !== valueContext(entry.settings)) this.clearPersist(id);
+		}
+	}
 }
 
 function encoderTitle(title: string, value: string): string {
@@ -340,6 +386,15 @@ function observedValue(settings: ValueDialSettings): number | undefined {
 		return guestVolumeFromStream(stream);
 	}
 	return undefined;
+}
+
+function valueContext(rawSettings: ValueDialSettings): string {
+	const settings = normalizeValueDialSettings(rawSettings);
+	// A shared dial's temporary value belongs to the guest that was adjusted,
+	// even if selection, guest order, or inspector settings change before it settles.
+	const choice = settings.scope === "guest" ? resolveGuestTargetChoice(settings) : undefined;
+	const target = settings.scope === "guest" ? resolveGuestTargetValue(settings) : undefined;
+	return JSON.stringify([settings.scope || "local", settings.control || "volume", target, choice?.streamID, choice?.UUID, choice ? !!sessionStore.getStream(choice.streamID) : false]);
 }
 
 export function guestVolumeFromStream(stream: StreamState | undefined): number | undefined {

@@ -403,11 +403,26 @@ try {
 		assert.ok(existsSync(join(isolatedPluginRoot, message.payload.image)), "Every runtime-selected image must ship in the isolated bundle");
 	}
 
-	// Exercise the official SDK's minimal willDisappear ActionContext after PTT.
+	// Changing a held key's mode releases the original press. The subsequent
+	// physical key-up must not run the opposite mode's release and reopen the mic.
 	const heldSettings = { command: "mic", behavior: "pushToTalk" };
 	contextSettings.set("local-mic", heldSettings);
 	keyDown("ninja.vdo.streamdeck.local-control", "local-mic", heldSettings, 2);
 	await waitFor(() => apiState.localMuted === false, "push-to-talk press");
+	const muteSettings = { command: "mic", behavior: "pushToMute" };
+	contextSettings.set("local-mic", muteSettings);
+	sendToPlugin({ event: "didReceiveSettings", action: "ninja.vdo.streamdeck.local-control", context: "local-mic", device: "runtime-device", payload: { settings: muteSettings } });
+	await waitFor(() => apiState.localMuted === true, "push-to-talk settings-change release");
+	const micRequestsAfterChange = apiRequests.filter(request => request.action === "mic").length;
+	sendToPlugin({ event: "keyUp", action: "ninja.vdo.streamdeck.local-control", context: "local-mic", device: "runtime-device", payload: { controller: "Keypad", settings: muteSettings, coordinates: { column: 2, row: 0 } } });
+	await delay(200);
+	assert.equal(apiState.localMuted, true, "A late key-up must leave the microphone muted after changing PTT to PTM");
+	assert.equal(apiRequests.filter(request => request.action === "mic").length, micRequestsAfterChange, "A consumed press must not send a second release");
+
+	// Exercise the official SDK's minimal willDisappear ActionContext after PTT.
+	contextSettings.set("local-mic", heldSettings);
+	keyDown("ninja.vdo.streamdeck.local-control", "local-mic", heldSettings, 2);
+	await waitFor(() => apiState.localMuted === false, "next push-to-talk press");
 	sendToPlugin({ event: "willDisappear", action: "ninja.vdo.streamdeck.local-control", context: "local-mic", device: "runtime-device", payload: { controller: "Keypad", settings: heldSettings } });
 	await waitFor(() => apiState.localMuted === true, "push-to-talk profile-switch release");
 
