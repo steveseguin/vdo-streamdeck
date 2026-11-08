@@ -18,9 +18,16 @@ let refreshTimer: NodeJS.Timeout | null = null;
 let pendingGuestListRefresh = false;
 let pollTimer: NodeJS.Timeout | null = null;
 let pollInFlight = false;
+let obsConnectionSettings: Pick<GlobalSettings, "obsPort" | "obsPassword"> = {};
+
+export function getObsConnectionSettings(): Pick<GlobalSettings, "obsPort" | "obsPassword"> {
+	return { ...obsConnectionSettings };
+}
 
 export async function initializeServices(): Promise<void> {
-	const settings = normalizeGlobalSettings(await streamDeck.settings.getGlobalSettings<GlobalSettings>());
+	const saved = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
+	obsConnectionSettings = { obsPort: saved.obsPort, obsPassword: saved.obsPassword };
+	const settings = normalizeGlobalSettings(saved);
 	registerPropertyInspectorMessages();
 	selectedTargetStore.subscribe(() => {
 		if (streamDeck.ui.action) void sendInspectorTargets().catch(() => undefined);
@@ -38,6 +45,7 @@ export async function initializeServices(): Promise<void> {
 	startDetailsPolling(settings);
 
 	streamDeck.settings.onDidReceiveGlobalSettings<GlobalSettings>(ev => {
+		obsConnectionSettings = { obsPort: ev.settings.obsPort, obsPassword: ev.settings.obsPassword };
 		const next = normalizeGlobalSettings(ev.settings);
 		vdoClient.configure(next);
 		startDetailsPolling(next);

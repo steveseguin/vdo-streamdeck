@@ -1,6 +1,6 @@
 import { clearActionError, showActionAlert } from "./action-feedback.js";
 import { setCommandIcon } from "./command-icon.js";
-import streamDeck, { action, type KeyAction, type KeyDownEvent, type KeyUpEvent, SingletonAction, type DidReceiveSettingsEvent, type WillAppearEvent, type WillDisappearEvent } from "@elgato/streamdeck";
+import { action, type KeyAction, type KeyDownEvent, type KeyUpEvent, SingletonAction, type DidReceiveSettingsEvent, type WillAppearEvent, type WillDisappearEvent } from "@elgato/streamdeck";
 import {
 	buildLocalControlPayload,
 	buildLocalMomentaryPayload,
@@ -9,9 +9,9 @@ import {
 	isMomentaryLocalBehavior
 } from "../api/command-registry.js";
 import { normalizeLocalControlSettings } from "../api/settings.js";
-import type { GlobalSettings, LocalControlSettings } from "../api/types.js";
+import type { LocalControlSettings } from "../api/types.js";
 import { ObsClient } from "../api/obs-client.js";
-import { sessionStore, vdoClient } from "../services.js";
+import { getObsConnectionSettings, sessionStore, vdoClient } from "../services.js";
 
 @action({ UUID: "ninja.vdo.streamdeck.local-control" })
 export class LocalControlAction extends SingletonAction<LocalControlSettings> {
@@ -22,6 +22,7 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 	private momentarySettings = new Map<string, { settings: LocalControlSettings; action: KeyAction<LocalControlSettings> }>();
 	private momentaryRequests = new Map<string, Promise<void>>();
 	private obsMics = new Map<string, ObsClient>();
+	private checkingCaptionConnection = new WeakSet<object>();
 
 	constructor() {
 		super();
@@ -31,7 +32,13 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 		vdoClient.onState(state => {
 			if (state === "connected") return;
 			for (const held of this.momentarySettings.values()) {
-				if (held.settings.obsSync) void this.sendMomentary(held.action, held.settings, "up");
+				if (!held.settings.obsSync) continue;
+				if (state === "missing-key" || vdoClient.currentSettings.httpFallback === false) {
+					void this.sendMomentary(held.action, held.settings, "up");
+				} else {
+					// HTTP commands can still work while the relay socket reconnects.
+					void this.checkCaptionConnection(held);
+				}
 			}
 		});
 	}
@@ -73,7 +80,7 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 		}
 		if (settings.obsSync && this.momentaryPressed.has(ev.action.id)) return;
 		const definition = getLocalControlDefinition(settings.command);
-		if (this.isTrackInactive(definition)) {
+		if (!settings.obsSync && this.isTrackInactive(definition)) {
 			await showActionAlert(ev.action, "media");
 			await this.render(ev.action, settings);
 			return;
@@ -138,7 +145,7 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 		const definition = getLocalControlDefinition(settings.command);
 		await setCommandIcon(actionContext, definition.icon, !definition.stateField);
 		const label = settings.title || definition.label;
-		if (this.isTrackInactive(definition)) {
+		if (!settings.obsSync && this.isTrackInactive(definition)) {
 			await actionContext.setState(0);
 			await actionContext.setTitle(`${label}\nInactive`);
 			return;
@@ -197,9 +204,10 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 			if (!this.isCurrentMomentarySequence(actionContext.id, sequence)) return;
 			const previousObs = this.obsMics.get(actionContext.id);
 			if (previousObs) await previousObs.release();
-			const global = await streamDeck.settings.getGlobalSettings<GlobalSettings>();
 			if (!this.isCurrentMomentarySequence(actionContext.id, sequence)) return;
-			const obs = new ObsClient(global);
+			// Reading global settings through the SDK also emits a settings event,
+			// which can restart the API connection in the middle of this press.
+			const obs = new ObsClient(getObsConnectionSettings());
 			this.obsMics.set(actionContext.id, obs);
 			obs.onDisconnect = () => {
 				if (this.obsMics.get(actionContext.id) === obs && this.momentaryPressed.has(actionContext.id)) {
@@ -249,6 +257,11 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 		}
 		const pressed = this.momentaryPressed.has(actionContext.id);
 		const label = settings.title || "Mic";
+		if (settings.obsSync && pressed && this.momentaryRequests.has(actionContext.id)) {
+			await actionContext.setState(0);
+			await actionContext.setTitle(`${label}\nWait`);
+			return;
+		}
 		if (settings.behavior === "pushToMute") {
 			await actionContext.setState(pressed ? 0 : 1);
 			await actionContext.setTitle(pressed ? `${label}\nMuted` : settings.title ? `${label}\nHold Mute` : "Hold\nMute");
@@ -256,6 +269,21 @@ export class LocalControlAction extends SingletonAction<LocalControlSettings> {
 		}
 		await actionContext.setState(pressed ? 1 : 0);
 		await actionContext.setTitle(pressed ? `${label}\nLive` : settings.title ? `${label}\nHold Talk` : "Hold\nTalk");
+	}
+
+	private async checkCaptionConnection(held: { settings: LocalControlSettings; action: KeyAction<LocalControlSettings> }): Promise<void> {
+		if (this.checkingCaptionConnection.has(held)) return;
+		this.checkingCaptionConnection.add(held);
+		try {
+			await vdoClient.sendCommand({ action: "getDetails" });
+		} catch {
+			// A late check must not cancel a newer press on this key.
+			if (this.momentarySettings.get(held.action.id) === held) {
+				await this.sendMomentary(held.action, held.settings, "up");
+			}
+		} finally {
+			this.checkingCaptionConnection.delete(held);
+		}
 	}
 
 	private resolveActive(definition: ReturnType<typeof getLocalControlDefinition>): boolean | undefined {
