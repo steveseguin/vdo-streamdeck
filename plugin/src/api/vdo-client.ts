@@ -14,6 +14,7 @@ export class VdoClient {
 	private sentTimestamps: number[] = [];
 	private skippedRealtimeCommands = 0;
 	private connectionGeneration = 0;
+	private checkingHttpGeneration: number | undefined;
 	private listeners = {
 		state: new Set<Listener<ConnectionStateName>>(),
 		callback: new Set<Listener<VdoCallback>>(),
@@ -59,7 +60,8 @@ export class VdoClient {
 		const changed =
 			next.apiKey !== this.settings.apiKey ||
 			next.apiHost !== this.settings.apiHost ||
-			next.useTls !== this.settings.useTls;
+			next.useTls !== this.settings.useTls ||
+			next.httpFallback !== this.settings.httpFallback;
 
 		this.settings = next;
 		if (changed) {
@@ -71,6 +73,7 @@ export class VdoClient {
 			return;
 		}
 
+		if (changed) this.setState("connecting");
 		if (changed || !this.isSocketOpen()) {
 			this.connect();
 		}
@@ -86,12 +89,13 @@ export class VdoClient {
 		}
 
 		const protocol = this.settings.useTls === false ? "ws" : "wss";
-		this.setState("connecting");
+		// Keep HTTP page status while the relay socket retries.
+		if (this.settings.httpFallback === false) this.setState("connecting");
 
 		try {
 			this.socket = new WebSocket(this.buildEndpoint(protocol, protocol === "wss" ? "443" : "80"));
 		} catch (error) {
-			this.setState("error");
+			void this.handleRelayFailure("error");
 			this.scheduleReconnect();
 			return;
 		}
@@ -110,14 +114,31 @@ export class VdoClient {
 
 		this.socket.on("close", () => {
 			if (this.settings.apiKey) {
-				this.setState("disconnected");
+				void this.handleRelayFailure("disconnected");
 				this.scheduleReconnect();
 			}
 		});
 
 		this.socket.on("error", () => {
-			this.setState("error");
+			void this.handleRelayFailure("error");
 		});
+	}
+
+	private async handleRelayFailure(state: "error" | "disconnected"): Promise<void> {
+		if (this.settings.httpFallback === false) {
+			this.setState(state);
+			return;
+		}
+		const generation = this.connectionGeneration;
+		if (this.checkingHttpGeneration === generation) return;
+		this.checkingHttpGeneration = generation;
+		try {
+			await this.sendCommand({ action: "getDetails" });
+		} catch {
+			// HTTP reports the page/network failure, with stale responses rejected.
+		} finally {
+			if (this.checkingHttpGeneration === generation) this.checkingHttpGeneration = undefined;
+		}
 	}
 
 	disconnect(state: ConnectionStateName = "disconnected"): void {

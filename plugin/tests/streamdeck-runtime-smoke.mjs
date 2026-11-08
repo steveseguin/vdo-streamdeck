@@ -25,6 +25,8 @@ await cp(builtPluginRoot, isolatedPluginRoot, { recursive: true });
 const apiRequests = [];
 const apiSocketMessages = [];
 let listGuests = {};
+let relayUnavailable = false;
+let pageUnavailable = false;
 const apiState = {
 	localMuted: false,
 	guestMuted: false,
@@ -44,6 +46,10 @@ const apiServer = createServer((request, response) => {
 	response.writeHead(key === apiKey ? 200 : 404, { "content-type": "application/json" });
 	if (key !== apiKey) {
 		response.end(JSON.stringify(false));
+		return;
+	}
+	if (pageUnavailable) {
+		response.end("failed");
 		return;
 	}
 	if (action === "getDetails") {
@@ -112,6 +118,10 @@ const apiServer = createServer((request, response) => {
 });
 const apiWebSockets = new WebSocketServer({ noServer: true });
 apiServer.on("upgrade", (request, socket, head) => {
+	if (relayUnavailable) {
+		socket.destroy();
+		return;
+	}
 	apiWebSockets.handleUpgrade(request, socket, head, client => apiWebSockets.emit("connection", client, request));
 });
 apiWebSockets.on("connection", socket => {
@@ -475,7 +485,28 @@ try {
 	holdListSettings = false;
 	appear(listUuid, "guests-list", "Keypad", { scope: "scene", scene: "empty" }, 0);
 	await waitFor(() => listImages().length > disappearedImages, "Guests List repaint after reappearing");
-	console.log("streamdeck bundled runtime integration passed: every action type, polling, keys, dials, persistence, readback, and transport");
+	// Relay retries must not mark working HTTP controls offline. The real SDK
+	// must keep the status key ready while commands continue reaching the page.
+	appear("ninja.vdo.streamdeck.local-control", "local-mic", "Keypad", localMicSettings, 2);
+	await delay(100);
+	const beforeRelayFailure = streamDeckMessages.length;
+	relayUnavailable = true;
+	for (const socket of apiWebSockets.clients) socket.terminate();
+	await delay(3500);
+	for (const behavior of ["off", "on", "off"]) {
+		const settings = { ...localMicSettings, behavior };
+		contextSettings.set("local-mic", settings);
+		const before = streamDeckMessages.length;
+		keyDown("ninja.vdo.streamdeck.local-control", "local-mic", settings, 2);
+		await waitFor(() => streamDeckMessages.slice(before).some(message => message.context === "local-mic" && message.event === "showOk"), "HTTP mic command during relay failure");
+		assert.equal(apiState.localMuted, behavior === "off");
+	}
+	assert.equal(streamDeckMessages.slice(beforeRelayFailure).some(message => message.context === "connection" && message.event === "setState" && message.payload.state === 0), false, "Healthy HTTP must keep the status key ready through relay retries");
+	pageUnavailable = true;
+	await waitFor(() => latestOutput("connection", "setTitle")?.payload.title === "No VDO\nPage", "real page loss reported while relay is unavailable");
+	pageUnavailable = false;
+	await waitFor(() => latestOutput("connection", "setState")?.payload.state === 1, "HTTP page recovery restores ready status");
+	console.log("streamdeck bundled runtime integration passed: every action type, polling, keys, dials, persistence, readback, transport, and HTTP status during relay failure");
 } catch (error) {
 	throw new Error(`${error instanceof Error ? error.message : String(error)}\nstdout:\n${stdout}\nstderr:\n${stderr}`);
 } finally {
